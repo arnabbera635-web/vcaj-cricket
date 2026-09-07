@@ -32,9 +32,35 @@
 <div class="grid two"><div><label>Match ID</label><input id="activeMatchId" value="mandal-2026-final"><button id="loadMatch" class="secondary">Load Match</button></div><div><label>Target (optional)</label><input id="target" type="number" min="0" placeholder="2nd innings target"></div></div></section>
 <div class="scoreboard card"><div><span id="battingTeam">TEAM</span><strong id="score">0/0</strong><span id="oversText">0.0 / 15 overs</span></div><div class="big" id="crr">CRR 0.00</div></div>
 <div class="grid two"><div class="card"><h2>বর্তমান ব্যাটার</h2><div class="grid two"><select id="striker"></select><select id="nonStriker"></select></div><p id="batInfo"></p></div><div class="card"><h2>বর্তমান বোলার</h2><select id="bowler"></select><p id="bowlInfo"></p></div></div>
-<div class="card"><h2>স্কোর</h2><div class="score-grid" id="runButtons"></div><div class="extra-grid"><button data-extra="wide">WIDE</button><button data-extra="noBall">NO BALL</button><button data-extra="bye">BYE</button><button data-extra="legBye">LEG BYE</button><button data-extra="wicket" class="danger">WICKET</button></div><div class="toolbar"><button id="undoBtn">UNDO</button><button id="endInnings" class="secondary">Innings শেষ</button></div></div>
+<div class="card"><div class="card-head"><h2>স্কোর</h2><div><label for="commentaryLang">Commentary</label><select id="commentaryLang"><option value="bn" selected>বাংলা</option><option value="en">English</option></select></div></div><div class="score-grid" id="runButtons"></div><div class="extra-grid"><button data-extra="wide">WIDE</button><button data-extra="noBall">NO BALL</button><button data-extra="bye">BYE</button><button data-extra="legBye">LEG BYE</button><button id="wicketBtn" class="danger">WICKET</button></div><div class="toolbar"><button id="undoBtn">UNDO</button><button id="endInnings" class="secondary">Innings শেষ</button></div></div>
 <div class="grid two"><div class="card"><h2>ব্যাটিং কার্ড</h2><div id="battingCard"></div></div><div class="card"><h2>বোলিং কার্ড</h2><div id="bowlingCard"></div></div></div>
 <div class="card"><h2>Live Commentary</h2><div id="commentary" class="commentary"></div></div>
+<div id="wicketModal" class="modal hidden">
+  <div class="modal-box card">
+    <div class="card-head"><h2>আউটের ধরন নির্বাচন করুন</h2><button id="closeWicket">বন্ধ</button></div>
+    <label>আউট হওয়া ব্যাটার</label>
+    <select id="dismissedBatter"></select>
+    <label>Dismissal Type</label>
+    <select id="dismissalType">
+      <option value="bowled">Bowled</option>
+      <option value="caught">Caught</option>
+      <option value="lbw">LBW</option>
+      <option value="runOut">Run Out</option>
+      <option value="stumped">Stumped</option>
+      <option value="hitWicket">Hit Wicket</option>
+      <option value="obstructing">Obstructing the Field</option>
+      <option value="hitTwice">Hit the Ball Twice</option>
+      <option value="timedOut">Timed Out</option>
+      <option value="retiredOut">Retired Out</option>
+    </select>
+    <div id="fielderBox" class="hidden">
+      <label>Fielder / Catcher</label>
+      <select id="fielder"></select>
+    </div>
+    <div class="toolbar"><button id="cancelWicket">Cancel</button><button id="confirmWicket" class="danger">আউট নিশ্চিত করুন</button></div>
+  </div>
+</div>
+
 </section></main>
 <script type="module" src="firebase.js"></script><script type="module" src="scorer.js"></script>
 </body></html>
