@@ -1,5 +1,3 @@
-// Firebase Console → Project settings → Your apps → Web app থেকে এই values বসান.
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 export const firebaseConfig = {
   apiKey: "AIzaSyAsT_pB8ZTKaBcbhdM7P_y-iiW-_KUHdpw",
   authDomain: "vcaj-cricket.firebaseapp.com",

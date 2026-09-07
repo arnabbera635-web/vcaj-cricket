@@ -1,22 +1,37 @@
 <!doctype html>
 <html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VCAJ Cricket — Scorer</title><link rel="stylesheet" href="style.css"></head>
+<title>VCAJ Cricket — Admin Portal & Scorer</title><link rel="stylesheet" href="style.css"></head>
 <body>
-<header class="topbar"><a class="brand" href="index.html"><span>VCAJ</span> Cricket</a><nav><a href="index.html">Public</a></nav></header>
+<header class="topbar"><a class="brand" href="index.html"><span>VCAJ</span> Cricket</a><nav><a href="index.html">Public</a><a href="players.html">খেলোয়াড়</a><a href="teams.html">দল</a></nav></header>
 <main class="container">
-<section id="loginCard" class="card narrow"><h1>Scorer Login</h1><p>শুধু অনুমোদিত scorer/admin account দিয়ে লগইন করুন।</p>
+<section id="loginCard" class="card narrow"><h1>Admin Portal Login</h1><p>অনুমোদিত admin/scorer account দিয়ে লগইন করুন।</p>
 <input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><button id="loginBtn" class="primary">Login</button><p id="loginMsg" class="msg"></p></section>
 <section id="scorerApp" class="hidden">
-<div class="card"><div class="card-head"><div><p class="eyebrow">Live Scoring Console</p><h1 id="matchTitle">ম্যাচ নির্বাচন করুন</h1></div><button id="logoutBtn">Logout</button></div>
+<div class="hero small"><div><p class="eyebrow">ADMIN PORTAL</p><h1>Match Setup & Live Scoring</h1><p>খেলার সময় দল, খেলোয়াড় ও overs সেট করে ম্যাচ শুরু করুন।</p></div><button id="logoutBtn">Logout</button></div>
+
 <div class="grid two">
-<div><label>Match ID</label><input id="matchId" value="mandal-2026-final"><button id="loadMatch" class="secondary">Load / Create Match</button></div>
-<div><label>Target (optional)</label><input id="target" type="number" min="0" placeholder="e.g. 121"></div>
-</div></div>
-<div class="scoreboard card"><div><span id="battingTeam">TEAM</span><strong id="score">0/0</strong><span id="overs">0.0 overs</span></div><div class="big" id="crr">CRR 0.00</div></div>
-<div class="grid two">
-<div class="card"><h2>বর্তমান ব্যাটার</h2><div class="grid two"><select id="striker"></select><select id="nonStriker"></select></div><p id="batInfo"></p></div>
-<div class="card"><h2>বর্তমান বোলার</h2><select id="bowler"></select><p id="bowlInfo"></p></div>
+<section class="card"><div class="card-head"><h2>নতুন দল যোগ করুন</h2><span id="teamCount" class="pill">0 / 16 দল</span></div>
+<input id="newTeamName" placeholder="দলের নাম"><input id="newTeamShort" placeholder="Short name (যেমন MT1)"><button id="addTeam" class="primary">দল Save করুন</button><p id="teamMsg" class="msg"></p></section>
+<section class="card"><h2>নতুন খেলোয়াড় যোগ করুন</h2>
+<input id="newPlayerName" placeholder="খেলোয়াড়ের নাম"><select id="newPlayerTeam"><option value="">দল নির্বাচন করুন</option></select><button id="addPlayer" class="primary">খেলোয়াড় Save করুন</button><p id="playerMsg" class="msg"></p></section>
 </div>
+
+<section class="card"><div class="card-head"><div><p class="eyebrow">16 TEAM KNOCKOUT</p><h2>নতুন ম্যাচ তৈরি করুন</h2></div><span class="pill">Default: 15 overs</span></div>
+<div class="grid three">
+<div><label>Season</label><input id="season" value="2026"></div>
+<div><label>Match Stage</label><select id="stage"><option value="R16">Round of 16</option><option value="QF">Quarter Final</option><option value="SF">Semi Final</option><option value="FINAL">Final</option><option value="CUSTOM">Custom</option></select></div>
+<div><label>Overs</label><select id="overs"><option value="5">5 overs</option><option value="8">8 overs</option><option value="10">10 overs</option><option value="12">12 overs</option><option value="15" selected>15 overs</option><option value="20">20 overs</option><option value="custom">Custom</option></select><input id="customOvers" type="number" min="1" max="50" placeholder="Custom overs" class="hidden"></div>
+<div><label>Batting Team</label><select id="team1"><option value="">প্রথমে দল নির্বাচন করুন</option></select></div>
+<div><label>Bowling Team</label><select id="team2"><option value="">দ্বিতীয় দল নির্বাচন করুন</option></select></div>
+<div><label>Match ID</label><input id="matchId" placeholder="Auto generate হবে"></div>
+</div>
+<div class="toolbar"><button id="refreshSetup">দল/খেলোয়াড় Refresh</button><button id="createMatch" class="primary">Match তৈরি করে Scoring শুরু করুন</button></div><p id="setupMsg" class="msg"></p>
+</section>
+
+<section class="card"><div class="card-head"><div><p class="eyebrow">LIVE SCORING CONSOLE</p><h1 id="matchTitle">ম্যাচ নির্বাচন করুন</h1></div><span id="matchMeta" class="pill">—</span></div>
+<div class="grid two"><div><label>Match ID</label><input id="activeMatchId" value="mandal-2026-final"><button id="loadMatch" class="secondary">Load Match</button></div><div><label>Target (optional)</label><input id="target" type="number" min="0" placeholder="2nd innings target"></div></div></section>
+<div class="scoreboard card"><div><span id="battingTeam">TEAM</span><strong id="score">0/0</strong><span id="oversText">0.0 / 15 overs</span></div><div class="big" id="crr">CRR 0.00</div></div>
+<div class="grid two"><div class="card"><h2>বর্তমান ব্যাটার</h2><div class="grid two"><select id="striker"></select><select id="nonStriker"></select></div><p id="batInfo"></p></div><div class="card"><h2>বর্তমান বোলার</h2><select id="bowler"></select><p id="bowlInfo"></p></div></div>
 <div class="card"><h2>স্কোর</h2><div class="score-grid" id="runButtons"></div><div class="extra-grid"><button data-extra="wide">WIDE</button><button data-extra="noBall">NO BALL</button><button data-extra="bye">BYE</button><button data-extra="legBye">LEG BYE</button><button data-extra="wicket" class="danger">WICKET</button></div><div class="toolbar"><button id="undoBtn">UNDO</button><button id="endInnings" class="secondary">Innings শেষ</button></div></div>
 <div class="grid two"><div class="card"><h2>ব্যাটিং কার্ড</h2><div id="battingCard"></div></div><div class="card"><h2>বোলিং কার্ড</h2><div id="bowlingCard"></div></div></div>
 <div class="card"><h2>Live Commentary</h2><div id="commentary" class="commentary"></div></div>
