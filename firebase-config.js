@@ -9,4 +9,4 @@ export const firebaseConfig = {
   appId: "1:684200953474:web:a3c45b3bacc3805a14d69b",
   measurementId: "G-0E3C7NKZ6Q"
 };
-export const ADMIN_EMAILS = ["YOUR_ADMIN_EMAIL@example.com"];
+export const ADMIN_EMAILS = ["vcajofficial@gmail.com"];
