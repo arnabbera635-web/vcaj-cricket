@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ Cricket — Scorer</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="topbar"><a class="brand" href="index.html"><span>VCAJ</span> Cricket</a><nav><a href="index.html">Public</a></nav></header>
+<main class="container">
+<section id="loginCard" class="card narrow"><h1>Scorer Login</h1><p>শুধু অনুমোদিত scorer/admin account দিয়ে লগইন করুন।</p>
+<input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><button id="loginBtn" class="primary">Login</button><p id="loginMsg" class="msg"></p></section>
+<section id="scorerApp" class="hidden">
+<div class="card"><div class="card-head"><div><p class="eyebrow">Live Scoring Console</p><h1 id="matchTitle">ম্যাচ নির্বাচন করুন</h1></div><button id="logoutBtn">Logout</button></div>
+<div class="grid two">
+<div><label>Match ID</label><input id="matchId" value="mandal-2026-final"><button id="loadMatch" class="secondary">Load / Create Match</button></div>
+<div><label>Target (optional)</label><input id="target" type="number" min="0" placeholder="e.g. 121"></div>
+</div></div>
+<div class="scoreboard card"><div><span id="battingTeam">TEAM</span><strong id="score">0/0</strong><span id="overs">0.0 overs</span></div><div class="big" id="crr">CRR 0.00</div></div>
+<div class="grid two">
+<div class="card"><h2>বর্তমান ব্যাটার</h2><div class="grid two"><select id="striker"></select><select id="nonStriker"></select></div><p id="batInfo"></p></div>
+<div class="card"><h2>বর্তমান বোলার</h2><select id="bowler"></select><p id="bowlInfo"></p></div>
+</div>
+<div class="card"><h2>স্কোর</h2><div class="score-grid" id="runButtons"></div><div class="extra-grid"><button data-extra="wide">WIDE</button><button data-extra="noBall">NO BALL</button><button data-extra="bye">BYE</button><button data-extra="legBye">LEG BYE</button><button data-extra="wicket" class="danger">WICKET</button></div><div class="toolbar"><button id="undoBtn">UNDO</button><button id="endInnings" class="secondary">Innings শেষ</button></div></div>
+<div class="grid two"><div class="card"><h2>ব্যাটিং কার্ড</h2><div id="battingCard"></div></div><div class="card"><h2>বোলিং কার্ড</h2><div id="bowlingCard"></div></div></div>
+<div class="card"><h2>Live Commentary</h2><div id="commentary" class="commentary"></div></div>
+</section></main>
+<script type="module" src="firebase.js"></script><script type="module" src="scorer.js"></script>
+</body></html>

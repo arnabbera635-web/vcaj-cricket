@@ -1,0 +1,2 @@
+import {db,collection,getDocs,query,orderBy} from "./firebase.js";
+getDocs(query(collection(db,"matches"),orderBy("updatedAt","desc"))).then(s=>document.getElementById("archive").innerHTML=`<table><tr><th>ম্যাচ</th><th>দল</th><th>স্কোর</th><th>Status</th></tr>${s.docs.map(d=>{const x=d.data();return `<tr><td>${x.title||d.id}</td><td>${x.battingTeam||""} vs ${x.bowlingTeam||""}</td><td>${x.score||0}/${x.wickets||0}</td><td>${x.status||""}</td></tr>`}).join("")}</table>`);

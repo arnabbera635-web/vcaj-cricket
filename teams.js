@@ -1,0 +1,3 @@
+import {db,collection,getDocs} from "./firebase.js"; const $=id=>document.getElementById(id);
+async function load(){const s=await getDocs(collection(db,"teams"));$("teams").innerHTML=s.docs.map(d=>{const x=d.data();return `<div class="card team"><h2>${x.name||d.id}</h2><p>${x.shortName||""}</p><p>${x.playersCount||0} players</p></div>`}).join("")||"<p>Firebase-এ team data যোগ করুন।</p>";}
+$("refresh").onclick=load;load();

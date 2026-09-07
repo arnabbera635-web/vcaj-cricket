@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ Cricket — Live Score</title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar"><a class="brand" href="index.html"><span>VCAJ</span> Cricket</a>
+<nav><a href="index.html">লাইভ</a><a href="players.html">খেলোয়াড়</a><a href="teams.html">দল</a><a href="members.html">সদস্য</a><a href="archive.html">আর্কাইভ</a><a class="admin-link" href="scorer.html">স্কোরার</a></nav></header>
+<main class="container">
+<section class="hero"><div><p class="eyebrow">মন্ডল এন্ড মন্ডল নকআউট ক্রিকেট টুর্নামেন্ট</p><h1>Live Score & Records</h1><p>স্কোর আপডেট হলেই দর্শক, খেলোয়াড়ের রেকর্ড ও ম্যাচ ডাটা একসাথে আপডেট হবে।</p></div><div class="hero-ball">●</div></section>
+<section class="grid two">
+<div class="card"><div class="card-head"><h2>লাইভ ম্যাচ</h2><span id="liveStatus" class="pill">লোড হচ্ছে…</span></div><div id="liveMatches" class="stack"></div></div>
+<div class="card"><h2>আজকের রেকর্ড</h2><div id="quickStats" class="stats"></div></div>
+</section>
+<section class="card"><div class="card-head"><h2>সর্বশেষ ম্যাচ</h2><a href="archive.html">সব দেখুন</a></div><div id="recentMatches" class="table-wrap"></div></section>
+</main>
+<script type="module" src="firebase.js"></script><script type="module" src="app.js"></script>
+</body></html>

@@ -1,0 +1,2 @@
+import {db,collection,getDocs} from "./firebase.js"; const $=id=>document.getElementById(id);
+getDocs(collection(db,"members")).then(s=>$("members").innerHTML=`<table><tr><th>নাম</th><th>ভূমিকা</th><th>ফোন</th><th>দল</th></tr>${s.docs.map(d=>{const x=d.data();return `<tr><td>${x.name||""}</td><td>${x.role||""}</td><td>${x.phone||""}</td><td>${x.team||""}</td></tr>`}).join("")}</table>`);
