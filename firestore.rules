@@ -8,7 +8,7 @@ service cloud.firestore {
     match /matches/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /matches/{id}/events/{eventId} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /players/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
-    match /teams/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
+    match /teams/{id} { allow read: if true; allow create,update: if admin(); allow delete: if admin(); }
     match /members/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /seasons/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
   }
