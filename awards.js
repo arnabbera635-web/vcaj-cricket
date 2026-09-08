@@ -2,7 +2,7 @@ import {auth,db,isAdmin,collection,getDocs,doc,getDoc,setDoc,onAuthStateChanged}
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let players=[],user=null,recommendations={},matchRecommendations=[];
+let players=[],user=null,recommendations={},matchRecommendations=[],seasonStats={};
 
 const awards=['bestBatsman','bestBowler','bestKeeper','bestFielder','playerOfTournament'];
 const matchAwards=['bestBatsman','bestBowler','bestKeeper','bestFielder','manOfMatch'];
@@ -72,16 +72,60 @@ function candidateText(id,x){
   if(id==='manOfMatch')return `${playerName(x.id,x)} — ${x.runs} runs, ${x.wickets} wickets, ${x.catches} catches, ${x.stumpings} stumpings, ${x.runOuts} run-outs`;
   return `${playerName(x.id,x)} — ${x.runs} runs, ${x.wickets} wickets, ${x.catches} catches, ${x.stumpings} stumpings, ${x.runOuts} run-outs`;
 }
+function metricDefs(id){
+  if(id==='bestBatsman')return [
+    ['Runs','runs',1],['Strike Rate','sr',1],['4s','fours',1],['6s','sixes',1]
+  ];
+  if(id==='bestBowler')return [
+    ['Wickets','wickets',1],['Economy','economy',-1],['Overs','overs',0]
+  ];
+  if(id==='bestKeeper')return [
+    ['Stumpings','stumpings',1],['Catches','catches',1]
+  ];
+  if(id==='bestFielder')return [
+    ['Catches','catches',1],['Run-outs','runOuts',1]
+  ];
+  return [
+    ['Performance points','points',1],['Runs','runs',1],['Wickets','wickets',1],['Catches','catches',1],['Run-outs','runOuts',1]
+  ];
+}
+function metricValues(id,x){
+  x=x||{};
+  return {
+    runs:n(x.runs),balls:n(x.balls),sr:strikeRate(x),fours:n(x.fours),sixes:n(x.sixes),
+    wickets:n(x.wickets),economy:economy(x),overs:overs(x.bowlingBalls),
+    stumpings:n(x.stumpings),catches:n(x.catches),runOuts:n(x.runOuts),points:performancePoints(x)
+  };
+}
+function formatMetric(key,v){
+  if(key==='sr')return n(v).toFixed(1);
+  if(key==='economy')return n(v)>=999?'—':n(v).toFixed(2);
+  return String(v??0);
+}
+function renderComparison(boxId,id,selected,benchmark,stats){
+  const box=$(boxId); if(!box)return;
+  if(!benchmark){box.innerHTML='';return;}
+  const rec=benchmark; const sel=stats?.[selected]||{};
+  const rv=metricValues(id,rec), sv=metricValues(id,sel);
+  const same=selected===rec.id;
+  const rows=metricDefs(id).map(([label,key,dir])=>{
+    const a=rv[key],b=sv[key];
+    const worse=dir!==0 && !same && ((dir===1&&n(b)<n(a))||(dir===-1&&n(b)>n(a)));
+    return `<div class="compare-row"><span>${esc(label)}</span><b>${formatMetric(key,a)}</b><b class="${worse?'metric-lower':''}">${formatMetric(key,b)}</b></div>`;
+  }).join('');
+  box.innerHTML=`<div class="compare-head"><span>রেকর্ড তুলনা</span><span class="compare-legend"><b>Recommendation: ${esc(playerName(rec.id,rec))}</b><b>Selected: ${esc(playerName(selected,sel))}</b></span></div><div class="compare-grid"><div class="compare-labels"><span>Metric</span><span>Recommended</span><span>Selected</span></div>${rows}</div><div class="compare-note">Selected player-এর প্রাসঙ্গিক record recommendation-এর চেয়ে কম হলে সেটি <span class="metric-lower">লাল</span> দেখাবে। Economy-তে বেশি হলে লাল।</div>`;
+}
 function showRecommendations(r){
   recommendations=r;
-  awards.forEach(id=>{const x=r[id];if($(id))$(id).value=x?.id||'';const box=$(`${id}Recommendation`);if(box)box.innerHTML=x?`<b>Automatic recommendation:</b> ${esc(candidateText(id,x))}`:'<span class="muted">পর্যাপ্ত record নেই।';});
+  awards.forEach(id=>{const x=r[id];if($(id))$(id).value=x?.id||'';const box=$(`${id}Recommendation`);if(box)box.innerHTML=x?`<b>Automatic recommendation:</b> ${esc(candidateText(id,x))}`:'<span class="muted">পর্যাপ্ত record নেই।';renderComparison(`${id}Comparison`,id,x?.id||'',x,seasonStats);});
   $('calcMsg').textContent='Tournament-level record গণনা সম্পন্ন হয়েছে।';
 }
 function renderMatchRecommendations(rows){
   matchRecommendations=rows;
   const box=$('matchAwardsList');
   if(!rows.length){box.innerHTML='<div class="empty">এই season-এ কোনো match পাওয়া যায়নি।</div>';return;}
-  box.innerHTML=rows.map((r,i)=>`<div class="card match-award-card" style="margin:12px 0"><h3>${i+1}. ${esc(r.title)}</h3><p class="small muted">${esc(r.stage||'')} ${r.status?'• '+esc(r.status):''}</p><div class="grid two">${matchAwards.map(id=>{const x=r.awards[id];return `<div class="award-row"><label>${esc(awardLabels[id])}</label><select data-match="${esc(r.id)}" data-award="${id}"><option value="">Player নির্বাচন</option>${players.map(p=>`<option value="${esc(p.id)}" ${x?.id===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><div class="recommend">${x?esc(candidateText(id,x)):'পর্যাপ্ত record নেই'}</div></div>`}).join('')}</div></div>`).join('');
+  box.innerHTML=rows.map((r,i)=>`<div class="card match-award-card" style="margin:12px 0"><h3>${i+1}. ${esc(r.title)}</h3><p class="small muted">${esc(r.stage||'')} ${r.status?'• '+esc(r.status):''}</p><div class="grid two">${matchAwards.map(id=>{const x=r.awards[id];const selected=x?.id||'';return `<div class="award-row"><label>${esc(awardLabels[id])}</label><select data-match="${esc(r.id)}" data-award="${id}"><option value="">Player নির্বাচন</option>${players.map(p=>`<option value="${esc(p.id)}" ${selected===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><div class="recommend">${x?`<b>Automatic recommendation:</b> ${esc(candidateText(id,x))}`:'পর্যাপ্ত record নেই'}</div><div id="matchCompare-${esc(r.id)}-${id}" class="comparison"></div></div>`}).join('')}</div></div>`).join('');
+  rows.forEach(r=>matchAwards.forEach(id=>renderComparison(`matchCompare-${r.id}-${id}`,id,r.awards[id]?.id||'',r.awards[id],r.players)));
 }
 async function calculateMatches(){
   const season=n($('season').value||2026);$('matchMsg').textContent='প্রতিটি ম্যাচের record গণনা হচ্ছে…';
@@ -102,13 +146,15 @@ async function loadSaved(){
   const season=n($('season').value||2026);const s=await getDoc(doc(db,'tournaments',String(season)));const a=s.exists()?s.data().awards||{}:{};
   $('saved').innerHTML=Object.keys(a).length?Object.entries(a).map(([k,v])=>`<div class="award-row"><b>${esc(awardLabels[k]||k)}</b> — ${esc(v.playerName||players.find(p=>p.id===v.playerId)?.name||'—')} <span class="muted">${esc(v.note||'')}</span></div>`).join(''):'<div class="empty">এই season-এ এখনও কোনো tournament award save করা হয়নি।</div>';
 }
-async function calculate(){const season=n($('season').value||2026);$('calcMsg').textContent='Record গণনা হচ্ছে…';try{const data=await getSeasonData(season);showRecommendations(calculateRecommendations(data));}catch(e){console.error(e);$('calcMsg').textContent='Record গণনা করতে সমস্যা হয়েছে: '+e.message;}}
+async function calculate(){const season=n($('season').value||2026);$('calcMsg').textContent='Record গণনা হচ্ছে…';try{const data=await getSeasonData(season);seasonStats=data.by;showRecommendations(calculateRecommendations(data));}catch(e){console.error(e);$('calcMsg').textContent='Record গণনা করতে সমস্যা হয়েছে: '+e.message;}}
 async function saveAll(){
   if(!isAdmin(user)){alert('Admin login প্রয়োজন।');return;}
   const season=n($('season').value||2026);const snap=await getDoc(doc(db,'tournaments',String(season)));const awardsData=snap.exists()?snap.data().awards||{}:{};
   awards.forEach(id=>{const pid=$(id)?.value;if(pid){const p=players.find(x=>x.id===pid);awardsData[id]={playerId:pid,playerName:p?.name||'',note:$(`${id}Note`)?.value.trim()||'Automatic record-based recommendation',metrics:candidateText(id,recommendations[id]),savedAt:new Date().toISOString()};}});
   await setDoc(doc(db,'tournaments',String(season)),{season,awards:awardsData},{merge:true});await loadSaved();$('saveMsg').textContent='Tournament awards Save হয়েছে।';
 }
+awards.forEach(id=>{const el=$(id);if(el)el.addEventListener('change',()=>renderComparison(`${id}Comparison`,id,el.value,recommendations[id],seasonStats));});
+$('matchAwardsList').addEventListener('change',e=>{const el=e.target;if(!el.matches('select[data-match][data-award]'))return;const r=matchRecommendations.find(x=>x.id===el.dataset.match);if(!r)return;renderComparison(`matchCompare-${r.id}-${el.dataset.award}`,el.dataset.award,el.value,r.awards[el.dataset.award],r.players);});
 $('calculateBtn').onclick=calculate;$('saveAllBtn').onclick=saveAll;$('calculateMatchesBtn').onclick=calculateMatches;$('saveMatchesBtn').onclick=saveMatches;
-$('season').onchange=async()=>{recommendations={};matchRecommendations=[];await loadSaved();$('matchAwardsList').innerHTML='';$('calcMsg').textContent='';$('matchMsg').textContent='';};
+$('season').onchange=async()=>{recommendations={};matchRecommendations=[];seasonStats={};awards.forEach(id=>{const c=$(`${id}Comparison`);if(c)c.innerHTML='';});await loadSaved();$('matchAwardsList').innerHTML='';$('calcMsg').textContent='';$('matchMsg').textContent='';};
 onAuthStateChanged(auth,async u=>{user=u;await loadPlayers();populateSelects();await loadSaved();});
