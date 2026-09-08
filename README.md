@@ -68,9 +68,3 @@
 - Scorer shows ONLINE / OFFLINE / pending-sync status.
 - `Backup JSON` downloads a manual copy of the current match and pending events.
 - If Firebase is temporarily unavailable, the scorer can resume the active match from the local backup instead of losing the current state.
-
-## Award Recommendation vs Selected Player Comparison
-- All season awards and match-wise awards now show the automatic recommendation's record beside the manually selected player's record.
-- If the selected player's relevant metric is lower than the recommendation, it is highlighted in red.
-- For bowling economy, a higher economy is highlighted in red because lower economy is better.
-- Changing any award dropdown updates the comparison immediately without recalculating the tournament.
