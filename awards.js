@@ -1,6 +1,9 @@
-import {auth,db,isAdmin,collection,getDocs,doc,getDoc,setDoc,onAuthStateChanged} from './firebase.js';
+import {auth,db,isAdmin,collection,getDocs,doc,getDoc,setDoc,onAuthStateChanged,signInWithEmailAndPassword} from './firebase.js';
 
 const $=id=>document.getElementById(id);
+function setAdminUI(ok){const login=$('loginCard'),app=$('adminAwardsApp');if(login)login.classList.toggle('hidden',ok);if(app)app.classList.toggle('hidden',!ok);}
+function setSaveMessage(text,error=false){const el=$('saveMsg');if(el){el.textContent=text;el.className=error?'msg':'muted';}}
+async function requireAdmin(){const u=auth.currentUser;if(!u||!isAdmin(u)){setAdminUI(false);setSaveMessage('Admin login প্রয়োজন।',true);return false;}user=u;setAdminUI(true);return true;}
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let players=[],user=null,recommendations={},matchRecommendations=[],seasonStats={};
 
@@ -152,14 +155,18 @@ async function calculateMatches(){
   catch(e){console.error(e);$('matchMsg').textContent='Match awards গণনা করতে সমস্যা হয়েছে: '+e.message;}
 }
 async function saveMatches(){
-  if(!isAdmin(user)){alert('Admin login প্রয়োজন।');return;}
+  if(!await requireAdmin())return;
   if(!matchRecommendations.length){alert('আগে Calculate All Match Awards চাপুন।');return;}
-  for(const r of matchRecommendations){
-    const awardsData={};
-    matchAwards.forEach(id=>{const sel=document.querySelector(`select[data-match="${CSS.escape(r.id)}"][data-award="${id}"]`);const pid=sel?.value;const p=players.find(x=>x.id===pid);if(pid)awardsData[id]={playerId:pid,playerName:p?.name||'',metrics:candidateText(id,r.awards[id]),savedAt:new Date().toISOString()};});
-    if(Object.keys(awardsData).length)await setDoc(doc(db,'matches',r.id),{awards:awardsData},{merge:true});
-  }
-  $('matchMsg').textContent='সব match awards save হয়েছে।';
+  const btn=$('saveMatchesBtn');if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  try{
+    for(const r of matchRecommendations){
+      const awardsData={};
+      matchAwards.forEach(id=>{const sel=document.querySelector(`select[data-match="${CSS.escape(r.id)}"][data-award="${id}"]`);const pid=sel?.value;const p=players.find(x=>x.id===pid);if(pid)awardsData[id]={playerId:pid,playerName:p?.name||'',metrics:candidateText(id,r.awards[id]),savedAt:new Date().toISOString()};});
+      if(Object.keys(awardsData).length)await setDoc(doc(db,'matches',r.id),{awards:awardsData},{merge:true});
+    }
+    $('matchMsg').textContent='সব match awards save হয়েছে।';
+  }catch(e){console.error('Save match awards failed:',e);$('matchMsg').textContent='Save হয়নি: '+(e?.message||e);alert('Match awards Save হয়নি.\n\n'+(e?.message||e));}
+  finally{if(btn){btn.disabled=false;btn.textContent='Save All Match Awards';}}
 }
 async function loadSaved(){
   const season=n($('season').value||2026);const s=await getDoc(doc(db,'tournaments',String(season)));const a=s.exists()?s.data().awards||{}:{};
@@ -167,11 +174,23 @@ async function loadSaved(){
 }
 async function calculate(){const season=n($('season').value||2026);$('calcMsg').textContent='Record গণনা হচ্ছে…';try{const data=await getSeasonData(season);seasonStats=data.by;showRecommendations(calculateRecommendations(data));}catch(e){console.error(e);$('calcMsg').textContent='Record গণনা করতে সমস্যা হয়েছে: '+e.message;}}
 async function saveAll(){
-  if(!isAdmin(user)){alert('Admin login প্রয়োজন।');return;}
-  const season=n($('season').value||2026);const snap=await getDoc(doc(db,'tournaments',String(season)));const awardsData=snap.exists()?snap.data().awards||{}:{};
-  awards.forEach(id=>{const pid=$(id)?.value;if(pid){const p=players.find(x=>x.id===pid);awardsData[id]={playerId:pid,playerName:p?.name||'',note:$(`${id}Note`)?.value.trim()||'Automatic record-based recommendation',metrics:candidateText(id,recommendations[id]),savedAt:new Date().toISOString()};}});
-  await setDoc(doc(db,'tournaments',String(season)),{season,awards:awardsData},{merge:true});await loadSaved();$('saveMsg').textContent='Tournament awards Save হয়েছে।';
+  if(!await requireAdmin())return;
+  const btn=$('saveAllBtn');if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  setSaveMessage('Award save হচ্ছে…');
+  try{
+    const season=n($('season').value||2026);
+    if(!Object.keys(recommendations||{}).length)await calculate();
+    const snap=await getDoc(doc(db,'tournaments',String(season)));
+    const awardsData=snap.exists()?{...(snap.data().awards||{})}:{};
+    let count=0;
+    awards.forEach(id=>{const pid=$(id)?.value;if(pid){const p=players.find(x=>x.id===pid);awardsData[id]={playerId:pid,playerName:p?.name||'',note:$(`${id}Note`)?.value.trim()||'Automatic record-based recommendation',metrics:candidateText(id,recommendations[id]),savedAt:new Date().toISOString()};count++;}});
+    if(!count)throw new Error('কোনো award player নির্বাচন করা হয়নি। আগে Calculate Awards চাপুন।');
+    await setDoc(doc(db,'tournaments',String(season)),{season,awards:awardsData},{merge:true});
+    await loadSaved();setSaveMessage(`✓ ${count}টি tournament award Firebase-এ save হয়েছে।`);
+  }catch(e){console.error('Save All Awards failed:',e);setSaveMessage('Save হয়নি: '+(e?.message||e),true);alert('Award Save হয়নি.\n\n'+(e?.message||e));}
+  finally{if(btn){btn.disabled=false;btn.textContent='Save All Awards';}}
 }
 $('calculateBtn').onclick=calculate;$('saveAllBtn').onclick=saveAll;$('calculateMatchesBtn').onclick=calculateMatches;$('saveMatchesBtn').onclick=saveMatches;
-$('season').onchange=async()=>{recommendations={};matchRecommendations=[];await loadSaved();$('matchAwardsList').innerHTML='';$('calcMsg').textContent='';$('matchMsg').textContent='';};
-onAuthStateChanged(auth,async u=>{user=u;await loadPlayers();populateSelects();awards.forEach(bindAwardComparison);await loadSaved();});
+$('adminLoginBtn').onclick=async()=>{const email=$('adminEmail').value.trim(),password=$('adminPassword').value;$('adminLoginMsg').textContent='Login হচ্ছে…';try{await signInWithEmailAndPassword(auth,email,password);$('adminLoginMsg').textContent='Login সফল।';}catch(e){$('adminLoginMsg').textContent='Login হয়নি: '+(e?.message||e);}};
+$('season').onchange=async()=>{recommendations={};matchRecommendations=[];if(auth.currentUser&&isAdmin(auth.currentUser))await loadSaved();$('matchAwardsList').innerHTML='';$('calcMsg').textContent='';$('matchMsg').textContent='';setSaveMessage('');};
+onAuthStateChanged(auth,async u=>{user=u;const ok=!!u&&isAdmin(u);setAdminUI(ok);if(ok){try{await loadPlayers();populateSelects();awards.forEach(bindAwardComparison);await loadSaved();}catch(e){console.error(e);setSaveMessage('Admin panel load হয়নি: '+(e?.message||e),true);}}else{setSaveMessage('Admin login করলে award save করা যাবে।');}});
