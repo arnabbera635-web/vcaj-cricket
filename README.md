@@ -60,3 +60,11 @@
 - `live.html` is a public read-only live score panel.
 - It listens to `liveMatches` with Firestore `onSnapshot`, so score, wickets, overs, target, CRR/RRR, players, bowler and commentary update automatically without refresh.
 - `matches.html` also uses a real-time listener for the match list and links live matches to the public live panel.
+
+## Match Safety & Crash Recovery
+- Scorer keeps an automatic local backup of the active match in browser storage after scoring changes.
+- Match events are queued locally if Firebase is unavailable and automatically synchronized when the connection returns.
+- Public live score remains Firebase real-time when connected.
+- Scorer shows ONLINE / OFFLINE / pending-sync status.
+- `Backup JSON` downloads a manual copy of the current match and pending events.
+- If Firebase is temporarily unavailable, the scorer can resume the active match from the local backup instead of losing the current state.
