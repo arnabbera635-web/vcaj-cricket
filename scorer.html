@@ -18,6 +18,22 @@
 <select id="editPlayerSelect"><option value="">খেলোয়াড় নির্বাচন করুন</option></select>
 <input id="editPlayerName" placeholder="নতুন খেলোয়াড়ের নাম">
 <button id="editPlayer" class="primary">নাম Update করুন</button><p id="editPlayerMsg" class="msg"></p></section>
+<section class="card"><div class="card-head"><div><h2>সদস্যদের সম্পূর্ণ তথ্য</h2><p class="muted">সদস্যের ব্যক্তিগত/প্রশাসনিক তথ্য, দল, season ও fee status Admin panel-এ স্থায়ীভাবে Save হবে।</p></div><span id="memberCount" class="pill">0 জন</span></div>
+<div class="grid three">
+<div><label>নাম</label><input id="memberName" placeholder="সদস্যের নাম"></div>
+<div><label>ভূমিকা</label><input id="memberRole" placeholder="সভাপতি / সম্পাদক / কর্মকর্তা"></div>
+<div><label>ফোন</label><input id="memberPhone" type="tel" placeholder="ফোন নম্বর"></div>
+<div><label>Email</label><input id="memberEmail" type="email" placeholder="Email (optional)"></div>
+<div><label>ঠিকানা</label><input id="memberAddress" placeholder="ঠিকানা"></div>
+<div><label>দল</label><select id="memberTeam"><option value="">দল নেই / প্রযোজ্য নয়</option></select></div>
+<div><label>Season</label><input id="memberSeason" type="number" value="2026"></div>
+<div><label>Fee</label><input id="memberFee" placeholder="যেমন 3501"></div>
+<div><label>Fee Status</label><select id="memberFeeStatus"><option>বাকি</option><option>পরিশোধ</option><option>আংশিক</option></select></div>
+</div>
+<label>নোট</label><textarea id="memberNote" rows="2" placeholder="অতিরিক্ত তথ্য / নোট"></textarea>
+<div class="toolbar"><button id="memberSave" class="primary">সদস্য Save করুন</button><button id="memberCancel" class="secondary hidden">Cancel</button></div><p id="memberMsg" class="msg"></p>
+<div id="memberAdminTable"></div>
+</section>
 <section class="card"><div class="card-head"><div><p class="eyebrow">16 TEAM KNOCKOUT</p><h2>নতুন ম্যাচ তৈরি করুন</h2></div><span class="pill">Default: 15 overs</span></div>
 <div class="grid three">
 <div><label>Season</label><input id="season" value="2026"></div>

@@ -1,1 +1,43 @@
-<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VCAJ Cricket — Members</title><link rel="stylesheet" href="style.css"></head><body><header class="topbar"><a class="brand" href="index.html"><span>VCAJ</span> Cricket</a><nav><a href="index.html">Home</a><a href="bracket.html">Bracket</a><a href="matches.html">Matches</a><a href="players.html">Players</a><a href="records.html">Records</a><a href="awards.html">Awards</a><a href="scorer.html">Admin</a></nav></header><main class="container"><section class="hero small"><div><p class="eyebrow">MEMBER DIRECTORY</p><h1>Members</h1><p>Member registration/fee records-এর public summary.</p></div></section><section class="card"><div id="members"></div></section></main><script type="module" src="members.js"></script></body></html>
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Members — VCAJ Cricket</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html"><span>VCAJ</span> Cricket</a>
+  <nav><a href="index.html">লাইভ</a><a href="players.html">খেলোয়াড়</a><a href="teams.html">দল</a></nav>
+</header>
+<main class="container">
+<section class="card">
+  <div class="card-head">
+    <div><h1>সদস্য ডাটাবেস</h1><p>খেলোয়াড়, কর্মকর্তা ও tournament member-এর স্থায়ী তথ্য রাখুন।</p></div>
+    <button id="refresh">Refresh</button>
+  </div>
+  <div id="authBox" style="margin-bottom:16px"></div>
+</section>
+
+<section id="memberFormCard" class="card hidden">
+  <div class="card-head"><h2 id="formTitle">নতুন সদস্য যোগ করুন</h2><button id="cancelEdit" class="hidden">Cancel</button></div>
+  <div class="grid two">
+    <div><label>নাম</label><input id="memberName" placeholder="সদস্যের নাম"></div>
+    <div><label>ভূমিকা</label><input id="memberRole" placeholder="যেমন: সভাপতি / সম্পাদক / কর্মকর্তা"></div>
+    <div><label>ফোন</label><input id="memberPhone" type="tel" placeholder="ফোন নম্বর"></div>
+    <div><label>দল</label><select id="memberTeam"><option value="">দল নেই / প্রযোজ্য নয়</option></select></div>
+  </div>
+  <div class="toolbar"><button id="saveMember" class="primary">সদস্য Save করুন</button></div>
+  <p id="memberMsg" class="msg"></p>
+</section>
+
+<section class="card">
+  <div class="card-head"><h2>সদস্য তালিকা</h2><span id="memberCount" class="pill">0 জন</span></div>
+  <div id="members" class="table-wrap"></div>
+</section>
+</main>
+<script type="module" src="firebase.js"></script>
+<script type="module" src="members.js"></script>
+</body>
+</html>
