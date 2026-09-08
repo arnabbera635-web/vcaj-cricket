@@ -2,7 +2,7 @@ import {auth,db,isAdmin,collection,getDocs,doc,getDoc,setDoc,onAuthStateChanged}
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let players=[],user=null,recommendations={},matchRecommendations=[];
+let players=[],user=null,recommendations={},matchRecommendations=[],seasonStats={};
 
 const awards=['bestBatsman','bestBowler','bestKeeper','bestFielder','playerOfTournament'];
 const matchAwards=['bestBatsman','bestBowler','bestKeeper','bestFielder','manOfMatch'];
@@ -72,16 +72,79 @@ function candidateText(id,x){
   if(id==='manOfMatch')return `${playerName(x.id,x)} — ${x.runs} runs, ${x.wickets} wickets, ${x.catches} catches, ${x.stumpings} stumpings, ${x.runOuts} run-outs`;
   return `${playerName(x.id,x)} — ${x.runs} runs, ${x.wickets} wickets, ${x.catches} catches, ${x.stumpings} stumpings, ${x.runOuts} run-outs`;
 }
+
+function awardMetrics(id,x){
+  if(!x)return [];
+  if(id==='bestBatsman')return [
+    ['Runs',n(x.runs),'high'],['Strike rate',strikeRate(x),'high'],['4s',n(x.fours),'high'],['6s',n(x.sixes),'high']
+  ];
+  if(id==='bestBowler')return [
+    ['Wickets',n(x.wickets),'high'],['Overs',n(x.bowlingBalls)/6,'high'],['Economy',economy(x),'low']
+  ];
+  if(id==='bestKeeper')return [
+    ['Stumpings',n(x.stumpings),'high'],['Catches',n(x.catches),'high']
+  ];
+  if(id==='bestFielder')return [
+    ['Catches',n(x.catches),'high'],['Run-outs',n(x.runOuts),'high']
+  ];
+  if(id==='manOfMatch')return [
+    ['Performance points',performancePoints(x),'high'],['Runs',n(x.runs),'high'],['Wickets',n(x.wickets),'high'],['Catches',n(x.catches),'high'],['Stumpings',n(x.stumpings),'high'],['Run-outs',n(x.runOuts),'high']
+  ];
+  return [
+    ['Performance points',performancePoints(x),'high'],['Runs',n(x.runs),'high'],['Wickets',n(x.wickets),'high'],['Catches',n(x.catches),'high'],['Stumpings',n(x.stumpings),'high'],['Run-outs',n(x.runOuts),'high']
+  ];
+}
+function fmtMetric(label,v){
+  if(label==='Strike rate' || label==='Economy')return Number(v).toFixed(2);
+  if(label==='Overs')return Number(v).toFixed(1);
+  return Number(v).toFixed(0);
+}
+function metricClass(value,reference,direction){
+  if(!reference || value===reference)return '';
+  if(direction==='low')return value>reference?'metric-bad':'metric-good';
+  return value<reference?'metric-bad':'metric-good';
+}
+function comparisonHTML(id,selected,reference){
+  if(!reference)return '<div class="compare-empty">Automatic recommendation-এর পর্যাপ্ত record নেই।</div>';
+  if(!selected)selected=reference;
+  const refName=playerName(reference.id,reference), selName=playerName(selected.id,selected);
+  const rows=awardMetrics(id,reference).map(([label,rv,direction])=>{
+    const sv=awardMetrics(id,selected).find(m=>m[0]===label)?.[1] ?? 0;
+    const cls=selected.id===reference.id?'':metricClass(sv,rv,direction);
+    return `<div class="compare-metric"><span>${esc(label)}</span><b class="metric-ref">${fmtMetric(label,rv)}</b><b class="metric-selected ${cls}">${fmtMetric(label,sv)}</b></div>`;
+  }).join('');
+  return `<div class="compare-title">Record comparison</div><div class="compare-head"><span>Metric</span><span>Recommended: ${esc(refName)}</span><span>Selected: ${esc(selName)}</span></div><div class="compare-body">${rows}</div><div class="compare-legend"><span class="metric-good">Higher/better</span><span class="metric-bad">Lower/worse than recommendation</span></div>`;
+}
+function bindAwardComparison(id){
+  const sel=$(id); if(!sel)return;
+  const update=()=>{
+    const p=players.find(p=>p.id===sel.value);
+    const selected=p ? {...(seasonStats[p.id]||{}),...p,id:p.id,name:p.name} : null;
+    const box=$(`${id}Recommendation`);
+    box.innerHTML=comparisonHTML(id,selected,recommendations[id]);
+  };
+  sel.onchange=update;
+  update();
+}
 function showRecommendations(r){
   recommendations=r;
-  awards.forEach(id=>{const x=r[id];if($(id))$(id).value=x?.id||'';const box=$(`${id}Recommendation`);if(box)box.innerHTML=x?`<b>Automatic recommendation:</b> ${esc(candidateText(id,x))}`:'<span class="muted">পর্যাপ্ত record নেই।';});
-  $('calcMsg').textContent='Tournament-level record গণনা সম্পন্ন হয়েছে।';
+  awards.forEach(id=>{const x=r[id];if($(id))$(id).value=x?.id||'';bindAwardComparison(id);});
+  $('calcMsg').textContent='Tournament-level record গণনা সম্পন্ন হয়েছে। Recommended record-এর পাশে আপনার নির্বাচিত player-এর record দেখা যাবে।';
 }
 function renderMatchRecommendations(rows){
   matchRecommendations=rows;
   const box=$('matchAwardsList');
   if(!rows.length){box.innerHTML='<div class="empty">এই season-এ কোনো match পাওয়া যায়নি।</div>';return;}
-  box.innerHTML=rows.map((r,i)=>`<div class="card match-award-card" style="margin:12px 0"><h3>${i+1}. ${esc(r.title)}</h3><p class="small muted">${esc(r.stage||'')} ${r.status?'• '+esc(r.status):''}</p><div class="grid two">${matchAwards.map(id=>{const x=r.awards[id];return `<div class="award-row"><label>${esc(awardLabels[id])}</label><select data-match="${esc(r.id)}" data-award="${id}"><option value="">Player নির্বাচন</option>${players.map(p=>`<option value="${esc(p.id)}" ${x?.id===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><div class="recommend">${x?esc(candidateText(id,x)):'পর্যাপ্ত record নেই'}</div></div>`}).join('')}</div></div>`).join('');
+  box.innerHTML=rows.map((r,i)=>`<div class="card match-award-card" style="margin:12px 0"><h3>${i+1}. ${esc(r.title)}</h3><p class="small muted">${esc(r.stage||'')} ${r.status?'• '+esc(r.status):''}</p><div class="grid two">${matchAwards.map(id=>{const x=r.awards[id];return `<div class="award-row"><label>${esc(awardLabels[id])}</label><select data-match="${esc(r.id)}" data-award="${id}"><option value="">Player নির্বাচন</option>${players.map(p=>`<option value="${esc(p.id)}" ${x?.id===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><div class="recommend" data-compare="${esc(r.id)}" data-award-box="${id}">${comparisonHTML(id,x,x)}</div></div>`}).join('')}</div></div>`).join('');
+  rows.forEach(r=>matchAwards.forEach(id=>{
+    const sel=document.querySelector(`select[data-match="${CSS.escape(r.id)}"][data-award="${id}"]`);
+    const box=document.querySelector(`[data-compare="${CSS.escape(r.id)}"][data-award-box="${id}"]`);
+    if(!sel||!box)return;
+    const reference=r.awards[id];
+    const update=()=>{const p=players.find(p=>p.id===sel.value);const selected=p ? {...(r.players[p.id]||{}),...p,id:p.id,name:p.name} : reference;box.innerHTML=comparisonHTML(id,selected,reference);};
+    sel.onchange=update;
+    update();
+  }));
 }
 async function calculateMatches(){
   const season=n($('season').value||2026);$('matchMsg').textContent='প্রতিটি ম্যাচের record গণনা হচ্ছে…';
@@ -102,7 +165,7 @@ async function loadSaved(){
   const season=n($('season').value||2026);const s=await getDoc(doc(db,'tournaments',String(season)));const a=s.exists()?s.data().awards||{}:{};
   $('saved').innerHTML=Object.keys(a).length?Object.entries(a).map(([k,v])=>`<div class="award-row"><b>${esc(awardLabels[k]||k)}</b> — ${esc(v.playerName||players.find(p=>p.id===v.playerId)?.name||'—')} <span class="muted">${esc(v.note||'')}</span></div>`).join(''):'<div class="empty">এই season-এ এখনও কোনো tournament award save করা হয়নি।</div>';
 }
-async function calculate(){const season=n($('season').value||2026);$('calcMsg').textContent='Record গণনা হচ্ছে…';try{const data=await getSeasonData(season);showRecommendations(calculateRecommendations(data));}catch(e){console.error(e);$('calcMsg').textContent='Record গণনা করতে সমস্যা হয়েছে: '+e.message;}}
+async function calculate(){const season=n($('season').value||2026);$('calcMsg').textContent='Record গণনা হচ্ছে…';try{const data=await getSeasonData(season);seasonStats=data.by;showRecommendations(calculateRecommendations(data));}catch(e){console.error(e);$('calcMsg').textContent='Record গণনা করতে সমস্যা হয়েছে: '+e.message;}}
 async function saveAll(){
   if(!isAdmin(user)){alert('Admin login প্রয়োজন।');return;}
   const season=n($('season').value||2026);const snap=await getDoc(doc(db,'tournaments',String(season)));const awardsData=snap.exists()?snap.data().awards||{}:{};
@@ -111,4 +174,4 @@ async function saveAll(){
 }
 $('calculateBtn').onclick=calculate;$('saveAllBtn').onclick=saveAll;$('calculateMatchesBtn').onclick=calculateMatches;$('saveMatchesBtn').onclick=saveMatches;
 $('season').onchange=async()=>{recommendations={};matchRecommendations=[];await loadSaved();$('matchAwardsList').innerHTML='';$('calcMsg').textContent='';$('matchMsg').textContent='';};
-onAuthStateChanged(auth,async u=>{user=u;await loadPlayers();populateSelects();await loadSaved();});
+onAuthStateChanged(auth,async u=>{user=u;await loadPlayers();populateSelects();awards.forEach(bindAwardComparison);await loadSaved();});
