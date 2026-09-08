@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://arnabbera635-web.github.io/vcaj-cricket/sitemap.xml

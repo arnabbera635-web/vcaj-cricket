@@ -1,0 +1,5 @@
+import {db,collection,onSnapshot,query,orderBy,limit} from './firebase.js';
+const box=document.getElementById('liveBox');
+function esc(s){return String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+onSnapshotSafe();
+function onSnapshotSafe(){try{const q=query(collection(db,'liveMatches'),orderBy('updatedAt','desc'),limit(3));onSnapshot(q,s=>{const docs=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==='LIVE');if(!docs.length){box.innerHTML='<div class="empty">এই মুহূর্তে কোনো Live Match নেই।</div>';return;}box.innerHTML=docs.map(m=>`<a href="matches.html?match=${encodeURIComponent(m.id)}" class="feature" style="display:block;padding:16px;border:1px solid var(--line);border-radius:14px;margin-bottom:10px"><div><b>${esc(m.battingTeam)} ${m.score??0}/${m.wickets??0}</b><div class="muted">${esc(m.bowlingTeam)} • ${Math.floor((m.legalBalls||0)/6)}.${(m.legalBalls||0)%6} overs • ${esc(m.stageName||'Match')}</div></div></a>`).join('')},()=>box.innerHTML='<div class="empty">Live data unavailable. Admin scoring page দিয়ে match শুরু করুন।</div>')}catch(e){box.innerHTML='<div class="empty">Live data unavailable.</div>'}}

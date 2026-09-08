@@ -4,12 +4,13 @@ service cloud.firestore {
     function signedIn(){ return request.auth != null; }
     function admin(){ return signedIn() && request.auth.token.email in ["vcajofficial@gmail.com"]; }
     match /liveMatches/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
-    match /liveMatches/{id}/events/{eventId} { allow read: if true; allow create: if admin(); allow update,delete: if false; }
+    match /liveMatches/{id}/events/{eventId} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /matches/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /matches/{id}/events/{eventId} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /players/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
-    match /teams/{id} { allow read: if true; allow create,update: if admin(); allow delete: if admin(); }
-    match /members/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
-    match /seasons/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
+    match /teams/{id} { allow read: true; allow create,update,delete: if admin(); }
+    match /members/{id} { allow read: true; allow create,update,delete: if admin(); }
+    match /seasons/{id} { allow read: true; allow create,update: if admin(); allow delete: false; }
+    match /tournaments/{id} { allow read: true; allow create,update: if admin(); allow delete: false; }
   }
 }
