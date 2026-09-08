@@ -47,3 +47,16 @@
 - Firebase Web API key public frontend-এ থাকা স্বাভাবিক; নিরাপত্তা Firestore Rules/Auth দিয়ে করতে হবে।
 - Browser key-এ আপনার GitHub Pages domain restriction দেওয়া ভালো।
 - Firebase Spark-এর current limits Google/Firebase Console-এ সময়ের সঙ্গে বদলাতে পারে।
+
+## Hat-trick Records
+- Bowler Hat-trick: 3 consecutive legal deliveries by the same bowler, all credited wickets.
+- Batter Hat-trick: 3 consecutive legal deliveries by the same batter, each hit for 4 or 6.
+- Fielder Hat-trick: 3 consecutive dismissals credited to the same fielder.
+- Match hat-tricks are saved permanently in the match record and player career counters.
+- Public Awards and Records pages display the season/all-time hat-trick records.
+
+
+## Public Real-Time Live Score
+- `live.html` is a public read-only live score panel.
+- It listens to `liveMatches` with Firestore `onSnapshot`, so score, wickets, overs, target, CRR/RRR, players, bowler and commentary update automatically without refresh.
+- `matches.html` also uses a real-time listener for the match list and links live matches to the public live panel.
