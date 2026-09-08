@@ -20,15 +20,38 @@ async function load(){
 }
 async function loadMatchRecords(p){
   const matches=await getDocs(query(collection(db,"matches"),orderBy("updatedAt","desc")));
-  const rows=[];
+  const battingRows=[], bowlingRows=[];
+  let careerBowlingBalls=0, careerBowlingRuns=0, careerBowlingWickets=0;
   for(const m of matches.docs){
     const match=m.data();
     const evSnap=await getDocs(collection(db,"matches",m.id,"events"));
-    let runs=0,balls=0,fours=0,sixes=0,wickets=0;
-    evSnap.docs.forEach(d=>{const e=d.data();if(e.strikerId===p.id){const r=Number(e.batterRuns||0);runs+=r;if(e.legal)balls++;if(r===4)fours++;if(r===6)sixes++;}});
-    if(runs||balls||fours||sixes) rows.push({id:m.id,title:match.title||m.id,season:match.season||"—",runs,balls,fours,sixes});
+    let runs=0,balls=0,fours=0,sixes=0;
+    let bBalls=0,bRuns=0,bWickets=0;
+    evSnap.docs.forEach(d=>{
+      const e=d.data();
+      if(e.strikerId===p.id){
+        const r=Number(e.batterRuns||0); runs+=r;
+        if(e.legal)balls++;
+        if(r===4)fours++; if(r===6)sixes++;
+      }
+      if(e.bowlerId===p.id){
+        if(e.legal)bBalls++;
+        bRuns+=Number(e.bowlerRuns ?? ((e.type==="wide"||e.type==="noBall")?1:Number(e.batterRuns||0)));
+        if(e.type==="wicket")bWickets++;
+      }
+    });
+    if(runs||balls||fours||sixes) battingRows.push({id:m.id,title:match.title||m.id,season:match.season||"—",runs,balls,fours,sixes});
+    if(bBalls||bRuns||bWickets){
+      bowlingRows.push({id:m.id,title:match.title||m.id,season:match.season||"—",balls:bBalls,runs:bRuns,wickets:bWickets});
+      careerBowlingBalls+=bBalls; careerBowlingRuns+=bRuns; careerBowlingWickets+=bWickets;
+    }
   }
-  if(!rows.length){$("matchRecords").innerHTML=`<p>এই খেলোয়াড়ের ম্যাচভিত্তিক রেকর্ড এখনও নেই।</p>`;return;}
-  $("matchRecords").innerHTML=`<table><tr><th>ম্যাচ</th><th>Season</th><th>R</th><th>B</th><th>4s</th><th>6s</th></tr>${rows.map(r=>`<tr><td><a href="archive.html">${esc(r.title)}</a></td><td>${esc(r.season)}</td><td>${r.runs}</td><td>${r.balls}</td><td>${r.fours}</td><td>${r.sixes}</td></tr>`).join("")}</table>`;
+  const storedBalls=Number(p.totalBowlingBalls||0), storedRuns=Number(p.totalBowlingRuns||0), storedWickets=Number(p.totalWickets||0);
+  const bb=storedBalls||careerBowlingBalls, br=storedRuns||careerBowlingRuns, bw=storedWickets||careerBowlingWickets;
+  const econ=bb?(br/(bb/6)).toFixed(2):"0.00";
+  const bowlingSummary=$("bowlingSummary");
+  bowlingSummary.innerHTML=`<div class="stats"><div class="stat"><b>${ballsText(bb)}</b><span>বোলিং ওভার</span></div><div class="stat"><b>${br}</b><span>বোলিং রান</span></div><div class="stat"><b>${bw}</b><span>উইকেট</span></div><div class="stat"><b>${econ}</b><span>Economy</span></div></div>` + (bowlingRows.length?`<table><tr><th>ম্যাচ</th><th>Season</th><th>O</th><th>R</th><th>W</th></tr>${bowlingRows.map(r=>`<tr><td>${esc(r.title)}</td><td>${esc(r.season)}</td><td>${ballsText(r.balls)}</td><td>${r.runs}</td><td>${r.wickets}</td></tr>`).join("")}</table>`:`<p class="muted">এই খেলোয়াড়ের বোলিং রেকর্ড এখনও নেই। নতুন ম্যাচে বোলিং করলে ওভার ও উইকেট এখানে জমা হবে।</p>`);
+  if(!battingRows.length){$("matchRecords").innerHTML=`<p>এই খেলোয়াড়ের ম্যাচভিত্তিক ব্যাটিং রেকর্ড এখনও নেই।</p>`;return;}
+  $("matchRecords").innerHTML=`<table><tr><th>ম্যাচ</th><th>Season</th><th>R</th><th>B</th><th>4s</th><th>6s</th></tr>${battingRows.map(r=>`<tr><td><a href="archive.html">${esc(r.title)}</a></td><td>${esc(r.season)}</td><td>${r.runs}</td><td>${r.balls}</td><td>${r.fours}</td><td>${r.sixes}</td></tr>`).join("")}</table>`;
 }
 load();
