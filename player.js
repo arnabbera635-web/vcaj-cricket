@@ -11,7 +11,7 @@ async function load(){
     if(!snap.exists()){$("playerName").textContent="খেলোয়াড় পাওয়া যায়নি";$("playerMeta").textContent="এই Player ID-এর কোনো রেকর্ড নেই।";return;}
     const p={id:snap.id,...snap.data()};
     $("playerName").textContent=p.name||p.id;
-    $("playerMeta").textContent=`${p.teamName||"দল নির্ধারিত নয়"} • VCAJ Cricket Player Record`;
+    $("playerMeta").textContent=`${p.teamName||"দল নির্ধারিত নয়"} • VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI Player Record`;
     const runs=Number(p.totalRuns||0), balls=Number(p.totalBalls||0), fours=Number(p.totalFours||0), sixes=Number(p.totalSixes||0), matches=Number(p.totalMatches||0);
     const sr=balls?((runs/balls)*100).toFixed(2):"0.00";
     $("careerStats").innerHTML=`<div class="stat"><b>${matches}</b><span>ম্যাচ</span></div><div class="stat"><b>${runs}</b><span>রান</span></div><div class="stat"><b>${balls}</b><span>বল</span></div><div class="stat"><b>${sr}</b><span>Strike Rate</span></div><div class="stat"><b>${fours}</b><span>4s</span></div><div class="stat"><b>${sixes}</b><span>6s</span></div>`;

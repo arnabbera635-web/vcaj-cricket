@@ -1,4 +1,4 @@
-# VCAJ Cricket — Free 16-Team Knockout Tournament Suite
+# VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI — Free 16-Team Knockout Tournament Suite
 
 এই package-টি paid hosting, paid API, SMS gateway, Cloud Functions বা payment service ছাড়াই চালানোর জন্য তৈরি।
 

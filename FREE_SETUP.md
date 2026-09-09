@@ -1,4 +1,4 @@
-# VCAJ Cricket — ₹0 Hosting/Software Setup
+# VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI — ₹0 Hosting/Software Setup
 
 ## যা লাগবে
 - GitHub Free account

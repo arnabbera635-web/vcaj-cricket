@@ -161,7 +161,7 @@ document.getElementById('backupBtn')?.addEventListener('click',()=>{
   persistLocalState();
   const payload={version:1,exportedAt:new Date().toISOString(),match:state,pendingEvents:pendingEvents()};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`VCAJ-${state.id}-backup.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI-${state.id}-backup.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
 
 onAuthStateChanged(auth,async user=>{if(user&&isAdmin(user)){$("loginCard").classList.add("hidden");$("scorerApp").classList.remove("hidden");await loadSetupData();setNetworkBadge();const q=new URLSearchParams(location.search);if(q.get("stage"))$("stage").value=q.get("stage");if(q.get("bracket"))$("bracketKey").value=q.get("bracket");if(q.get("t1"))$("team1").value=q.get("t1");if(q.get("t2"))$("team2").value=q.get("t2");const saved=localStorage.getItem("vcajActiveMatchId");if(saved&&!q.get("t1")){$("activeMatchId").value=saved;await loadMatch(saved);}}else{$("loginCard").classList.remove("hidden");$("scorerApp").classList.add("hidden");}});
