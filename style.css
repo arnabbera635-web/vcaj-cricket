@@ -52,3 +52,92 @@ button:focus-visible,a:focus-visible,.button:focus-visible,.nav-tile:focus-visib
 
 .tournament-brand{display:block;font-size:.72em;font-weight:600;opacity:.92;line-height:1.25;margin-top:2px}
 .poster-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:10px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}.poster-card img{display:block;width:100%;height:auto;max-height:560px;object-fit:cover;border-radius:18px}@media(max-width:650px){.poster-card{padding:6px;border-radius:18px}.poster-card img{border-radius:14px;max-height:none}}
+
+/* Final Jeliakhali tournament visual polish */
+:root{
+  --navy:#071a38;
+  --navy2:#0d2b55;
+  --orange:#ff8a1f;
+  --orange2:#ff6b00;
+  --soft:#f5f8fc;
+}
+body{
+  background:linear-gradient(180deg,#f7f9fc 0%,#ffffff 58%,#f4f8fc 100%);
+}
+.topbar{
+  background:linear-gradient(135deg,var(--navy),#0b2347);
+  box-shadow:0 5px 18px rgba(7,26,56,.18);
+}
+.brand{
+  letter-spacing:.01em;
+}
+.tournament-brand{
+  display:block;
+  color:#ffd39d;
+  margin-top:3px;
+  font-weight:800;
+}
+nav a{
+  transition:background .12s ease,color .12s ease,transform .08s ease;
+  border-radius:9px;
+}
+nav a:hover{
+  background:rgba(255,138,31,.14);
+  color:#fff;
+}
+nav a:active,
+button:active,
+.button-link:active,
+.primary:active,
+.secondary:active,
+.nav-tile:active{
+  background:var(--orange2) !important;
+  color:#fff !important;
+  transform:scale(.97);
+  box-shadow:0 0 0 3px rgba(255,138,31,.22);
+}
+.poster-card{
+  margin:18px 0 14px;
+  overflow:hidden;
+  border:7px solid #fff;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(7,26,56,.14);
+}
+.poster-card img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:650px;
+  object-fit:cover;
+}
+.hero{
+  background:linear-gradient(135deg,var(--navy) 0%,#102f5c 100%);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 12px 28px rgba(7,26,56,.16);
+}
+.hero h1{
+  line-height:1.18;
+}
+.hero .primary,
+.hero a.primary{
+  background:linear-gradient(135deg,var(--orange),var(--orange2)) !important;
+  border:0;
+  box-shadow:0 8px 18px rgba(255,107,0,.24);
+}
+.stat,.nav-tile,.card{
+  box-shadow:0 7px 20px rgba(7,26,56,.07);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.nav-tile:hover{
+  transform:translateY(-2px);
+  box-shadow:0 11px 24px rgba(7,26,56,.12);
+}
+@media(max-width:700px){
+  .container{padding-left:10px;padding-right:10px}
+  .poster-card{margin-top:12px;border-width:5px;border-radius:16px}
+  .hero{padding:20px 18px}
+  .hero h1{font-size:clamp(1.8rem,7vw,2.6rem)}
+  .nav-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat{min-height:74px}
+}
