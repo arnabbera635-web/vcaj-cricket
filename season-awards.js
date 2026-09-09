@@ -1,49 +1,131 @@
-import {db,collection,getDocs,doc,getDoc} from './firebase.js';
-const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let players=[];
-const awards=['bestBatsman','bestBowler','bestKeeper','bestFielder','playerOfTournament'];
-const labels={bestBatsman:['🏏','Best Batsman'],bestBowler:['🎯','Best Bowler'],bestKeeper:['🧤','Best Wicketkeeper'],bestFielder:['🏃','Best Fielder'],playerOfTournament:['🏆','Player of the Tournament']};
-const matchAwards=['bestBatsman','bestBowler','bestKeeper','bestFielder','manOfMatch'];
-const matchLabels={bestBatsman:['🏏','Best Batsman'],bestBowler:['🎯','Best Bowler'],bestKeeper:['🧤','Best Wicketkeeper'],bestFielder:['🏃','Best Fielder'],manOfMatch:['⭐','Man of the Match']};
-function n(v){return Number(v||0)}function overs(b){return `${Math.floor(n(b)/6)}.${n(b)%6}`}function economy(x){return x.bowlingBalls?x.bowlingRuns/(x.bowlingBalls/6):999}function strikeRate(x){return x.balls?x.runs/x.balls*100:0}
-function ensure(by,id,name=''){if(!id)return null;return by[id] ||= {id,name,runs:0,balls:0,fours:0,sixes:0,wickets:0,bowlingBalls:0,bowlingRuns:0,catches:0,stumpings:0,runOuts:0,matches:new Set()}}
-function performancePoints(x){return n(x.runs)+n(x.fours)+n(x.sixes)*2+n(x.wickets)*20+n(x.catches)*8+n(x.stumpings)*10+n(x.runOuts)*12}
-function playerName(id,x){return x?.name||players.find(p=>p.id===id)?.name||id||'—'}
-function top(arr,cmp){return arr.filter(Boolean).sort(cmp)[0]||null}
-function calculateRecommendations(by){const all=Object.values(by).map(x=>({...x}));return{bestBatsman:top(all.filter(x=>x.balls>0),(a,b)=>b.runs-a.runs||strikeRate(b)-strikeRate(a)||b.sixes-a.sixes||b.fours-a.fours),bestBowler:top(all.filter(x=>x.bowlingBalls>0),(a,b)=>b.wickets-a.wickets||economy(a)-economy(b)||b.bowlingBalls-a.bowlingBalls),bestKeeper:top(all.filter(x=>x.stumpings>0||x.catches>0),(a,b)=>(b.stumpings*4+b.catches*2)-(a.stumpings*4+a.catches*2)||b.stumpings-a.stumpings||b.catches-a.catches),bestFielder:top(all.filter(x=>x.catches>0||x.runOuts>0),(a,b)=>(b.catches*2+b.runOuts*3)-(a.catches*2+a.runOuts*3)||b.runOuts-a.runOuts||b.catches-a.catches),playerOfTournament:top(all,(a,b)=>{const sa=performancePoints(a)+strikeRate(a)*.25+n(a.wickets)*4+n(a.catches)*2+n(a.runOuts)*3;const sb=performancePoints(b)+strikeRate(b)*.25+n(b.wickets)*4+n(b.catches)*2+n(b.runOuts)*3;return sb-sa||b.runs-a.runs})}}
-function bestForPlayers(per){const all=Object.values(per).map(x=>({...x}));return{bestBatsman:top(all.filter(x=>x.balls>0),(a,b)=>b.runs-a.runs||strikeRate(b)-strikeRate(a)||b.sixes-a.sixes||b.fours-a.fours),bestBowler:top(all.filter(x=>x.bowlingBalls>0),(a,b)=>b.wickets-a.wickets||economy(a)-economy(b)||b.bowlingBalls-a.bowlingBalls),bestKeeper:top(all.filter(x=>x.stumpings>0||x.catches>0),(a,b)=>(b.stumpings*4+b.catches*2)-(a.stumpings*4+a.catches*2)||b.stumpings-a.stumpings||b.catches-a.catches),bestFielder:top(all.filter(x=>x.catches>0||x.runOuts>0),(a,b)=>(b.catches*2+b.runOuts*3)-(a.catches*2+a.runOuts*3)||b.runOuts-a.runOuts||b.catches-a.catches),manOfMatch:top(all,(a,b)=>performancePoints(b)-performancePoints(a)||b.runs-a.runs||b.wickets-a.wickets)}}
-async function loadPlayers(){const s=await getDocs(collection(db,'players'));players=s.docs.map(d=>({id:d.id,...d.data()}))}
-async function getSeasonData(season){const ms=await getDocs(collection(db,'matches'));const matches=ms.docs.map(d=>({id:d.id,...d.data()})).filter(m=>n(m.season)===n(season));const by={};const matchRows=[];for(const m of matches){const evs=await getDocs(collection(db,'matches',m.id,'events'));const per={};evs.docs.forEach(d=>{const e=d.data();[['batter',e.strikerId,e.batterName||''],['bowler',e.bowlerId,e.bowlerName||''],['fielder',e.fielderId,e.fielderName||'']].forEach(([role,id,name])=>{if(id){ensure(by,id,name);ensure(per,id,name)}});if(e.strikerId){const x=ensure(by,e.strikerId,e.batterName),q=ensure(per,e.strikerId,e.batterName);x.runs+=n(e.batterRuns);x.balls+=e.legal?1:0;x.fours+=e.batterRuns===4?1:0;x.sixes+=e.batterRuns===6?1:0;x.matches.add(m.id);q.runs+=n(e.batterRuns);q.balls+=e.legal?1:0;q.fours+=e.batterRuns===4?1:0;q.sixes+=e.batterRuns===6?1:0;q.matches.add(m.id)}if(e.bowlerId){const x=ensure(by,e.bowlerId,e.bowlerName),q=ensure(per,e.bowlerId,e.bowlerName);x.bowlingBalls+=e.legal?1:0;x.bowlingRuns+=n(e.bowlerRuns);x.wickets+=e.bowlerWicket?1:0;x.matches.add(m.id);q.bowlingBalls+=e.legal?1:0;q.bowlingRuns+=n(e.bowlerRuns);q.wickets+=e.bowlerWicket?1:0;q.matches.add(m.id)}if(e.fielderId){const x=ensure(by,e.fielderId,e.fielderName),q=ensure(per,e.fielderId,e.fielderName);x.catches+=e.dismissalType==='caught'?1:0;x.stumpings+=e.dismissalType==='stumped'?1:0;x.runOuts+=e.dismissalType==='runOut'?1:0;x.matches.add(m.id);q.catches+=e.dismissalType==='caught'?1:0;q.stumpings+=e.dismissalType==='stumped'?1:0;q.runOuts+=e.dismissalType==='runOut'?1:0;q.matches.add(m.id)}});matchRows.push({id:m.id,title:m.title||`${m.team1Name||''} vs ${m.team2Name||''}`,stage:m.stageName||m.stage||'',status:m.status||'',awards:bestForPlayers(per),players:per,match:m})}return{matches,by,matchRows}}
-function awardMetrics(id,x){if(!x)return[];if(id==='bestBatsman')return[['Runs',n(x.runs),'high'],['Strike rate',strikeRate(x),'high'],['4s',n(x.fours),'high'],['6s',n(x.sixes),'high']];if(id==='bestBowler')return[['Wickets',n(x.wickets),'high'],['Overs',n(x.bowlingBalls)/6,'high'],['Economy',economy(x),'low']];if(id==='bestKeeper')return[['Stumpings',n(x.stumpings),'high'],['Catches',n(x.catches),'high']];if(id==='bestFielder')return[['Catches',n(x.catches),'high'],['Run-outs',n(x.runOuts),'high']];return[['Performance points',performancePoints(x),'high'],['Runs',n(x.runs),'high'],['Wickets',n(x.wickets),'high'],['Catches',n(x.catches),'high'],['Stumpings',n(x.stumpings),'high'],['Run-outs',n(x.runOuts),'high']]}
-function fmt(label,v){if(label==='Strike rate'||label==='Economy')return n(v).toFixed(2);if(label==='Overs')return n(v).toFixed(1);return n(v).toFixed(0)}
-function cls(v,r,d){if(v===r)return'';return d==='low'?(v>r?'metric-bad':'metric-good'):(v<r?'metric-bad':'metric-good')}
-function comparison(id,selected,reference){if(!reference)return'<div class="empty">Automatic recommendation-এর পর্যাপ্ত record নেই।</div>';if(!selected)selected=reference;const rn=playerName(reference.id,reference),sn=playerName(selected.id,selected);const rows=awardMetrics(id,reference).map(([l,rv,d])=>{const sv=awardMetrics(id,selected).find(m=>m[0]===l)?.[1]??0;return`<div class="compare-metric"><span>${esc(l)}</span><b class="metric-ref">${fmt(l,rv)}</b><b class="metric-selected ${selected.id===reference.id?'':cls(sv,rv,d)}">${fmt(l,sv)}</b></div>`}).join('');return`<div class="compare-title">Record comparison</div><div class="compare-head"><span>Metric</span><span>Recommended: ${esc(rn)}</span><span>Selected: ${esc(sn)}</span></div>${rows}`}
-function selectedStats(saved,by){if(!saved?.playerId)return null;return{...(by[saved.playerId]||{}),id:saved.playerId,name:saved.playerName||playerName(saved.playerId)}}
-function renderTournament(saved,recs,by){$('tournamentAwards').innerHTML=awards.map(id=>{const [icon,label]=labels[id];const v=saved[id];const ref=recs[id];const sel=selectedStats(v,by);return`<article class="award-card"><div style="font-size:28px">${icon}</div><h3>${label}</h3>${sel?`<div class="winner">${esc(playerName(sel.id,sel))}</div><div class="metric">Saved award</div>${comparison(id,sel,ref)}`:`<div class="muted">Award এখনও ঘোষণা করা হয়নি।</div>${ref?`<div class="recommend">Automatic recommendation: <b>${esc(playerName(ref.id,ref))}</b></div>`:''}</article>`}).join('')}
-function renderMatches(rows){if(!rows.length){$('matchesList').innerHTML='<div class="empty">এই season-এ কোনো match পাওয়া যায়নি।</div>';return}$('matchesList').innerHTML=rows.map((r,i)=>{const a=r.match.awards||{};const cards=matchAwards.map(id=>{const [icon,label]=matchLabels[id];const saved=a[id];const ref=r.awards[id];const sel=selectedStats(saved,r.players);return`<div class="mini-award"><b>${icon} ${label}</b>${sel?`<div>${esc(playerName(sel.id,sel))}</div><small class="muted">Saved award</small>`:`<small class="muted">এখনও ঘোষণা হয়নি</small>`}${sel?comparison(id,sel,ref):ref?`<div class="recommend">Automatic: <b>${esc(playerName(ref.id,ref))}</b></div>`:''}</div>`}).join('');return`<article class="match-card"><div class="match-head"><h3>${i+1}. ${esc(r.title)}</h3><small class="muted">${esc(r.stage)} ${r.status?'• '+esc(r.status):''}</small></div><div class="match-awards">${cards}</div></article>`}).join('')}
-async function load(){const season=n($('season').value||2026);$('status').textContent='লোড হচ্ছে…';
-try{
-  // First load the saved tournament awards directly. Public display must not depend on match/event calculations.
-  const tSnap=await getDoc(doc(db,'tournaments',String(season)));
-  const t=tSnap.exists()?tSnap.data():{};
-  const saved=t.awards||{};
-  renderTournament(saved,{},{});
-  $('status').textContent=`${season} season • Public Read Only`;
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
+import { getFirestore, doc, getDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { firebaseConfig } from './firebase-config.js';
 
-  // Then load records only for the optional comparison / match-wise section.
-  try{
-    const data=await getSeasonData(season);
-    const recs=calculateRecommendations(data.by);
-    renderTournament(saved,recs,data.by);
-    renderMatches(data.matchRows);
-  }catch(recordErr){
-    console.error('Public award record load failed:',recordErr);
-    $('matchesList').innerHTML='<div class="empty">Saved tournament awards দেখানো হয়েছে। Record comparison / match-wise data এখন লোড করা যাচ্ছে না।</div>';
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const seasonEl = document.getElementById('season');
+const statusEl = document.getElementById('status');
+const awardsEl = document.getElementById('tournamentAwards');
+const matchesEl = document.getElementById('matchesList');
+
+const AWARDS = [
+  ['bestBatsman', '🏏 Best Batsman'],
+  ['bestBowler', '🎯 Best Bowler'],
+  ['bestKeeper', '🧤 Best Wicketkeeper'],
+  ['bestFielder', '🏃 Best Fielder'],
+  ['playerOfTournament', '🏆 Player of the Tournament']
+];
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
+  }[c]));
+}
+
+function prettyMetric(value) {
+  if (value === undefined || value === null || value === '') return '';
+  return String(value);
+}
+
+function awardCard(key, label, award) {
+  if (!award || typeof award !== 'object') {
+    return `<article class="award-card"><div class="muted">${esc(label)}</div><div class="empty">এখনও Award save করা হয়নি।</div></article>`;
   }
-}catch(e){
-  console.error('Public saved awards load failed:',e);
-  $('status').textContent='Award load করতে সমস্যা হয়েছে: '+(e?.message||e);
-  $('tournamentAwards').innerHTML='<div class="empty">Saved award data পাওয়া যায়নি।</div>';
-}}
 
-$('season').onchange=load;await loadPlayers();load();
+  // Admin save structure: playerId, playerName, metric, note, savedAt.
+  // Prefer the saved playerName so Public always shows exactly what Admin selected.
+  const name = award.playerName || award.player || award.name || award.playerId || 'নাম পাওয়া যায়নি';
+  const metric = prettyMetric(award.metric);
+  const note = prettyMetric(award.note);
+  const saved = award.savedAt?.toDate ? award.savedAt.toDate().toLocaleString('en-IN') : prettyMetric(award.savedAt);
+
+  return `<article class="award-card">
+    <div class="metric">${esc(label)}</div>
+    <div class="winner">${esc(name)}</div>
+    ${metric ? `<div class="metric"><b>Record:</b> ${esc(metric)}</div>` : ''}
+    ${note ? `<div class="recommend">${esc(note)}</div>` : ''}
+    ${saved ? `<div class="metric">Saved: ${esc(saved)}</div>` : ''}
+  </article>`;
+}
+
+async function loadTournamentAwards(season) {
+  awardsEl.innerHTML = '<div class="empty">Award loading…</div>';
+
+  const snap = await getDoc(doc(db, 'tournaments', String(season)));
+  if (!snap.exists()) {
+    awardsEl.innerHTML = '<div class="empty">এই season-এর tournament document পাওয়া যায়নি।</div>';
+    return;
+  }
+
+  const data = snap.data() || {};
+  const awards = data.awards || {};
+
+  // Directly render the exact saved awards map from tournaments/{season}.
+  awardsEl.innerHTML = AWARDS.map(([key, label]) => awardCard(key, label, awards[key])).join('');
+  statusEl.textContent = `Season ${season} • Admin-এর saved awards দেখানো হচ্ছে`;
+}
+
+function matchAwardValue(match) {
+  return match.award || match.awards || match.matchAward || null;
+}
+
+function matchTitle(match, id) {
+  const a = match.teamA || match.battingTeam || match.homeTeam || 'Team A';
+  const b = match.teamB || match.bowlingTeam || match.awayTeam || 'Team B';
+  return match.title || `${a} vs ${b}` || id;
+}
+
+function renderMatchAward(match, id) {
+  const awards = matchAwardValue(match);
+  if (!awards) return '';
+  const items = [];
+  if (typeof awards === 'string') items.push(`<div class="mini-award"><b>🏅 Award</b>${esc(awards)}</div>`);
+  else if (typeof awards === 'object') {
+    for (const [k, v] of Object.entries(awards)) {
+      if (v && typeof v === 'object') {
+        const n = v.playerName || v.player || v.name || v.playerId;
+        if (n) items.push(`<div class="mini-award"><b>${esc(k)}</b>${esc(n)}</div>`);
+      } else if (v) {
+        items.push(`<div class="mini-award"><b>${esc(k)}</b>${esc(v)}</div>`);
+      }
+    }
+  }
+  if (!items.length) return '';
+  return `<article class="match-card"><div class="match-head"><h3>${esc(matchTitle(match,id))}</h3><div class="muted">${esc(match.stage || '')}</div></div><div class="match-awards">${items.join('')}</div></article>`;
+}
+
+async function loadMatchAwards(season) {
+  matchesEl.innerHTML = '<div class="empty">Match-wise awards loading…</div>';
+  try {
+    const snap = await getDocs(collection(db, 'matches'));
+    const rows = [];
+    snap.forEach(s => {
+      const d = s.data() || {};
+      if (String(d.season ?? d.seasonId ?? '') !== String(season)) return;
+      const html = renderMatchAward(d, s.id);
+      if (html) rows.push(html);
+    });
+    matchesEl.innerHTML = rows.length ? rows.join('') : '<div class="empty">এই season-এর match-wise saved awards নেই।</div>';
+  } catch (err) {
+    matchesEl.innerHTML = `<div class="empty">Match-wise awards load হয়নি। Tournament awards উপরে দেখা যাবে।</div>`;
+  }
+}
+
+async function loadAll() {
+  const season = seasonEl.value;
+  statusEl.textContent = 'Loading…';
+  try {
+    // Tournament awards are intentionally independent of match/event queries.
+    await loadTournamentAwards(season);
+    await loadMatchAwards(season);
+  } catch (err) {
+    console.error('Public awards load error:', err);
+    statusEl.textContent = 'Award load করতে সমস্যা হয়েছে।';
+    awardsEl.innerHTML = `<div class="empty">Award load হয়নি: ${esc(err?.message || err)}</div>`;
+  }
+}
+
+seasonEl.addEventListener('change', loadAll);
+loadAll();
