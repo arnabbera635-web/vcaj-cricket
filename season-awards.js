@@ -21,5 +21,29 @@ function comparison(id,selected,reference){if(!reference)return'<div class="empt
 function selectedStats(saved,by){if(!saved?.playerId)return null;return{...(by[saved.playerId]||{}),id:saved.playerId,name:saved.playerName||playerName(saved.playerId)}}
 function renderTournament(saved,recs,by){$('tournamentAwards').innerHTML=awards.map(id=>{const [icon,label]=labels[id];const v=saved[id];const ref=recs[id];const sel=selectedStats(v,by);return`<article class="award-card"><div style="font-size:28px">${icon}</div><h3>${label}</h3>${sel?`<div class="winner">${esc(playerName(sel.id,sel))}</div><div class="metric">Saved award</div>${comparison(id,sel,ref)}`:`<div class="muted">Award এখনও ঘোষণা করা হয়নি।</div>${ref?`<div class="recommend">Automatic recommendation: <b>${esc(playerName(ref.id,ref))}</b></div>`:''}</article>`}).join('')}
 function renderMatches(rows){if(!rows.length){$('matchesList').innerHTML='<div class="empty">এই season-এ কোনো match পাওয়া যায়নি।</div>';return}$('matchesList').innerHTML=rows.map((r,i)=>{const a=r.match.awards||{};const cards=matchAwards.map(id=>{const [icon,label]=matchLabels[id];const saved=a[id];const ref=r.awards[id];const sel=selectedStats(saved,r.players);return`<div class="mini-award"><b>${icon} ${label}</b>${sel?`<div>${esc(playerName(sel.id,sel))}</div><small class="muted">Saved award</small>`:`<small class="muted">এখনও ঘোষণা হয়নি</small>`}${sel?comparison(id,sel,ref):ref?`<div class="recommend">Automatic: <b>${esc(playerName(ref.id,ref))}</b></div>`:''}</div>`}).join('');return`<article class="match-card"><div class="match-head"><h3>${i+1}. ${esc(r.title)}</h3><small class="muted">${esc(r.stage)} ${r.status?'• '+esc(r.status):''}</small></div><div class="match-awards">${cards}</div></article>`}).join('')}
-async function load(){const season=n($('season').value||2026);$('status').textContent='লোড হচ্ছে…';try{const [tSnap,data]=await Promise.all([getDoc(doc(db,'tournaments',String(season))),getSeasonData(season)]);const t=tSnap.exists()?tSnap.data():{};const recs=calculateRecommendations(data.by);renderTournament(t.awards||{},recs,data.by);renderMatches(data.matchRows);$('status').textContent=`${season} season • Public Read Only`;}catch(e){console.error(e);$('status').textContent='লোড করতে সমস্যা হয়েছে';}}
+async function load(){const season=n($('season').value||2026);$('status').textContent='লোড হচ্ছে…';
+try{
+  // First load the saved tournament awards directly. Public display must not depend on match/event calculations.
+  const tSnap=await getDoc(doc(db,'tournaments',String(season)));
+  const t=tSnap.exists()?tSnap.data():{};
+  const saved=t.awards||{};
+  renderTournament(saved,{},{});
+  $('status').textContent=`${season} season • Public Read Only`;
+
+  // Then load records only for the optional comparison / match-wise section.
+  try{
+    const data=await getSeasonData(season);
+    const recs=calculateRecommendations(data.by);
+    renderTournament(saved,recs,data.by);
+    renderMatches(data.matchRows);
+  }catch(recordErr){
+    console.error('Public award record load failed:',recordErr);
+    $('matchesList').innerHTML='<div class="empty">Saved tournament awards দেখানো হয়েছে। Record comparison / match-wise data এখন লোড করা যাচ্ছে না।</div>';
+  }
+}catch(e){
+  console.error('Public saved awards load failed:',e);
+  $('status').textContent='Award load করতে সমস্যা হয়েছে: '+(e?.message||e);
+  $('tournamentAwards').innerHTML='<div class="empty">Saved award data পাওয়া যায়নি।</div>';
+}}
+
 $('season').onchange=load;await loadPlayers();load();
