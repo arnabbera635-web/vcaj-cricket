@@ -7,6 +7,7 @@ const $=id=>document.getElementById(id);
 const secondaryApp=initializeApp(firebaseConfig,'memberAccountSetup');
 const secondaryAuth=getAuth(secondaryApp);
 const phoneDigits=phone=>String(phone||'').replace(/\D/g,'');
+const memberIdToAuthEmail=memberId=>`member${String(memberId||'').toLowerCase()}@member.vcajcricket.com`;
 const phoneToAuthEmail=phone=>`m${phoneDigits(phone)}@member.vcajcricket.com`;
 function initialPassword(m){
   const prefix=String(m.email||'').split('@')[0].replace(/[^a-zA-Z]/g,'').slice(0,4).toLowerCase();
@@ -15,7 +16,9 @@ function initialPassword(m){
 $('adminLogin').onclick=async()=>{try{await signInWithEmailAndPassword(auth,$('adminEmail').value.trim(),$('adminPassword').value);$('loginMsg').textContent='';}catch(e){$('loginMsg').textContent='Admin Login হয়নি।';}};
 onAuthStateChanged(auth,user=>{if(user&&isAdmin(user)){$('loginCard').classList.add('hidden');$('setupCard').classList.remove('hidden');}else{$('loginCard').classList.remove('hidden');$('setupCard').classList.add('hidden');}});
 async function createAccount(m,password){
-  const authEmail=phoneToAuthEmail(m.phone); let cred;
+  // FIX: use a stable Member-ID based Firebase login identity.
+  // This avoids old phone-based accounts retaining an incorrect password.
+  const authEmail=memberIdToAuthEmail(m.memberId); let cred;
   try{cred=await createUserWithEmailAndPassword(secondaryAuth,authEmail,password);}catch(e){
     if(e.code==='auth/email-already-in-use'){cred=await signInWithEmailAndPassword(secondaryAuth,authEmail,password);}else{throw e;}
   }
