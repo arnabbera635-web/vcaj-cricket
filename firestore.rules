@@ -3,14 +3,29 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn(){ return request.auth != null; }
     function admin(){ return signedIn() && request.auth.token.email in ["vcajofficial@gmail.com"]; }
+    function member(){ return signedIn() && exists(/databases/$(database)/documents/memberAccounts/$(request.auth.uid)); }
     match /liveMatches/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /liveMatches/{id}/events/{eventId} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /matches/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
     match /matches/{id}/events/{eventId} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
-    match /players/{id} { allow read: if true; allow create,update: if admin(); allow delete: if false; }
+    match /players/{id} { allow read: true; allow create,update: if admin(); allow delete: false; }
     match /teams/{id} { allow read: true; allow create,update,delete: if admin(); }
-    match /members/{id} { allow read: true; allow create,update,delete: if admin(); }
+    match /members/{id} {
+      allow read: if admin() || (member() && get(/databases/$(database)/documents/memberAccounts/$(request.auth.uid)).data.memberId == id);
+      allow create,update,delete: if admin();
+    }
+    match /memberDirectory/{id} {
+      allow read: if admin() || member();
+      allow create,update,delete: if admin();
+    }
+    match /memberAccounts/{uid} {
+      allow read: if admin() || (signedIn() && request.auth.uid == uid);
+      allow create: if admin();
+      allow update: if admin() || (signedIn() && request.auth.uid == uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mustChangePassword','updatedAt']) && request.resource.data.mustChangePassword == false);
+      allow delete: if admin();
+    }
     match /seasons/{id} { allow read: true; allow create,update: if admin(); allow delete: false; }
+    match /teamRegistrations/{id} { allow create: if true; allow read, update, delete: if admin(); }
     match /tournaments/{id} { allow read: true; allow create,update: if admin(); allow delete: false; }
   }
 }

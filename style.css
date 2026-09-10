@@ -166,3 +166,5 @@ button:active,
     object-fit:contain;
   }
 }
+
+.login-panels{align-items:stretch;margin-bottom:16px}.login-panels .card{margin:0}.login-panels input{margin-bottom:10px}.login-panels .btn{display:inline-block;margin-top:10px}.empty{padding:18px;text-align:center;color:var(--muted,#667085)}@media(max-width:760px){.login-panels{grid-template-columns:1fr}}
