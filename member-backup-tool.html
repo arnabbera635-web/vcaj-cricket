@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ Member Firestore Backup</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:22px;background:#f4f7fb}
+.card{background:#fff;padding:22px;border-radius:14px;box-shadow:0 2px 12px #0001}
+input,button{width:100%;box-sizing:border-box;padding:13px;margin-top:10px;border-radius:9px}
+input{border:1px solid #ccc}button{border:0;background:#123b70;color:#fff;font-size:16px}
+button:disabled{opacity:.5}#status{white-space:pre-wrap;margin-top:15px}
+.small{font-size:13px;color:#555}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>VCAJ Member Firestore Backup</h2>
+<p>এই one-time tool আপনার বর্তমান <b>member-data.js</b> থেকে member records নিয়ে Firebase-এর <b>members</b> collection-এ backup করবে।</p>
+<p class="small">Backup সফল হওয়ার পর এই tool এবং পুরনো member-data.js GitHub থেকে সরিয়ে দেবেন।</p>
+<input id="email" type="email" placeholder="Admin email">
+<input id="password" type="password" placeholder="Admin password">
+<button id="login">Admin Login</button>
+<button id="backup" disabled>Firebase-এ Backup করুন</button>
+<div id="status"></div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={
+ apiKey:"AIzaSyAsT_pB8ZTKaBcbhdM7P_y-iiW-_KUHdpw",
+ authDomain:"vcaj-cricket.firebaseapp.com",
+ projectId:"vcaj-cricket",
+ storageBucket:"vcaj-cricket.firebasestorage.app",
+ messagingSenderId:"684200953474",
+ appId:"1:684200953474:web:a3c45b3bacc3805a14d69b",
+ measurementId:"G-0E3C7NKZ6Q"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(),db=firebase.firestore();
+const status=document.getElementById("status"),backup=document.getElementById("backup");
+
+document.getElementById("login").onclick=async()=>{
+ try{
+  const e=document.getElementById("email").value.trim();
+  const p=document.getElementById("password").value;
+  const c=await auth.signInWithEmailAndPassword(e,p);
+  if((c.user.email||"").toLowerCase()!=="vcajofficial@gmail.com") throw new Error("Admin email only");
+  backup.disabled=false;
+  status.textContent="Admin login সফল। এখন Backup চাপুন।";
+ }catch(e){status.textContent="Login failed: "+e.message;}
+};
+
+backup.onclick=async()=>{
+ backup.disabled=true;
+ status.textContent="বর্তমান member-data.js পড়ছি...";
+ try{
+  const url="https://raw.githubusercontent.com/arnabbera635-web/vcaj-cricket/main/member-data.js";
+  const text=await (await fetch(url,{cache:"no-store"})).text();
+  const start=text.indexOf("[");
+  const end=text.lastIndexOf("]");
+  if(start<0||end<start) throw new Error("member-data.js format পাওয়া যায়নি");
+  const members=JSON.parse(text.slice(start,end+1));
+  if(!Array.isArray(members)||members.length===0) throw new Error("Member list পাওয়া যায়নি");
+
+  let count=0;
+  for(let i=0;i<members.length;i+=400){
+   const batch=db.batch();
+   members.slice(i,i+400).forEach(m=>{
+    if(!m.memberId) return;
+    batch.set(db.collection("members").doc(m.memberId),{
+      memberId:m.memberId,
+      name:m.name||"",
+      phone:m.phone||"",
+      email:m.email||"",
+      authEmail:m.authEmail||"",
+      season:2026,
+      paymentAmount:0,
+      paymentStatus:"unpaid",
+      backedUpAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    count++;
+   });
+   await batch.commit();
+  }
+  status.textContent="সফল। "+count+" জন member Firebase-এর members collection-এ backup হয়েছে।\n\nএখন এই tool GitHub-এ রেখে দেবেন না। পরের ধাপে পুরনো member-data.js এবং registered-members.csv মুছব।";
+ }catch(e){
+  status.textContent="Backup failed: "+e.message;
+  backup.disabled=false;
+ }
+};
+</script>
+</body>
+</html>
