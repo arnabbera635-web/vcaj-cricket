@@ -25,6 +25,12 @@ service cloud.firestore {
       allow create, update, delete: if admin();
     }
 
+    match /tournamentAccounts/{id} {
+      allow read: if admin() || member();
+      allow create, update: if admin();
+      allow delete: if admin();
+    }
+
     match /memberAccounts/{uid} {
       allow read: if admin() || (signedIn() && request.auth.uid == uid);
       allow create, delete: if admin();

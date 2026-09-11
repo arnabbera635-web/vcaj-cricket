@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="bn">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Tournament Accounts — VCAJ</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="topbar"><a class="brand" href="index.html"><span>VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI<small class="tournament-brand">জেলিয়াখালী “মন্ডল এন্ড মন্ডল” ক্রিকেট টুর্নামেন্ট</small></span></a><nav><a href="index.html">হোম</a><a href="member-panel.html">Member Panel</a><a href="scorer.html">Admin</a></nav></header>
+<main class="container">
+<section id="gate" class="card narrow"><p class="eyebrow">PRIVATE ACCOUNTING</p><h1>টুর্নামেন্টের হিসেব</h1><p class="muted">এই হিসেব শুধু লগ-ইন করা Member এবং Admin দেখতে পারবেন।</p><p id="gateMsg" class="msg">Access যাচাই হচ্ছে…</p></section>
+<section id="accountsApp" class="hidden">
+<section class="hero small"><div><p class="eyebrow">VCAJ • PRIVATE</p><h1>টুর্নামেন্টের খরচের হিসাব</h1><p>২০২৬ season-এর আয়/খরচের বিস্তারিত হিসাব।</p></div><button id="logoutBtn">Logout</button></section>
+<section id="adminEditor" class="card hidden"><div class="card-head"><div><p class="eyebrow">ADMIN CONTROL</p><h2>হিসাব Edit / Save</h2><p class="muted">শুধু Admin হিসাব যোগ, পরিবর্তন বা Delete করতে পারবেন।</p></div><span class="pill">Admin only</span></div>
+<div class="grid three"><div><label>Season</label><input id="season" type="number" value="2026"></div><div><label>শিরোনাম</label><input id="title" value="টুর্নামেন্টের খরচের হিসাব"></div><div><label>শেষ আপডেটের নোট</label><input id="note" placeholder="যেমন: ২০২৬ tournament expense"></div></div>
+<div id="editorRows"></div>
+<div class="toolbar"><input id="importFile" type="file" accept="application/json,.json" style="max-width:280px"><button id="importBtn" class="secondary">JSON Import</button><button id="addRow" class="secondary">+ খরচ যোগ করুন</button><button id="saveAccounts" class="primary">হিসাব Save করুন</button></div><p id="adminMsg" class="msg"></p></section>
+<section class="card"><div class="card-head"><div><h2 id="viewTitle">টুর্নামেন্টের খরচ</h2><p id="viewNote" class="muted">Firebase থেকে হিসাব লোড হচ্ছে…</p></div><span id="viewSeason" class="pill">2026</span></div><div id="accountsTable" class="table-wrap"><div class="empty">হিসাব লোড হচ্ছে…</div></div></section>
+<section class="card"><div class="card-head"><h2>মোট খরচ</h2><strong id="total" class="gold" style="font-size:28px">₹ 0</strong></div></section>
+</section>
+</main>
+<script type="module" src="accounts.js"></script>
+</body></html>

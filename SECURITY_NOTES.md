@@ -9,3 +9,6 @@
 - For stronger protection, enable Firebase email-enumeration protection and a sensible password policy in Authentication settings.
 - Do not publish private password CSV files to GitHub.
 - Firebase Spark/Firestore free quotas apply; if quotas are exceeded, service usage can be stopped until the quota resets on Spark rather than silently creating a bill.
+
+- Tournament accounts are stored in Firestore `tournamentAccounts`; only authenticated members/admins can read them and only admin can create/update/delete them.
+- Expense figures are not embedded in the public website source; they should be saved to Firestore through the Admin Accounts page.

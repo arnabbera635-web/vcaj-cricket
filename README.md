@@ -27,6 +27,7 @@
 - Undo for the current scoring session
 - Career batting, bowling and fielding records
 - Awards page
+- Private tournament accounts page: member/admin read, admin-only write
 - Public read-only pages
 - Admin/scorer authentication
 
