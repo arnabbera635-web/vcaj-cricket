@@ -13,7 +13,35 @@ service cloud.firestore {
     match /teams/{id} { allow read: if true; allow create, update, delete: if admin(); }
     match /seasons/{id} { allow read: if true; allow create, update: if admin(); allow delete: if false; }
     match /tournaments/{id} { allow read: if true; allow create, update: if admin(); allow delete: if false; }
-    match /teamRegistrations/{id} { allow create: if true; allow read, update, delete: if admin(); }
+
+    // Public team registration: create only. A temporary random token permits
+    // the same browser submission to attach receipt metadata; it cannot edit
+    // team/payment fields. Admin has full management access.
+    match /teamRegistrations/{id} {
+      allow create: if
+        request.resource.data.season == '2026'
+        && request.resource.data.status == 'pending'
+        && request.resource.data.uniqueId is string
+        && request.resource.data.submissionToken is string
+        && request.resource.data.teamName is string
+        && request.resource.data.whatsapp is string
+        && request.resource.data.location is string
+        && request.resource.data.entryFee.total == 3501
+        && request.resource.data.kasanmani.total == 1500
+        && request.resource.data.receiptFiles is list
+        && request.resource.data.receiptFiles.size() <= 3;
+
+      allow update: if admin()
+        || (
+          resource.data.submissionToken is string
+          && request.resource.data.submissionToken == resource.data.submissionToken
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['receiptFiles','updatedAt'])
+          && request.resource.data.receiptFiles is list
+          && request.resource.data.receiptFiles.size() <= 3
+        );
+
+      allow read, delete: if admin();
+    }
 
     match /members/{id} {
       allow read: if admin() || (member() && get(/databases/$(database)/documents/memberAccounts/$(request.auth.uid)).data.memberId == id);

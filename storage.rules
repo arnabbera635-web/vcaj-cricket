@@ -1,0 +1,23 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /teamReceipts/2026/{uniqueId}/{fileName} {
+      // Receipts contain payment information. Do not make them public.
+      allow read, delete: if request.auth != null
+        && request.auth.token.email == 'vcajofficial@gmail.com';
+
+      // Public registration may upload a receipt, but only once per filename,
+      // with strict type/size limits. The random registration ID makes the
+      // upload path hard to guess; Firestore remains the source of truth.
+      allow create: if resource == null
+        && request.resource.size <= 5 * 1024 * 1024
+        && (
+          request.resource.contentType == 'application/pdf'
+          || request.resource.contentType == 'image/jpeg'
+          || request.resource.contentType == 'image/png'
+          || request.resource.contentType == 'image/webp'
+        )
+        && fileName.size() <= 120;
+    }
+  }
+}

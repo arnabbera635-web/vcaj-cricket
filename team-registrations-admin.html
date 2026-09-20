@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Team Registrations — VCAJ Admin</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body{background:#f8fafc}.wrap{max-width:1200px;margin:22px auto;padding:0 14px}.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+.toolbar{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:15px 0}.toolbar input,.toolbar select{padding:11px;border:1px solid #cbd5e1;border-radius:10px;font:inherit}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:top}th{background:#f8fafc}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#e2e8f0;font-size:12px;font-weight:800}.btn{border:0;border-radius:9px;padding:8px 11px;cursor:pointer;font-weight:800}.btn-primary{background:#2563eb;color:#fff}.btn-danger{background:#dc2626;color:#fff}.btn-light{background:#e2e8f0}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:15px;z-index:10}.modal.open{display:flex}.modal-card{background:#fff;border-radius:16px;max-width:850px;width:100%;max-height:90vh;overflow:auto;padding:20px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail{padding:10px;background:#f8fafc;border-radius:10px}.detail strong{display:block;margin-bottom:4px}.receipt{margin:8px 0;padding:10px;border:1px solid #e2e8f0;border-radius:10px}
+@media(max-width:700px){.toolbar,.detail-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="index.html"><span>VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI<small class="tournament-brand">জেলিয়াখালী “মন্ডল এন্ড মন্ডল” ক্রিকেট টুর্নামেন্ট</small></span></a></header>
+<main class="wrap">
+<div class="card">
+<h1>🏏 Team Registration — Admin</h1>
+<p id="authStatus">Authentication যাচাই হচ্ছে…</p>
+<div class="toolbar">
+<input id="search" placeholder="Team / ID / WhatsApp দিয়ে Search">
+<select id="statusFilter"><option value="">সব Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="payment-pending">Payment Pending</option><option value="rejected">Rejected</option></select>
+<select id="paidFilter"><option value="">সব Payment</option><option value="due">বাকি আছে</option><option value="paid">সম্পূর্ণ Paid</option></select>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Registration</th><th>Team</th><th>Contact</th><th>Entry</th><th>Kasanmani</th><th>Total Due</th><th>Status</th><th>Action</th></tr></thead><tbody id="rows"></tbody></table></div>
+</div>
+</main>
+<div id="modal" class="modal"><div class="modal-card">
+<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2 id="modalTitle">Registration</h2><button class="btn btn-light" id="closeModal">Close</button></div>
+<div id="detail"></div>
+</div></div>
+<script type="module" src="team-registrations-admin.js"></script>
+</body>
+</html>
