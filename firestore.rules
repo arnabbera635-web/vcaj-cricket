@@ -22,13 +22,14 @@ service cloud.firestore {
         request.resource.data.season == '2026'
         && request.resource.data.status == 'pending'
         && request.resource.data.uniqueId is string
+        && request.resource.data.verificationCode is string
         && request.resource.data.teamName is string
         && request.resource.data.whatsapp is string
         && request.resource.data.location is string
         && request.resource.data.entryFee.total == 3501
         && request.resource.data.entryFee.paid is number
         && request.resource.data.entryFee.due is number
-        && request.resource.data.entryFee.paid >= 0
+        && request.resource.data.entryFee.paid >= 500
         && request.resource.data.entryFee.paid <= 3501
         && request.resource.data.kasanmani.total == 1500
         && request.resource.data.kasanmani.paid is number
@@ -40,6 +41,27 @@ service cloud.firestore {
         && request.resource.data.paymentHistory is list;
 
       allow read, update, delete: if admin();
+    }
+    match /receiptVerifications/{code} {
+      allow read: if true;
+      allow create: if request.resource.data.verificationCode == code
+        && code.matches('RC-[A-F0-9]{32}')
+        && request.resource.data.uniqueId is string
+        && request.resource.data.teamName is string
+        && request.resource.data.entryPaid is number
+        && request.resource.data.entryPaid >= 500
+        && request.resource.data.entryPaid <= 3501
+        && request.resource.data.entryDue == 3501 - request.resource.data.entryPaid
+        && request.resource.data.kasanPaid is number
+        && request.resource.data.kasanPaid >= 0
+        && request.resource.data.kasanPaid <= 1500
+        && request.resource.data.kasanDue == 1500 - request.resource.data.kasanPaid
+        && request.resource.data.totalPaid == request.resource.data.entryPaid + request.resource.data.kasanPaid
+        && request.resource.data.totalDue == request.resource.data.entryDue + request.resource.data.kasanDue
+        && request.resource.data.status == 'pending'
+        && request.resource.data.season == '2026'
+        && request.resource.data.receiptType == 'OFFICIAL_PAYMENT_RECEIPT';
+      allow update, delete: if admin();
     }
 
     match /members/{id} {

@@ -1,4 +1,4 @@
-import { db, collection, addDoc, serverTimestamp } from "./firebase.js";
+import { db, collection, doc, serverTimestamp, writeBatch } from "./firebase.js";
 
 const form = document.getElementById("registrationForm");
 const btn = document.getElementById("submitBtn");
@@ -12,6 +12,7 @@ const totalDueEl = document.getElementById("totalDue");
 
 const ENTRY_TOTAL = 3501;
 const KASAN_TOTAL = 1500;
+const MIN_ENTRY_PAYMENT = 500;
 
 function money(v){ return Math.max(0, Math.floor(Number(v) || 0)); }
 function esc(v){
@@ -30,10 +31,16 @@ entryPaidEl.addEventListener("input", updateTotals);
 kasanPaidEl.addEventListener("input", updateTotals);
 updateTotals();
 
-function makeUniqueId(){
-  const bytes = new Uint8Array(6);
+function randomHex(bytesCount=16){
+  const bytes = new Uint8Array(bytesCount);
   crypto.getRandomValues(bytes);
-  return "VCAJ-2026-" + Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
+  return Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
+}
+function makeUniqueId(){
+  return "VCAJ-2026-" + randomHex(8);
+}
+function makeVerificationCode(){
+  return "RC-" + randomHex(16);
 }
 
 function printReceivedCopy(data){
@@ -41,6 +48,7 @@ function printReceivedCopy(data){
   if(!win){ alert("Popup blocked হয়েছে। Browser-এ popup allow করে আবার Received Copy চাপুন।"); return; }
   const moneyIN = v => "₹" + Number(v||0).toLocaleString("en-IN");
   const submitted = new Date().toLocaleString("en-IN", {dateStyle:"medium", timeStyle:"short"});
+  const verifyUrl = `${location.origin}/verify-receipt.html?code=${encodeURIComponent(data.verificationCode)}`;
   win.document.write(`<!doctype html><html lang="bn"><head><meta charset="utf-8">
   <title>${esc(data.uniqueId)} - Registration Received Copy</title>
   <style>
@@ -54,7 +62,7 @@ function printReceivedCopy(data){
   </style></head><body><div class="sheet">
   <h1>VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI</h1>
   <div class="sub">জেলিয়াখালী “মন্ডল এন্ড মন্ডল” ক্রিকেট টুর্নামেন্ট ২০২৬</div>
-  <div class="id">Registration ID: ${esc(data.uniqueId)}</div>
+  <div class="id">OFFICIAL PAYMENT RECEIPT<br>Registration ID: ${esc(data.uniqueId)}<br><small>Receipt Verification Code: ${esc(data.verificationCode)}</small></div>
   <table><tr><th>Team Name</th><td>${esc(data.teamName)}</td></tr><tr><th>WhatsApp</th><td>${esc(data.whatsapp)}</td></tr><tr><th>Contact</th><td>${esc(data.contact)}</td></tr><tr><th>Email</th><td>${esc(data.email)}</td></tr><tr><th>Location</th><td>${esc(data.location)}</td></tr></table>
   <h3>Payment Details</h3>
   <table><tr><th>Particular</th><th>Total</th><th>Paid</th><th>Due</th></tr>
@@ -65,7 +73,7 @@ function printReceivedCopy(data){
   <table><tr><th>Entry Fee</th><td>Method: ${esc(data.entryFee.paymentMethod)}<br>Date: ${esc(data.entryFee.paymentDate)}<br>Received by: ${esc(data.entryFee.receivedBy)}</td></tr>
   <tr><th>Kasanmani</th><td>Method: ${esc(data.kasanmani.paymentMethod)}<br>Date: ${esc(data.kasanmani.paymentDate)}<br>Received by: ${esc(data.kasanmani.receivedBy)}</td></tr></table>
   <p><strong>Status:</strong> ${esc(data.status)}</p><p><strong>Rules Accepted:</strong> ${esc(data.rulesAccepted)} &nbsp; <strong>Stay Required:</strong> ${esc(data.stayRequired)}</p>
-  <p class="note">এটি Team Registration-এর acknowledgement/received copy। এটি payment-এর মূল receipt নয়। Submitted: ${esc(submitted)}</p>
+  <p class="note"><strong>OFFICIAL PAYMENT RECEIPT</strong><br>এই receipt VCAJ tournament registration system দ্বারা ইস্যু করা payment receipt। Registration ID + Verification Code দিয়ে অফিসিয়াল তথ্য যাচাই করা যাবে। Receipt-এর Team/Payment তথ্য পরিবর্তন করলে verification-এর সঙ্গে মিলবে না।<br><strong>Verification:</strong> ${esc(verifyUrl)}<br>Submitted: ${esc(submitted)}</p>
   <button class="print" onclick="window.print()">Print / Save as PDF</button>
   </div></body></html>`);
   win.document.close();
@@ -95,6 +103,11 @@ form.addEventListener("submit", async e=>{
     status.textContent="দয়া করে Team Name, WhatsApp, Location এবং নিয়মে 'হ্যাঁ' নির্বাচন করুন।";
     return;
   }
+  if(entryPaid < MIN_ENTRY_PAYMENT){
+    status.className="status error";
+    status.textContent=`Entry Fee থেকে অন্তত ₹${MIN_ENTRY_PAYMENT.toLocaleString("en-IN")} payment করা বাধ্যতামূলক।`;
+    return;
+  }
   if(entryPaid>ENTRY_TOTAL || kasanPaid>KASAN_TOTAL){
     status.className="status error";
     status.textContent="Payment amount নির্ধারিত মোট টাকার বেশি হতে পারবে না।";
@@ -109,17 +122,23 @@ form.addEventListener("submit", async e=>{
   if(entryPaid>0) paymentHistory.push({category:"Entry Fee",amount:entryPaid,method:String(fd.get("entryPaymentMethod")||""),date:String(fd.get("entryPaymentDate")||""),receivedBy:String(fd.get("entryReceivedBy")||"").trim()});
   if(kasanPaid>0) paymentHistory.push({category:"Kasanmani",amount:kasanPaid,method:String(fd.get("kasanPaymentMethod")||""),date:String(fd.get("kasanPaymentDate")||""),receivedBy:String(fd.get("kasanReceivedBy")||"").trim()});
 
+  const verificationCode = makeVerificationCode();
   const data={
-    season:"2026",uniqueId,teamName,whatsapp,
+    season:"2026",uniqueId,verificationCode,teamName,whatsapp,
     contact:String(fd.get("contact")||"").trim(),email:String(fd.get("email")||"").trim(),location,
     entryFee:{total:ENTRY_TOTAL,paid:entryPaid,due:ENTRY_TOTAL-entryPaid,paymentMethod:String(fd.get("entryPaymentMethod")||""),paymentDate:String(fd.get("entryPaymentDate")||""),receivedBy:String(fd.get("entryReceivedBy")||"").trim()},
     kasanmani:{total:KASAN_TOTAL,paid:kasanPaid,due:KASAN_TOTAL-kasanPaid,paymentMethod:String(fd.get("kasanPaymentMethod")||""),paymentDate:String(fd.get("kasanPaymentDate")||""),receivedBy:String(fd.get("kasanReceivedBy")||"").trim()},
     totalPaid:entryPaid+kasanPaid,totalDue:(ENTRY_TOTAL-entryPaid)+(KASAN_TOTAL-kasanPaid),paymentHistory,
-    rulesAccepted,feeAcknowledged:fd.get("feeAcknowledged")==="হ্যাঁ",stayRequired:String(fd.get("stayRequired")||""),notes:String(fd.get("notes")||"").trim(),status:"pending"
+    rulesAccepted,feeAcknowledged:fd.get("feeAcknowledged")==="হ্যাঁ",stayRequired:String(fd.get("stayRequired")||""),notes:String(fd.get("notes")||"").trim(),status:"pending",receiptType:"OFFICIAL_PAYMENT_RECEIPT"
   };
 
   try{
-    await addDoc(collection(db,"teamRegistrations"),{...data,submittedAt:serverTimestamp()});
+    const batch=writeBatch(db);
+    const regRef=doc(collection(db,"teamRegistrations"));
+    const verifyRef=doc(db,"receiptVerifications",verificationCode);
+    batch.set(regRef,{...data,submittedAt:serverTimestamp()});
+    batch.set(verifyRef,{uniqueId,verificationCode,teamName,entryPaid,entryDue:ENTRY_TOTAL-entryPaid,kasanPaid,kasanDue:KASAN_TOTAL-kasanPaid,totalPaid:entryPaid+kasanPaid,totalDue:(ENTRY_TOTAL-entryPaid)+(KASAN_TOTAL-kasanPaid),status:"pending",season:"2026",receiptType:"OFFICIAL_PAYMENT_RECEIPT"});
+    await batch.commit();
     status.className="status success"; status.textContent="Registration সফল হয়েছে।";
     showCopyButton(data);
     form.reset(); updateTotals();
