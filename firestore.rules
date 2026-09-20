@@ -22,25 +22,24 @@ service cloud.firestore {
         request.resource.data.season == '2026'
         && request.resource.data.status == 'pending'
         && request.resource.data.uniqueId is string
-        && request.resource.data.submissionToken is string
         && request.resource.data.teamName is string
         && request.resource.data.whatsapp is string
         && request.resource.data.location is string
         && request.resource.data.entryFee.total == 3501
+        && request.resource.data.entryFee.paid is number
+        && request.resource.data.entryFee.due is number
+        && request.resource.data.entryFee.paid >= 0
+        && request.resource.data.entryFee.paid <= 3501
         && request.resource.data.kasanmani.total == 1500
-        && request.resource.data.receiptFiles is list
-        && request.resource.data.receiptFiles.size() <= 3;
+        && request.resource.data.kasanmani.paid is number
+        && request.resource.data.kasanmani.due is number
+        && request.resource.data.kasanmani.paid >= 0
+        && request.resource.data.kasanmani.paid <= 1500
+        && request.resource.data.totalPaid is number
+        && request.resource.data.totalDue is number
+        && request.resource.data.paymentHistory is list;
 
-      allow update: if admin()
-        || (
-          resource.data.submissionToken is string
-          && request.resource.data.submissionToken == resource.data.submissionToken
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['receiptFiles','updatedAt'])
-          && request.resource.data.receiptFiles is list
-          && request.resource.data.receiptFiles.size() <= 3
-        );
-
-      allow read, delete: if admin();
+      allow read, update, delete: if admin();
     }
 
     match /members/{id} {
