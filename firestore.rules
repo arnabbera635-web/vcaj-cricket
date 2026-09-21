@@ -29,7 +29,7 @@ service cloud.firestore {
         && request.resource.data.entryFee.total == 3501
         && request.resource.data.entryFee.paid is number
         && request.resource.data.entryFee.due is number
-        && request.resource.data.entryFee.paid >= 500
+        && request.resource.data.entryFee.paid >= 2000
         && request.resource.data.entryFee.paid <= 3501
         && request.resource.data.kasanmani.total == 1500
         && request.resource.data.kasanmani.paid is number

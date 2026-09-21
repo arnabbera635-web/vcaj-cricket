@@ -1,6 +1,6 @@
 # VCAJ Payment Receipt — Free / No Storage
 - No receipt image/PDF is uploaded to Firebase.
-- Entry Fee minimum ₹500 is mandatory.
+- Entry Fee minimum ₹2,000 is mandatory.
 - Registration creates a unique Registration ID and 32-hex Verification Code.
 - Receipt can be printed/saved locally as PDF.
 - Public verification page checks the official verification record in Firestore.
