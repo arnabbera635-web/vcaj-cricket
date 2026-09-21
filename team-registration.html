@@ -2,101 +2,539 @@
 <html lang="bn">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="জেলিয়াখালী মন্ডল এন্ড মন্ডল ক্রিকেট টুর্নামেন্ট — Team Registration Form">
-<title>Team Registration — জেলিয়াখালী 'মন্ডল এন্ড মন্ডল' ক্রিকেট টুর্নামেন্ট</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="জেলিয়াখালি মন্ডল এন্ড মন্ডল ক্রিকেট টুর্নামেন্ট — Team Registration Form">
+<title>Team Registration - জেলিয়াখালি মন্ডল এন্ড মন্ডল ক্রিকেট টুর্নামেন্ট</title>
+
 <link rel="stylesheet" href="style.css">
+
 <style>
-.form-wrap{max-width:900px;margin:24px auto}
-.form-card{background:#fff;border:1px solid #e5e9f0;border-radius:18px;padding:20px;box-shadow:0 10px 28px rgba(10,30,60,.08)}
-.form-title{margin:0 0 6px;font-size:28px}.form-sub{margin:0 0 20px;color:#64748b}
-.form-section{margin:18px 0 10px;padding:10px 12px;border-radius:10px;background:#eef2ff;color:#172554;font-weight:900}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{margin:10px 0}
-.field label{display:block;font-weight:800;margin-bottom:7px}
-.field input,.field textarea,.field select{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:12px;font:inherit;background:#fff}
-.field textarea{min-height:90px;resize:vertical}.choice{display:flex;gap:10px;align-items:center;margin:10px 0}.choice input{width:auto}
-.money{font-size:18px;font-weight:900}.hint{font-size:13px;color:#64748b;margin-top:5px}
-.submit-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:20px}
-.submit-btn{border:0;border-radius:12px;padding:13px 20px;background:var(--orange,#f97316);color:#fff;font-weight:900;cursor:pointer}
-.submit-btn:disabled{opacity:.6;cursor:not-allowed}.status{padding:12px;border-radius:10px;background:#f1f5f9;color:#334155}
-.success{background:#ecfdf5;color:#166534}.error{background:#fef2f2;color:#991b1b}.required{color:#dc2626}
-.receipt-list{display:grid;gap:8px}.receipt-row{display:flex;gap:8px;align-items:center}.receipt-row input{flex:1}
-.result-box{margin-top:18px;padding:16px;border-radius:12px;background:#ecfdf5;color:#166534;display:none}
-@media(max-width:700px){.form-card{padding:15px}.form-title{font-size:23px}.grid{grid-template-columns:1fr}}
+.form-wrap{
+  max-width:900px;
+  margin:24px auto;
+}
+
+.form-card{
+  margin:0;
+  background:#fff;
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 10px 28px rgba(10,30,60,.08);
+}
+
+.form-title{
+  margin:0 0 6px;
+  font-size:28px;
+  color:#17448b;
+}
+
+.form-sub{
+  margin:0 0 20px;
+  color:#54748b;
+}
+
+.form-section{
+  margin:18px 0 10px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#eef2ff;
+  color:#172554;
+  font-weight:900;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.field label{
+  display:block;
+  font-weight:800;
+  margin-bottom:7px;
+}
+
+.field input,
+.field select,
+.field textarea{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  padding:11px;
+  font-size:15px;
+}
+
+.field textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
+.choice{
+  font-size:15px;
+  font-weight:900;
+  margin-top:8px;
+}
+
+.choice input{
+  width:auto;
+  margin-right:6px;
+}
+
+.money{
+  font-size:18px;
+  font-weight:900;
+}
+
+.hint{
+  font-size:13px;
+  color:#64748b;
+  margin-top:5px;
+}
+
+.submit-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:20px;
+  flex-wrap:wrap;
+}
+
+.submit-btn{
+  border:0;
+  border-radius:12px;
+  padding:13px 20px;
+  background:#f97316;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.submit-btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.status{
+  padding:10px;
+  border-radius:10px;
+  font-weight:800;
+}
+
+.success{
+  background:#ecfdf5;
+  color:#166534;
+}
+
+.error{
+  background:#fef2f2;
+  color:#991b1b;
+}
+
+.required{
+  color:#dc2626;
+}
+
+.result-box{
+  margin-top:18px;
+  padding:16px;
+  border-radius:12px;
+  background:#ecfdf5;
+  color:#166534;
+  display:none;
+}
+
+.receipt-list{
+  display:grid;
+  gap:8px;
+  margin-top:12px;
+}
+
+.receipt-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+@media(max-width:700px){
+  .form-card{
+    padding:15px;
+  }
+
+  .form-title{
+    font-size:23px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+}
 </style>
 </head>
+
 <body>
+
 <header class="topbar">
-<a class="brand" href="index.html"><span>VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI<small class="tournament-brand">জেলিয়াখালী “মন্ডল এন্ড মন্ডল” ক্রিকেট টুর্নামেন্ট</small></span></a>
-<nav>
-<a href="index.html">Home</a><a href="live.html">Live Score</a><a href="bracket.html">Bracket</a><a href="matches.html">Matches</a><a href="players.html">Players</a><a href="records.html">Records</a><a href="season-awards.html">Awards</a><a href="team-registration.html">Team Registration</a><a href="scorer.html">Admin</a>
-</nav>
+  <a class="brand" href="index.html">
+    VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI
+    <small class="tournament-brand">
+      জেলিয়াখালি মন্ডল এন্ড মন্ডল ক্রিকেট টুর্নামেন্ট
+    </small>
+  </a>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="live.html">Live Score</a>
+    <a href="bracket.html">Bracket</a>
+    <a href="matches.html">Matches</a>
+    <a href="players.html">Players</a>
+    <a href="records.html">Records</a>
+    <a href="awards.html">Awards</a>
+    <a href="team-registration.html">Team Registration</a>
+    <a href="admin.html">Admin</a>
+  </nav>
 </header>
 
 <main class="container form-wrap">
+
 <div class="form-card">
+
 <h1 class="form-title">🏏 Team Registration Form</h1>
-<p class="form-sub">দলের তথ্য, Entry Fee ও Kasanmani-এর payment details জমা দিন। Submit করার পর Unique ID-সহ Received Copy PDF হিসেবে সংরক্ষণ করা যাবে।</p>
+
+<p class="form-sub">
+দলের তথ্য, Entry Fee ও Kasanmani-এর payment details জমা দিন।
+Submit করার পর Unique ID-সহ একটি সুরক্ষিত Received Copy তৈরি হবে।
+</p>
 
 <form id="registrationForm">
-<div class="form-section">১. টিমের তথ্য</div>
-<div class="grid">
-<div class="field"><label>দলের নাম <span class="required">*</span></label><input name="teamName" required maxlength="100" placeholder="দলের নাম লিখুন"></div>
-<div class="field"><label>মোবাইল / WhatsApp <span class="required">*</span></label><input name="whatsapp" inputmode="tel" required maxlength="20" placeholder="WhatsApp নম্বর"></div>
-<div class="field"><label>Contact Number</label><input name="contact" inputmode="tel" maxlength="20" placeholder="যোগাযোগের নম্বর"></div>
-<div class="field"><label>Email Address</label><input name="email" type="email" maxlength="120" placeholder="ই-মেইল ঠিকানা"></div>
-<div class="field"><label>দলের বর্তমান ঠিকানা <span class="required">*</span></label><input name="location" required maxlength="150" placeholder="গ্রাম / এলাকা"></div>
+
+<div class="form-section">
+১. দলের তথ্য
 </div>
 
-<div class="form-section">২. Entry Fee — নির্ধারিত ₹3,501 (ন্যূনতম ₹2,000 জমা বাধ্যতামূলক)</div>
 <div class="grid">
-<div class="field"><label>এখন কত টাকা দিয়েছেন?</label><input class="money" id="entryPaid" name="entryPaid" type="number" min="0" max="3501" step="1" value="0" required></div>
-<div class="field"><label>বাকি টাকা</label><input class="money" id="entryDue" type="number" value="3501" readonly></div>
-<div class="field"><label>Payment Method</label><select name="entryPaymentMethod"><option value="">নির্বাচন করুন</option><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Other</option></select></div>
-<div class="field"><label>Payment Date</label><input name="entryPaymentDate" type="date"></div>
-<div class="field"><label>কার হাতে টাকা দিয়েছেন?</label><input name="entryReceivedBy" maxlength="100" placeholder="Committee Member-এর নাম"></div>
-</div>
 
-<div class="form-section">৩. Kasanmani / Security Deposit — নির্ধারিত ₹1,500</div>
-<div class="grid">
-<div class="field"><label>এখন কত টাকা দিয়েছেন?</label><input class="money" id="kasanPaid" name="kasanPaid" type="number" min="0" max="1500" step="1" value="0" required></div>
-<div class="field"><label>বাকি টাকা</label><input class="money" id="kasanDue" type="number" value="1500" readonly></div>
-<div class="field"><label>Payment Method</label><select name="kasanPaymentMethod"><option value="">নির্বাচন করুন</option><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Other</option></select></div>
-<div class="field"><label>Payment Date</label><input name="kasanPaymentDate" type="date"></div>
-<div class="field"><label>কার হাতে টাকা দিয়েছেন?</label><input name="kasanReceivedBy" maxlength="100" placeholder="Committee Member-এর নাম"></div>
+<div class="field">
+<label>
+দলের নাম <span class="required">*</span>
+</label>
+<input
+  name="teamName"
+  required
+  maxlength="100"
+  placeholder="দলের নাম লিখুন">
 </div>
 
 <div class="field">
-<label>বর্তমানে মোট বাকি</label>
-<input class="money" id="totalDue" type="number" value="5001" readonly>
-<div class="hint">Entry Fee + Kasanmani-এর বাকি টাকা স্বয়ংক্রিয়ভাবে হিসাব হবে।</div>
+<label>
+মোবাইল / WhatsApp <span class="required">*</span>
+</label>
+<input
+  name="whatsapp"
+  inputmode="tel"
+  maxlength="20"
+  placeholder="WhatsApp নম্বর"
+  required>
 </div>
 
-<div class="form-section">৪. Registration Received Copy</div>
-<div class="field"><div class="hint">Submit করার পর আপনার Unique Registration ID-সহ একটি সুন্দর Received Copy তৈরি হবে। সেটি browser-এর Print → Save as PDF দিয়ে PDF হিসেবে সংরক্ষণ করতে পারবেন। Website-এ কোনো ছবি/PDF upload করতে হবে না।</div></div>
-<div class="form-section">৫. নিয়ম ও অন্যান্য তথ্য</div>
-<div class="field"><label>Tournament-এর নিয়ম ও শর্তাবলী মেনে খেলতে সম্মত? <span class="required">*</span></label>
-<label class="choice"><input type="radio" name="rulesAccepted" value="হ্যাঁ" required> হ্যাঁ</label>
-<label class="choice"><input type="radio" name="rulesAccepted" value="না"> না</label></div>
+<div class="field">
+<label>Contact Number</label>
+<input
+  name="contact"
+  inputmode="tel"
+  maxlength="20"
+  placeholder="যোগাযোগের নম্বর">
+</div>
 
-<div class="field"><label>Entry Fee সম্পর্কে অবগত?</label>
-<label class="choice"><input type="checkbox" name="feeAcknowledged" value="হ্যাঁ"> নির্ধারিত Entry Fee সম্পর্কে অবগত এবং বাকি টাকা নির্ধারিত সময়ে প্রদান করব।</label></div>
+<div class="field">
+<label>Email Address</label>
+<input
+  name="email"
+  type="email"
+  maxlength="120"
+  placeholder="ই-মেইল ঠিকানা">
+</div>
 
-<div class="field"><label>থাকার ব্যবস্থা প্রয়োজন হবে?</label>
-<label class="choice"><input type="radio" name="stayRequired" value="হ্যাঁ"> হ্যাঁ</label>
-<label class="choice"><input type="radio" name="stayRequired" value="না"> না</label></div>
+<div class="field">
+<label>
+দলের বর্তমান ঠিকানা <span class="required">*</span>
+</label>
+<input
+  name="location"
+  required
+  maxlength="200"
+  placeholder="গ্রাম / এলাকা">
+</div>
 
-<div class="field"><label>অতিরিক্ত তথ্য / বিশেষ অনুরোধ</label><textarea name="notes" maxlength="1000" placeholder="কোনো বিশেষ তথ্য থাকলে লিখুন"></textarea></div>
+</div>
+
+
+<div class="form-section">
+২. Entry Fee — নির্ধারিত ₹3,501 (ন্যূনতম ₹2,000 জমা বাধ্যতামূলক)
+</div>
+
+<div class="grid">
+
+<div class="field">
+<label>এখন কত টাকা দিয়েছেন?</label>
+<input
+  class="money"
+  id="entryPaid"
+  name="entryPaid"
+  type="number"
+  min="2000"
+  max="3501"
+  value="2000"
+  required>
+</div>
+
+<div class="field">
+<label>বাকি টাকা</label>
+<input
+  class="money"
+  id="entryDue"
+  name="entryDue"
+  type="number"
+  value="1501"
+  readonly>
+</div>
+
+<div class="field">
+<label>Payment Method</label>
+<select name="entryPaymentMethod">
+  <option value="">নির্বাচন করুন</option>
+  <option value="Cash">Cash</option>
+  <option value="UPI">UPI</option>
+  <option value="Bank Transfer">Bank Transfer</option>
+  <option value="Other">Other</option>
+</select>
+</div>
+
+<div class="field">
+<label>Payment Date</label>
+<input
+  name="entryPaymentDate"
+  type="date">
+</div>
+
+<div class="field">
+<label>কার হাতে টাকা দিয়েছেন?</label>
+<input
+  name="entryReceivedBy"
+  maxlength="100"
+  placeholder="Committee Member-এর নাম">
+</div>
+
+</div>
+
+
+<div class="form-section">
+৩. Kasanmani / Security Deposit — নির্ধারিত ₹1,500
+</div>
+
+<div class="grid">
+
+<div class="field">
+<label>এখন কত টাকা দিয়েছেন?</label>
+<input
+  class="money"
+  id="kasanPaid"
+  name="kasanPaid"
+  type="number"
+  min="0"
+  max="1500"
+  value="0">
+</div>
+
+<div class="field">
+<label>বাকি টাকা</label>
+<input
+  class="money"
+  id="kasanDue"
+  name="kasanDue"
+  type="number"
+  value="1500"
+  readonly>
+</div>
+
+<div class="field">
+<label>Payment Method</label>
+<select name="kasanPaymentMethod">
+  <option value="">নির্বাচন করুন</option>
+  <option value="Cash">Cash</option>
+  <option value="UPI">UPI</option>
+  <option value="Bank Transfer">Bank Transfer</option>
+  <option value="Other">Other</option>
+</select>
+</div>
+
+<div class="field">
+<label>Payment Date</label>
+<input
+  name="kasanPaymentDate"
+  type="date">
+</div>
+
+<div class="field">
+<label>কার হাতে টাকা দিয়েছেন?</label>
+<input
+  name="kasanReceivedBy"
+  maxlength="100"
+  placeholder="Committee Member-এর নাম">
+</div>
+
+</div>
+
+
+<div class="field" style="margin-top:15px;">
+<label>বর্তমানে মোট বাকি</label>
+<input
+  class="money"
+  id="totalDue"
+  name="totalDue"
+  type="number"
+  value="3001"
+  readonly>
+
+<div class="hint">
+Entry Fee + Kasanmani-এর বাকি টাকা স্বয়ংক্রিয়ভাবে হিসাব হবে।
+</div>
+</div>
+
+
+<div class="form-section">
+৪. Registration Received Copy
+</div>
+
+<div class="hint">
+Submit করার পর আপনার Unique Registration ID-সহ একটি সুন্দর Received Copy তৈরি হবে।
+সেটি browser-এর Print → Save as PDF দিয়ে PDF হিসেবে সংরক্ষণ করতে পারবেন।
+Website-এ কোনো ছবি/PDF upload করতে হবে না।
+</div>
+
+
+<div class="form-section">
+৫. নিয়ম ও অন্যান্য তথ্য
+</div>
+
+<div class="field">
+
+<label>
+Tournament-এর নিয়ম ও শর্তাবলী মেনে খেলতে সম্মত? 
+<span class="required">*</span>
+</label>
+
+<label class="choice">
+<input
+  type="radio"
+  name="rulesAccepted"
+  value="হ্যাঁ"
+  required>
+হ্যাঁ
+</label>
+
+<label class="choice">
+<input
+  type="radio"
+  name="rulesAccepted"
+  value="না">
+না
+</label>
+
+</div>
+
+
+<div class="field" style="margin-top:15px;">
+
+<label>Entry Fee সম্পর্কে অবগত?</label>
+
+<label class="choice">
+<input
+  type="checkbox"
+  name="feeAcknowledged"
+  value="হ্যাঁ"
+  checked
+  required>
+
+নির্ধারিত Entry Fee সম্পর্কে অবগত এবং বাকি টাকা নির্ধারিত সময়ে প্রদান করব।
+</label>
+
+</div>
+
+
+<div class="field" style="margin-top:15px;">
+
+<label>থাকার ব্যবস্থা প্রয়োজন হবে?</label>
+
+<label class="choice">
+<input
+  type="radio"
+  name="stayRequired"
+  value="হ্যাঁ">
+
+হ্যাঁ
+</label>
+
+<label class="choice">
+<input
+  type="radio"
+  name="stayRequired"
+  value="না"
+  checked>
+
+না
+</label>
+
+</div>
+
+
+<div class="field" style="margin-top:15px;">
+
+<label>অতিরিক্ত তথ্য / বিশেষ অনুরোধ</label>
+
+<textarea
+  name="notes"
+  maxlength="1000"
+  placeholder="কোনো বিশেষ তথ্য থাকলে লিখুন"></textarea>
+
+</div>
+
 
 <div class="submit-row">
-<button class="submit-btn" id="submitBtn" type="submit">Registration Submit করুন</button>
-<div id="status" class="status">ফর্ম পূরণ করে Submit করুন।</div>
+
+<button
+  class="submit-btn"
+  id="submitBtn"
+  type="submit">
+Registration Submit করুন
+</button>
+
+<div
+  id="status"
+  class="status">
 </div>
+
+</div>
+
 </form>
-<div id="resultBox" class="result-box"></div>
+
+<div
+  id="resultBox"
+  class="result-box">
 </div>
+
+</div>
+
 </main>
-<footer class="footer">VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI • Team Registration</footer>
+
+
+<footer class="footer">
+VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI • Team Registration
+</footer>
+
+
+<!-- IMPORTANT: JavaScript file -->
 <script type="module" src="team-registration.js"></script>
+
 </body>
 </html>
