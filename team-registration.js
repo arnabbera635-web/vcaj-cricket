@@ -1,4 +1,4 @@
-import { db, collection, doc, serverTimestamp, writeBatch } from "./firebase.js";
+import { db, collection, doc, addDoc, setDoc, serverTimestamp } from "./firebase.js";
 
 const form = document.getElementById("registrationForm");
 const btn = document.getElementById("submitBtn");
@@ -12,7 +12,7 @@ const totalDueEl = document.getElementById("totalDue");
 
 const ENTRY_TOTAL = 3501;
 const KASAN_TOTAL = 1500;
-const MIN_ENTRY_PAYMENT = 500;
+const MIN_ENTRY_PAYMENT = 2000;
 
 function money(v){ return Math.max(0, Math.floor(Number(v) || 0)); }
 function esc(v){
@@ -27,9 +27,13 @@ function updateTotals(){
   kasanDueEl.value = KASAN_TOTAL - kp;
   totalDueEl.value = (ENTRY_TOTAL - ep) + (KASAN_TOTAL - kp);
 }
-entryPaidEl.addEventListener("input", updateTotals);
-kasanPaidEl.addEventListener("input", updateTotals);
-updateTotals();
+if (entryPaidEl && entryDueEl && kasanPaidEl && kasanDueEl && totalDueEl) {
+  entryPaidEl.addEventListener("input", updateTotals);
+  entryPaidEl.addEventListener("change", updateTotals);
+  kasanPaidEl.addEventListener("input", updateTotals);
+  kasanPaidEl.addEventListener("change", updateTotals);
+  updateTotals();
+}
 
 function randomHex(bytesCount=16){
   const bytes = new Uint8Array(bytesCount);
@@ -133,12 +137,16 @@ form.addEventListener("submit", async e=>{
   };
 
   try{
-    const batch=writeBatch(db);
-    const regRef=doc(collection(db,"teamRegistrations"));
-    const verifyRef=doc(db,"receiptVerifications",verificationCode);
-    batch.set(regRef,{...data,submittedAt:serverTimestamp()});
-    batch.set(verifyRef,{uniqueId,verificationCode,teamName,entryPaid,entryDue:ENTRY_TOTAL-entryPaid,kasanPaid,kasanDue:KASAN_TOTAL-kasanPaid,totalPaid:entryPaid+kasanPaid,totalDue:(ENTRY_TOTAL-entryPaid)+(KASAN_TOTAL-kasanPaid),status:"pending",season:"2026",receiptType:"OFFICIAL_PAYMENT_RECEIPT"});
-    await batch.commit();
+    const regRef = await addDoc(collection(db,"teamRegistrations"), { ...data, submittedAt: serverTimestamp() });
+    await setDoc(doc(db,"receiptVerifications",verificationCode), {
+      uniqueId, verificationCode, teamName,
+      entryPaid, entryDue: ENTRY_TOTAL-entryPaid,
+      kasanPaid, kasanDue: KASAN_TOTAL-kasanPaid,
+      totalPaid: entryPaid+kasanPaid,
+      totalDue: (ENTRY_TOTAL-entryPaid)+(KASAN_TOTAL-kasanPaid),
+      status:"pending", season:"2026", receiptType:"OFFICIAL_PAYMENT_RECEIPT",
+      registrationId: regRef.id
+    });
     status.className="status success"; status.textContent="Registration সফল হয়েছে।";
     showCopyButton(data);
     form.reset(); updateTotals();
