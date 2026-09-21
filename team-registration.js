@@ -1,4 +1,4 @@
-import { db, collection, doc, addDoc, setDoc, serverTimestamp } from "./firebase.js";
+import { db, collection, doc, writeBatch, serverTimestamp } from "./firebase.js";
 
 const form = document.getElementById("registrationForm");
 const btn = document.getElementById("submitBtn");
@@ -137,23 +137,29 @@ form.addEventListener("submit", async e=>{
   };
 
   try{
-    const regRef = await addDoc(collection(db,"teamRegistrations"), { ...data, submittedAt: serverTimestamp() });
-    await setDoc(doc(db,"receiptVerifications",verificationCode), {
+    // Atomic write: registration + verification are saved together.
+    const batch = writeBatch(db);
+    const regRef = doc(collection(db, "teamRegistrations"));
+
+    batch.set(regRef, { ...data, submittedAt: serverTimestamp() });
+
+    batch.set(doc(db, "receiptVerifications", verificationCode), {
       uniqueId, verificationCode, teamName,
       entryPaid, entryDue: ENTRY_TOTAL-entryPaid,
       kasanPaid, kasanDue: KASAN_TOTAL-kasanPaid,
       totalPaid: entryPaid+kasanPaid,
       totalDue: (ENTRY_TOTAL-entryPaid)+(KASAN_TOTAL-kasanPaid),
-      status:"pending", season:"2026", receiptType:"OFFICIAL_PAYMENT_RECEIPT",
+      status:"pending",
+      season:"2026",
+      receiptType:"OFFICIAL_PAYMENT_RECEIPT",
       registrationId: regRef.id
     });
+
+    await batch.commit();
+
     status.className="status success"; status.textContent="Registration সফল হয়েছে।";
     showCopyButton(data);
     form.reset(); updateTotals();
-  }catch(err){
-    console.error(err);
-    status.className="status error";
-    status.textContent="Registration জমা দেওয়া যায়নি। Firebase permission পরীক্ষা করুন।";
   }finally{
     btn.disabled=false; btn.textContent="Registration Submit করুন";
   }
