@@ -5,7 +5,7 @@ import {
   collection,
   getDocs,
   doc,
-  updateDoc,
+  writeBatch,
   serverTimestamp,
   onAuthStateChanged
 } from "./firebase.js";
@@ -278,17 +278,14 @@ async function loadRegistrations() {
 
 async function updateRegistrationStatus(id, status) {
 
-  const item =
-    registrations.find(x => x.id === id);
+  const item = registrations.find(x => x.id === id);
 
   if (!item) {
     alert("Application পাওয়া যায়নি।");
     return;
   }
 
-  const teamName =
-    item.teamName || "এই Team";
-
+  const teamName = item.teamName || "এই Team";
   let note = "";
 
   if (status === "verified") {
@@ -299,37 +296,60 @@ async function updateRegistrationStatus(id, status) {
 
     if (!ok) return;
 
+    note = "Payment এবং registration Admin দ্বারা verified হয়েছে।";
+
   } else {
 
-    note =
-      prompt(
-        `${teamName}\n\nReject করার কারণ লিখুন:`,
-        ""
-      );
+    note = prompt(
+      `${teamName}\n\nReject করার কারণ লিখুন:`,
+      ""
+    );
 
     if (note === null) return;
 
+    if (!note.trim()) {
+      alert("Reject করার কারণ লিখুন।");
+      return;
+    }
   }
 
   try {
 
-    const ref =
+    const batch = writeBatch(db);
+
+    const registrationRef =
       doc(db, "teamRegistrations", id);
 
-    const data = {
-      status,
+    batch.update(registrationRef, {
+      status: status,
       verifiedAt: serverTimestamp(),
-      verifiedBy:
-        auth.currentUser?.email || "",
+      verifiedBy: auth.currentUser?.email || "",
       adminNote: note
-    };
+    });
 
-    await updateDoc(ref, data);
+    if (item.verificationCode) {
+
+      const receiptRef =
+        doc(
+          db,
+          "receiptVerifications",
+          item.verificationCode
+        );
+
+      batch.update(receiptRef, {
+        status: status,
+        verifiedAt: serverTimestamp(),
+        verifiedBy: auth.currentUser?.email || "",
+        adminNote: note
+      });
+    }
+
+    await batch.commit();
 
     alert(
       status === "verified"
-        ? "✅ Application VERIFIED হয়েছে।"
-        : "❌ Application REJECTED হয়েছে।"
+        ? "✅ Registration এবং Payment Receipt দুটোই VERIFIED হয়েছে।"
+        : "❌ Registration এবং Payment Receipt দুটোই REJECTED হয়েছে।"
     );
 
     await loadRegistrations();
@@ -337,7 +357,7 @@ async function updateRegistrationStatus(id, status) {
   } catch (error) {
 
     console.error(
-      "REGISTRATION UPDATE ERROR:",
+      "REGISTRATION STATUS UPDATE ERROR:",
       error
     );
 
@@ -347,9 +367,7 @@ async function updateRegistrationStatus(id, status) {
     );
   }
 }
-
 function showRegistrationDetails(id) {
-
   const item =
     registrations.find(x => x.id === id);
 
