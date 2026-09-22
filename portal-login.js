@@ -2,7 +2,7 @@ import {
   auth,
   signInWithEmailAndPassword,
   onAuthStateChanged
-} from "./firebase.js";
+} from "./firebase.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 
