@@ -154,4 +154,52 @@ if (memberButton) {
 
     }
   });
+}      show("homeMemberMsg", "Member Password দিন।");
+      return;
+    }
+
+    memberButton.disabled = true;
+    memberButton.textContent = "Login হচ্ছে...";
+
+    try {
+
+      await signInWithEmailAndPassword(
+        auth,
+        phoneToAuthEmail(cleanPhone),
+        password
+      );
+
+      show("homeMemberMsg", "Login সফল। Member Panel খোলা হচ্ছে...");
+
+      setTimeout(() => {
+        window.location.href = "member-panel.html";
+      }, 300);
+
+    } catch (error) {
+
+      console.error("MEMBER LOGIN ERROR:", error);
+
+      let message = "Member Login ব্যর্থ।";
+
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/user-not-found"
+      ) {
+        message = "Mobile Number অথবা Password ভুল।";
+      } else if (error.code === "auth/too-many-requests") {
+        message = "অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।";
+      } else if (error.message) {
+        message = "Login Error: " + error.message;
+      }
+
+      show("homeMemberMsg", message);
+
+    } finally {
+
+      memberButton.disabled = false;
+      memberButton.textContent = "Member Login";
+
+    }
+  });
 }
