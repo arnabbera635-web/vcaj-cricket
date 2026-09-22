@@ -1,157 +1,63 @@
-import {
-  auth,
-  signInWithEmailAndPassword
-} from "./firebase.js";
+import { auth, signInWithEmailAndPassword } from "./firebase.js";
 
 const $ = (id) => document.getElementById(id);
 
-function show(id, message) {
-  const el = $(id);
-  if (el) el.textContent = message;
-}
-
-const phoneToAuthEmail = (phone) =>
-  `m${String(phone || "").replace(/\D/g, "")}@member.vcajcricket.com`;
-
-// ===============================
 // ADMIN LOGIN
-// ===============================
-const adminButton = $("homeAdminLogin");
+$("homeAdminLogin").onclick = async () => {
+  const email = $("homeAdminEmail").value.trim();
+  const password = $("homeAdminPassword").value;
 
-if (adminButton) {
-  adminButton.addEventListener("click", async () => {
+  $("homeAdminMsg").textContent = "Login হচ্ছে...";
 
-    const email = $("homeAdminEmail")?.value.trim();
-    const password = $("homeAdminPassword")?.value || "";
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
 
-    show("homeAdminMsg", "");
+    $("homeAdminMsg").textContent = "Login সফল। Admin Panel খুলছে...";
 
-    if (!email) {
-      show("homeAdminMsg", "Admin Email দিন।");
-      return;
-    }
+    window.location.href = "scorer.html";
 
-    if (!password) {
-      show("homeAdminMsg", "Admin Password দিন।");
-      return;
-    }
+  } catch (error) {
+    console.error(error);
 
-    adminButton.disabled = true;
-    adminButton.textContent = "Login হচ্ছে...";
-
-    try {
-
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      show("homeAdminMsg", "Login সফল। Admin Panel খোলা হচ্ছে...");
-
-      setTimeout(() => {
-        window.location.href = "scorer.html";
-      }, 300);
-
-    } catch (error) {
-
-      console.error("ADMIN LOGIN ERROR:", error);
-
-      let message = "Admin Login ব্যর্থ।";
-
-      if (
-        error.code === "auth/invalid-credential" ||
-        error.code === "auth/wrong-password" ||
-        error.code === "auth/user-not-found"
-      ) {
-        message = "Email অথবা Password ভুল।";
-      } else if (error.code === "auth/invalid-email") {
-        message = "Admin Email সঠিক নয়।";
-      } else if (error.code === "auth/too-many-requests") {
-        message = "অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।";
-      } else if (error.message) {
-        message = "Login Error: " + error.message;
-      }
-
-      show("homeAdminMsg", message);
-
-    } finally {
-
-      adminButton.disabled = false;
-      adminButton.textContent = "Admin Login";
-
-    }
-  });
-}
+    $("homeAdminMsg").textContent =
+      "ERROR: " + error.code + " — " + error.message;
+  }
+};
 
 
-// ===============================
 // MEMBER LOGIN
-// ===============================
-const memberButton = $("homeMemberLogin");
+$("homeMemberLogin").onclick = async () => {
+  const phone = $("homeMemberPhone").value.trim();
+  const password = $("homeMemberPassword").value;
 
-if (memberButton) {
-  memberButton.addEventListener("click", async () => {
+  if (phone.replace(/\D/g, "").length < 10) {
+    $("homeMemberMsg").textContent = "সঠিক Mobile Number দিন।";
+    return;
+  }
 
-    const phone = $("homeMemberPhone")?.value.trim();
-    const password = $("homeMemberPassword")?.value || "";
+  $("homeMemberMsg").textContent = "Login হচ্ছে...";
 
-    show("homeMemberMsg", "");
+  const authEmail =
+    "m" +
+    phone.replace(/\D/g, "") +
+    "@member.vcajcricket.com";
 
-    const cleanPhone = String(phone || "").replace(/\D/g, "");
+  try {
+    await signInWithEmailAndPassword(
+      auth,
+      authEmail,
+      password
+    );
 
-    if (cleanPhone.length < 10) {
-      show("homeMemberMsg", "সঠিক Mobile Number দিন।");
-      return;
-    }
+    $("homeMemberMsg").textContent =
+      "Login সফল। Member Panel খুলছে...";
 
-    if (!password) {
-      show("homeMemberMsg", "Member Password দিন।");
-      return;
-    }
+    window.location.href = "member-panel.html";
 
-    memberButton.disabled = true;
-    memberButton.textContent = "Login হচ্ছে...";
+  } catch (error) {
+    console.error(error);
 
-    try {
-
-      await signInWithEmailAndPassword(
-        auth,
-        phoneToAuthEmail(cleanPhone),
-        password
-      );
-
-      show("homeMemberMsg", "Login সফল। Member Panel খোলা হচ্ছে...");
-
-      setTimeout(() => {
-        window.location.href = "member-panel.html";
-      }, 300);
-
-    } catch (error) {
-
-      console.error("MEMBER LOGIN ERROR:", error);
-
-      let message = "Member Login ব্যর্থ।";
-
-      if (
-        error.code === "auth/invalid-credential" ||
-        error.code === "auth/wrong-password" ||
-        error.code === "auth/user-not-found"
-      ) {
-        message = "Mobile Number অথবা Password ভুল।";
-      } else if (error.code === "auth/too-many-requests") {
-        message = "অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।";
-      } else if (error.message) {
-        message = "Login Error: " + error.message;
-      }
-
-      show("homeMemberMsg", message);
-
-    } finally {
-
-      memberButton.disabled = false;
-      memberButton.textContent = "Member Login";
-
-    }
-  });
-}
+    $("homeMemberMsg").textContent =
+      "ERROR: " + error.code + " — " + error.message;
+  }
+};
