@@ -1,3 +1,22 @@
-<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Players — VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI</title><meta name="description" content="VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI public player database and individual player records."><link rel="stylesheet" href="style.css"></head>
-<body><header class="topbar"><a class="brand" href="index.html"><span>VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI<small class="tournament-brand">জেলিয়াখালী “মন্ডল এন্ড মন্ডল” ক্রিকেট টুর্নামেন্ট</small></span></a><nav><a href="index.html">লাইভ</a><a href="teams.html">দল</a><a href="member-panel.html">সদস্য</a></nav></header>
-<main class="container"><section class="hero small"><div><p class="eyebrow">Player Database</p><h1>সব খেলোয়াড়ের রেকর্ড</h1><p>একজন খেলোয়াড়ের নামে চাপ দিলে তার Individual Record, Career Stats ও Match Record দেখা যাবে।</p></div></section><section class="card"><div class="card-head"><input id="search" placeholder="খেলোয়াড় খুঁজুন…"><select id="season"><option value="">সব Season</option></select></div><div id="players" class="table-wrap"></div></section></main><script type="module" src="firebase.js"></script><script type="module" src="players.js"></script></body></html>
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ — Teams & Players</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"></head>
+<body class="auth-pending"><header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header>
+<main class="wrap">
+<section class="card"><div class="admin-toolbar"><div><h1>👥 TEAMS & PLAYERS</h1><p class="muted">Team এবং player management</p></div><button data-logout>Logout</button></div></section>
+<section class="card"><div class="stat-grid"><div class="stat-box"><span>Teams</span><strong id="teamCount">0 / 16</strong></div><div class="stat-box"><span>Players</span><strong id="playerCount">0</strong></div></div></section>
+<section class="grid two">
+ <div class="card"><h2>নতুন দল</h2><label>দলের নাম<input id="newTeamName"></label><label>Short Name<input id="newTeamShort"></label><button id="addTeam">দল Save করুন</button><p id="teamMsg" class="muted"></p></div>
+ <div class="card"><h2>নতুন খেলোয়াড়</h2><label>নাম<input id="newPlayerName"></label><label>দল<select id="newPlayerTeam"></select></label><button id="addPlayer">খেলোয়াড় Save করুন</button><p id="playerMsg" class="muted"></p></div>
+</section>
+<section class="card"><h2>Existing Player Update</h2><div class="grid two"><label>খেলোয়াড়<select id="editPlayerSelect"></select></label><label>নতুন নাম<input id="editPlayerName"></label></div><button id="editPlayer">Update Player</button><p id="editPlayerMsg" class="muted"></p></section>
+<section class="card"><h2>Teams</h2><div id="teamTable"></div></section>
+<section class="card"><h2>Players</h2><div id="playerTable"></div></section>
+</main>
+<script type="module">
+import {guardAdmin,bindLogout} from "./admin.js";
+await guardAdmin();
+bindLogout();
+await import("./players.js?v=5");
+</script>
+</body></html>

@@ -27,36 +27,12 @@ import {
   writeBatch
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-import {
-  firebaseConfig,
-  ADMIN_EMAILS
-} from "./firebase-config.js";
-
-
-/* =========================================
-   FIREBASE INITIALIZATION
-========================================= */
+import { firebaseConfig, ADMIN_EMAILS } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 
-
-/* =========================================
-   AUTH
-========================================= */
-
 export const auth = getAuth(app);
-
-
-/* =========================================
-   FIRESTORE
-========================================= */
-
 export const db = getFirestore(app);
-
-
-/* =========================================
-   FIREBASE AUTH FUNCTIONS
-========================================= */
 
 export {
   onAuthStateChanged,
@@ -66,40 +42,14 @@ export {
   updatePassword
 };
 
-
-/* =========================================
-   FIRESTORE FUNCTIONS
-========================================= */
-
 export {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  updateDoc,
-  addDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  limit,
-  onSnapshot,
-  serverTimestamp,
-  writeBatch
+  collection,doc,getDoc,getDocs,setDoc,updateDoc,addDoc,deleteDoc,
+  query,orderBy,limit,onSnapshot,serverTimestamp,writeBatch
 };
 
-
-/* =========================================
-   ADMIN CHECK
-========================================= */
-
 export function isAdmin(user) {
-
   return !!user &&
     ADMIN_EMAILS
       .map(email => email.toLowerCase())
-      .includes(
-        (user.email || "").toLowerCase()
-      );
-
+      .includes((user.email || "").toLowerCase());
 }

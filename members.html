@@ -1,1 +1,24 @@
-<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Member List — VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI</title><link rel="stylesheet" href="style.css"></head><body><header class="topbar"><a class="brand" href="index.html"><span>VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI<small class="tournament-brand">জেলিয়াখালী “মন্ডল এন্ড মন্ডল” ক্রিকেট টুর্নামেন্ট</small></span></a><nav><a href="index.html">হোম</a><a href="member-panel.html">Member Panel</a></nav></header><main class="container"><section class="card"><p class="eyebrow">MEMBER ONLY</p><h1>সদস্য তালিকা</h1><p>Member List ও payment information দেখতে Member Login বাধ্যতামূলক।</p><a class="btn primary" href="member-panel.html">👤 Member Login →</a></section></main></body></html>
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ — Members</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"></head>
+<body class="auth-pending"><header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header>
+<main class="wrap">
+<section class="card"><div class="admin-toolbar"><div><h1>⚙️ MEMBERS</h1><p class="muted">Association member management</p></div><button data-logout>Logout</button></div></section>
+<section class="card"><h2>Member Information</h2><div class="grid two">
+<label>নাম<input id="memberName"></label><label>ভূমিকা<input id="memberRole"></label>
+<label>ফোন<input id="memberPhone"></label><label>Email<input id="memberEmail" type="email"></label>
+<label>ঠিকানা<textarea id="memberAddress"></textarea></label><label>Team<select id="memberTeam"></select></label>
+<label>Season<input id="memberSeason" type="number" value="2026"></label><label>Fee<input id="memberFee"></label>
+<label>Fee Status<select id="memberFeeStatus"><option>বাকি</option><option>পরিশোধিত</option><option>আংশিক</option></select></label>
+<label>Note<textarea id="memberNote"></textarea></label>
+</div><div class="admin-actions"><button id="memberSave">সদস্য Save করুন</button><button id="memberCancel" class="hidden">Cancel</button></div><p id="memberMsg" class="muted"></p></section>
+<section class="card"><h2>Member Login</h2><div class="grid two"><label>Phone<input id="memberLoginPhone" inputmode="numeric"></label><label>Password<input id="memberLoginPassword" type="password"></label></div><button id="memberLoginBtn">Member Login</button><p id="memberLoginMsg" class="muted"></p></section>
+<section class="card"><h2>Members <span id="memberCount" class="muted"></span></h2><div id="memberAdminTable"></div></section>
+</main>
+<script type="module">
+import {guardAdmin,bindLogout} from "./admin.js";
+await guardAdmin();
+bindLogout();
+await import("./members.js?v=5");
+</script>
+</body></html>

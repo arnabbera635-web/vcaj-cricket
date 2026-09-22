@@ -1,16 +1,27 @@
-import {auth,db,isAdmin,collection,doc,getDoc,getDocs,setDoc,deleteDoc,onAuthStateChanged,serverTimestamp,signOut} from './firebase.js';
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-let rows=[]; let currentSeason=2026;
-const money=n=>`₹ ${Number(n||0).toLocaleString('en-IN')}`;
-function rowHtml(r,i){return `<div class="grid three account-row" data-index="${i}"><div><label>খরচের খাত</label><input class="account-item" value="${esc(r.item)}" placeholder="যেমন খাওয়া-দাওয়া"></div><div><label>পরিমাণ (₹)</label><input class="account-amount" type="number" min="0" step="0.01" value="${Number(r.amount||0)}"></div><div><label>&nbsp;</label><button type="button" class="danger remove-row">Delete</button></div></div>`;}
-function renderEditor(){ $('editorRows').innerHTML=rows.length?rows.map(rowHtml).join(''):'<div class="empty">এখনও কোনো খরচ যোগ করা হয়নি।</div>';document.querySelectorAll('.remove-row').forEach((b,i)=>b.onclick=()=>{rows.splice(i,1);renderEditor();}); }
-function readEditor(){return [...document.querySelectorAll('.account-row')].map(x=>({item:x.querySelector('.account-item').value.trim(),amount:Number(x.querySelector('.account-amount').value||0)})).filter(x=>x.item);}
-function renderView(data){const list=Array.isArray(data?.items)?data.items:[];currentSeason=Number(data?.season||2026);$('viewSeason').textContent=currentSeason;$('viewTitle').textContent=data?.title||'টুর্নামেন্টের খরচ';$('viewNote').textContent=data?.note||'শুধু Member ও Admin-এর জন্য';const total=list.reduce((s,x)=>s+Number(x.amount||0),0);$('total').textContent=money(total);$('accountsTable').innerHTML=list.length?`<table><tr><th>ক্রমিক</th><th>খরচের খাত</th><th>পরিমাণ</th></tr>${list.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.item)}</td><td>${money(x.amount)}</td></tr>`).join('')}<tr><th colspan="2" style="text-align:right">সর্বমোট খরচ</th><th>${money(total)}</th></tr></table>`:'<div class="empty">এখনও কোনো হিসাব Save করা হয়নি। Admin panel থেকে হিসাব যোগ করুন।</div>';}
-async function loadAccounts(){try{const s=await getDocs(collection(db,'tournamentAccounts'));const docs=s.docs.map(d=>d.data()).sort((a,b)=>Number(b.season||0)-Number(a.season||0));const data=docs[0];if(data){renderView(data);if(isAdmin(auth.currentUser)){currentSeason=Number(data.season||2026);$('season').value=currentSeason;$('title').value=data.title||'টুর্নামেন্টের খরচের হিসাব';$('note').value=data.note||'';rows=data.items||[];renderEditor();}}else renderView({season:2026,items:[]});}catch(e){$('accountsTable').innerHTML='<div class="empty">হিসাব লোড হয়নি। Firebase Rules ও login যাচাই করুন।</div>';}}
-$('importBtn').onclick=async()=>{const f=$('importFile').files?.[0];if(!f){$('adminMsg').textContent='প্রথমে JSON file নির্বাচন করুন।';return;}try{const data=JSON.parse(await f.text());if(!Array.isArray(data.items)||!data.items.length)throw new Error('items missing');rows=data.items.map(x=>({item:String(x.item||'').trim(),amount:Number(x.amount||0)})).filter(x=>x.item);$('season').value=Number(data.season||2026);$('title').value=data.title||'টুর্নামেন্টের খরচের হিসাব';$('note').value=data.note||'';renderEditor();$('adminMsg').textContent=`${rows.length}টি খরচ Import হয়েছে। এখন হিসাব Save করুন।`;}catch(e){$('adminMsg').textContent='JSON file সঠিক নয়।';}};
-$('addRow').onclick=()=>{rows.push({item:'',amount:0});renderEditor();};
-$('saveAccounts').onclick=async()=>{const season=Number($('season').value||2026);const items=readEditor();if(!items.length){$('adminMsg').textContent='কমপক্ষে একটি খরচের খাত দিন।';return;}try{$('saveAccounts').disabled=true;await setDoc(doc(db,'tournamentAccounts',String(season)),{season,title:$('title').value.trim()||'টুর্নামেন্টের খরচের হিসাব',note:$('note').value.trim(),items,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.email},{merge:true});$('adminMsg').textContent='হিসাব Firebase-এ Save হয়েছে।';rows=items;renderEditor();await loadAccounts();}catch(e){$('adminMsg').textContent='Save হয়নি। Firebase Rules/permission যাচাই করুন।';}finally{$('saveAccounts').disabled=false;}};
-$('logoutBtn').onclick=()=>signOut(auth);
-onAuthStateChanged(auth,async user=>{if(user&&(isAdmin(user)||await isMember(user))){$('gate').classList.add('hidden');$('accountsApp').classList.remove('hidden');if(isAdmin(user)){$('adminEditor').classList.remove('hidden');}await loadAccounts();}else{$('accountsApp').classList.add('hidden');$('gate').classList.remove('hidden');$('gateMsg').textContent='এই পেজ দেখতে Member Login বা Admin Login প্রয়োজন।';}});
-async function isMember(user){try{const s=await getDoc(doc(db,'memberAccounts',user.uid));return s.exists();}catch{return false;}}
+import {db,collection,getDocs} from "./firebase.js";
+const $=id=>document.getElementById(id);let rows=[];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money=v=>`₹${Number(v||0).toLocaleString("en-IN")}`;
+const val=(o,...keys)=>{for(const k of keys)if(o?.[k]!=null)return Number(o[k])||0;return 0;};
+async function load(){
+ const snap=await getDocs(collection(db,"teamRegistrations"));
+ rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+ let expected=0,paid=0,due=0;
+ rows.forEach(r=>{
+  const e=val(r,"entryFee"),k=val(r,"kasanmani","securityDeposit"),p=val(r,"totalPaid");
+  expected+=e+k;paid+=p;due+=val(r,"totalDue")||Math.max(0,e+k-p);
+ });
+ $("regCount").textContent=rows.length;$("expected").textContent=money(expected);$("paid").textContent=money(paid);$("due").textContent=money(due);
+ $("accountsTable").innerHTML=rows.length?`<div class="table-wrap"><table><tr><th>Team</th><th>Status</th><th>Entry Fee</th><th>Kasanmani</th><th>Total Expected</th><th>Paid</th><th>Due</th><th>Verification Code</th></tr>${
+ rows.map(r=>{const e=val(r,"entryFee"),k=val(r,"kasanmani","securityDeposit"),p=val(r,"totalPaid"),d=val(r,"totalDue")||Math.max(0,e+k-p);return `<tr><td>${esc(r.teamName||r.name||"")}</td><td>${esc(r.status||"pending")}</td><td>${money(e)}</td><td>${money(k)}</td><td>${money(e+k)}</td><td>${money(p)}</td><td>${money(d)}</td><td>${esc(r.verificationCode||"")}</td></tr>`}).join("")
+ }</table></div>`:"<p class='muted'>কোনো registration নেই।</p>";
+}
+$("refreshAccounts").onclick=load;
+$("exportAccounts").onclick=()=>{
+ const head=["Team","Status","Entry Fee","Kasanmani","Expected","Paid","Due","Verification Code"];
+ const data=rows.map(r=>{const e=val(r,"entryFee"),k=val(r,"kasanmani","securityDeposit"),p=val(r,"totalPaid"),d=val(r,"totalDue")||Math.max(0,e+k-p);return [r.teamName||r.name||"",r.status||"pending",e,k,e+k,p,d,r.verificationCode||""];});
+ const csv=[head,...data].map(a=>a.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download="VCAJ-accounts.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+await load();

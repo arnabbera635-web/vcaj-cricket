@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ — Admin Panel</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css">
+</head>
+<body class="auth-pending">
+<header class="topbar">
+  <a class="brand" href="index.html">VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI</a>
+</header>
+<main class="wrap">
+<section class="card">
+  <div class="admin-toolbar">
+    <div><h1>ADMIN PANEL</h1><p class="muted">2026 Cricket Tournament</p></div>
+    <div class="admin-actions"><span class="pill" data-admin-email></span><button data-logout>Logout</button></div>
+  </div>
+</section>
+
+<section class="card">
+ <div class="admin-grid">
+  <a class="card admin-card" href="scorer.html"><h3>🏏 Live Scoring</h3><p>Match setup, live score, wickets, innings, Super Over, undo ও backup.</p></a>
+  <a class="card admin-card" href="team-registrations.html"><h3>📝 Team Registration</h3><p>Registration applications, verification ও payment details.</p></a>
+  <a class="card admin-card" href="players.html"><h3>👥 Teams & Players</h3><p>দল তৈরি, খেলোয়াড় যোগ এবং খেলোয়াড়ের নাম update.</p></a>
+  <a class="card admin-card" href="awards.html"><h3>🏆 Awards</h3><p>Player statistics দেখে tournament awards manage করুন.</p></a>
+  <a class="card admin-card" href="accounts.html"><h3>💰 হিসেব / Accounts</h3><p>Entry fee, Kasanmani, paid/due ও registration payment overview.</p></a>
+  <a class="card admin-card" href="members.html"><h3>⚙️ Members</h3><p>Association member information ও member directory.</p></a>
+ </div>
+</section>
+</main>
+<script type="module">
+import {guardAdmin,bindLogout} from "./admin.js";
+await guardAdmin(); bindLogout();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ — Team Registrations</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"></head>
+<body class="auth-pending"><header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header>
+<main class="wrap">
+<section class="card"><div class="admin-toolbar"><div><h1>📝 TEAM REGISTRATION</h1><p class="muted">Applications & payment verification</p></div><button data-logout>Logout</button></div></section>
+<section class="card"><div class="admin-actions"><button id="refreshRegistrations">Refresh</button><select id="statusFilter"><option value="">সব Status</option><option value="pending">Pending</option><option value="verified">Verified</option><option value="rejected">Rejected</option></select></div><p id="registrationMsg" class="muted"></p><div id="registrationTable">Loading...</div></section>
+</main>
+<div id="detailsModal" class="modal hidden"><div class="modal-content card"><h2>Registration Details</h2><div id="detailsContent"></div><div class="admin-actions"><button id="closeDetails">Close</button></div></div></div>
+<script type="module">
+import {guardAdmin,bindLogout} from "./admin.js";
+await guardAdmin();
+bindLogout();
+await import("./team-registrations-admin.js?v=4");
+</script>
+</body></html>
