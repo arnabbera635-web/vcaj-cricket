@@ -1,22 +1,115 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VCAJ — Awards</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"></head>
-<body class="auth-pending"><header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ — Awards Admin</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+.award-calc{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.award-calc button{font-weight:900}
+.award-result{margin-top:14px;padding:15px;border:1px solid #dbe3ee;border-radius:14px;background:#f8fafc}
+.award-result h3{margin:0 0 8px}
+.record-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.record{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:9px}
+.record b{display:block;font-size:18px}
+.record small{color:#64748b}
+.selected-player{background:#eff6ff;border-color:#93c5fd}
+@media(max-width:700px){.record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left}
+th{background:#f8fafc}
+</style>
+</head>
+<body class="auth-pending">
+<header class="topbar">
+  <a class="brand" href="admin.html">← ADMIN PANEL</a>
+</header>
+
 <main class="wrap">
-<section class="card"><div class="admin-toolbar"><div><h1>🏆 AWARDS</h1><p class="muted">Player statistics ও tournament awards</p></div><button data-logout>Logout</button></div></section>
-<section class="card"><h2>Player Statistics</h2><div id="statsTable">Loading...</div></section>
-<section class="card"><h2>Award Entry</h2><div class="grid two">
-<label>Season<input id="awardSeason" type="number" value="2026"></label>
-<label>Award<select id="awardType"><option>Player of the Tournament</option><option>Best Batter</option><option>Best Bowler</option><option>Best Fielder</option><option>Best Wicketkeeper</option><option>Best Emerging Player</option><option>Man of the Match</option><option>Custom Award</option></select></label>
-<label>Player<select id="awardPlayer"></select></label><label>Custom Award Name<input id="awardCustomName"></label>
-<label>Prize / Title<input id="awardPrize"></label><label>Note<textarea id="awardNote"></textarea></label>
-</div><button id="saveAward">Award Save করুন</button><p id="awardMsg" class="muted"></p></section>
-<section class="card"><h2>Saved Awards</h2><div id="awardTable"></div></section>
+<section class="card">
+  <div class="admin-toolbar">
+    <div>
+      <h1>🏆 AWARDS</h1>
+      <p class="muted">Calculate Award • Player Records • Save Award</p>
+    </div>
+    <button data-logout>Logout</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Player Records</h2>
+  <div id="statsTable">Loading...</div>
+</section>
+
+<section class="card">
+  <h2>Calculate Award</h2>
+  <div class="grid two">
+    <label>Season
+      <input id="awardSeason" type="number" value="2026">
+    </label>
+    <label>Award
+      <select id="awardType">
+        <option>Player of the Tournament</option>
+        <option>Best Batter</option>
+        <option>Best Bowler</option>
+        <option>Best Fielder</option>
+        <option>Best Wicketkeeper</option>
+        <option>Best Emerging Player</option>
+        <option>Man of the Match</option>
+        <option>Custom Award</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="award-calc">
+    <button id="calculateAward" type="button">🏆 Calculate Award</button>
+    <span id="calcMsg" class="muted"></span>
+  </div>
+
+  <div id="awardResult" class="award-result hidden">
+    <h3 id="calculatedAwardName">Calculated Award</h3>
+    <div id="calculatedPlayer" class="selected-player"></div>
+    <div id="calculatedRecord" class="record-grid"></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Save Award</h2>
+  <div class="grid two">
+    <label>Player
+      <select id="awardPlayer"></select>
+    </label>
+    <label>Custom Award Name
+      <input id="awardCustomName" placeholder="Custom Award হলে লিখুন">
+    </label>
+    <label>Prize / Title
+      <input id="awardPrize" placeholder="যেমন: Trophy + ₹5,000">
+    </label>
+    <label>Note
+      <textarea id="awardNote" placeholder="প্রয়োজনে মন্তব্য লিখুন"></textarea>
+    </label>
+  </div>
+
+  <div class="award-calc">
+    <button id="saveAward" type="button">💾 Save Award</button>
+    <span id="awardMsg" class="muted">Calculate Award করলে player ও record automatically আসবে।</span>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Saved Awards</h2>
+  <div id="awardTable">Loading...</div>
+</section>
 </main>
+
 <script type="module">
 import {guardAdmin,bindLogout} from "./admin.js";
 await guardAdmin();
 bindLogout();
-await import("./awards.js?v=4");
+await import("./awards.js?v=5");
 </script>
-</body></html>
+</body>
+</html>
