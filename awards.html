@@ -1,99 +1,31 @@
 <!doctype html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VCAJ — Awards Admin</title>
-<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css">
 <style>
-body{margin:0;background:#f4f7fb;color:#172033;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:1100px;margin:auto;padding:16px}
-.top{background:#09264a;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.top a{color:#fff;text-decoration:none}
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 2px 8px #0000000a}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-@media(max-width:700px){.grid{grid-template-columns:1fr}}
-label{display:block;font-weight:600;margin:7px 0 5px}
-input,select,textarea,button{box-sizing:border-box;width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}
-button{background:#0b5ed7;color:#fff;border:0;font-weight:700;cursor:pointer}
-button.secondary{background:#64748b}
-button.danger{background:#b42318}
-.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-@media(max-width:700px){.actions{grid-template-columns:1fr}}
-.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-@media(max-width:700px){.statgrid{grid-template-columns:repeat(2,1fr)}}
-.stat{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
-.stat b{display:block;font-size:20px}
-.table-wrap{overflow:auto}
-table{width:100%;border-collapse:collapse}
-th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}
-.muted{color:#64748b}
-.msg{padding:9px;border-radius:8px;margin-top:10px;background:#f1f5f9}
-.success{background:#ecfdf3;color:#067647}.error{background:#fef3f2;color:#b42318}
-.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#e0edff;color:#124c9b;font-size:12px;font-weight:700}
+.award-calc{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}.award-calc button{font-weight:900}
+.award-result{margin-top:14px;padding:15px;border:1px solid #dbe3ee;border-radius:14px;background:#f8fafc}.award-result h3{margin:0 0 8px}
+.record-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}.record{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:9px}.record b{display:block;font-size:18px}.record small{color:#64748b}
+.selected-player{background:#eff6ff;padding:10px;border-radius:10px}.calc-head{display:flex;justify-content:space-between;gap:10px;margin:14px 0 8px}.player-cards{display:grid;gap:10px}.player-card{background:#fff;border:1px solid #dbe3ee;border-radius:14px;padding:12px}.player-card.recommended{border:2px solid #2563eb;background:#f8fbff}.player-card.selected{box-shadow:0 0 0 2px #16a34a inset}.player-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.player-top h3{margin:2px 0}.rank{font-size:12px;font-weight:800;color:#2563eb}.team,.muted{color:#64748b}.choose-player{width:auto;padding:8px 12px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:820px}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left}th{background:#f8fafc}
+@media(max-width:800px){.record-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:520px){.record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.calc-head{display:block}.player-top{align-items:flex-start}}
 </style>
 </head>
-<body>
-<header class="top">
-  <a href="admin.html">← ADMIN PANEL</a>
-  <button id="logoutBtn" style="width:auto;background:#fff;color:#09264a;padding:8px 13px">Logout</button>
-</header>
-
+<body class="auth-pending">
+<header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header>
 <main class="wrap">
-  <section class="card">
-    <h1>🏆 Awards</h1>
-    <p class="muted">Player statistics, automatic calculation and tournament awards.</p>
-    <div id="topMsg" class="msg">Loading...</div>
-  </section>
-
-  <section class="card">
-    <h2>Player Statistics</h2>
-    <div id="playerStats">Loading...</div>
-  </section>
-
-  <section class="card">
-    <h2>Award Entry</h2>
-    <div class="grid">
-      <div>
-        <label>Season</label>
-        <input id="awardSeason" type="number" value="2026">
-      </div>
-      <div>
-        <label>Award</label>
-        <select id="awardType"></select>
-      </div>
-      <div>
-        <label>Player</label>
-        <select id="awardPlayer"><option value="">Player নির্বাচন করুন</option></select>
-      </div>
-      <div>
-        <label>Custom Award Name</label>
-        <input id="customAwardName" placeholder="Custom award হলে লিখুন">
-      </div>
-      <div>
-        <label>Prize / Title</label>
-        <input id="awardPrize" placeholder="যেমন: Trophy + ₹5,000">
-      </div>
-      <div>
-        <label>Note</label>
-        <input id="awardNote" placeholder="Optional note">
-      </div>
-    </div>
-    <div id="selectedPlayerRecord" class="msg">Player নির্বাচন করলে record এখানে দেখাবে।</div>
-    <div class="actions">
-      <button id="calculateBtn">Calculate Award</button>
-      <button id="saveBtn">Award Save করুন</button>
-      <button id="refreshBtn" class="secondary">Refresh Records</button>
-    </div>
-    <div id="calcResult" class="msg"></div>
-  </section>
-
-  <section class="card">
-    <h2>Saved Awards</h2>
-    <div id="savedAwards">Loading...</div>
-  </section>
+<section class="card"><div class="admin-toolbar"><div><h1>🏆 AWARDS</h1><p class="muted">Calculate Award • All Player Records • Save Award</p></div><button data-logout>Logout</button></div></section>
+<section class="card"><h2>Player Records</h2><div id="statsTable">Loading...</div></section>
+<section class="card"><h2>Calculate Award</h2>
+<div class="grid two"><label>Season<input id="awardSeason" type="number" value="2026"></label><label>Award<select id="awardType"></select></label></div>
+<div class="award-calc"><button id="calculateAward" type="button">🏆 Calculate Award</button><span id="calcMsg" class="muted"></span></div>
+<div id="awardResult" class="award-result hidden"><h3>Recommended Player</h3><div id="calculatedPlayer" class="selected-player"></div><div id="calculatedRecord" class="record-grid"></div></div>
+<div id="calculatedPlayers"></div>
+</section>
+<section class="card"><h2>Save Award</h2><div class="grid two"><label>Player<select id="awardPlayer"></select></label><label>Custom Award Name<input id="awardCustomName" placeholder="Custom Award হলে লিখুন"></label><label>Prize / Title<input id="awardPrize" placeholder="যেমন: Trophy + ₹5,000"></label><label>Note<textarea id="awardNote" placeholder="প্রয়োজনে মন্তব্য লিখুন"></textarea></label></div>
+<div class="award-calc"><button id="saveAward" type="button">💾 Save Award</button><span id="awardMsg" class="muted">Calculate Award করলে প্রতিটি player-এর নাম ও record automatically আসবে।</span></div></section>
+<section class="card"><h2>Saved Awards</h2><div id="awardTable">Loading...</div></section>
 </main>
-
-<script type="module" src="awards.js"></script>
-</body>
-</html>
+<script type="module">import {guardAdmin,bindLogout} from "./admin.js";await guardAdmin();bindLogout();await import("./awards.js?v=6");</script>
+</body></html>
