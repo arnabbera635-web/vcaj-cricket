@@ -1,159 +1,83 @@
-import {db,collection,doc,getDocs,setDoc,serverTimestamp} from "./firebase.js";
+import {db,collection,doc,getDocs,setDoc,updateDoc,serverTimestamp} from "./firebase.js";
 
 const $ = id => document.getElementById(id);
-let players = [];
-let awards = [];
-let calculatedPlayer = null;
-let calculatedRows = [];
-
-const esc = s => String(s ?? "").replace(/[&<>\"]/g, c => ({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"
-}[c]));
-function num(v){ return Number(v || 0); }
-function strikeRate(p){ const b=num(p.totalBalls); return b ? num(p.totalRuns)/b*100 : 0; }
-function economy(p){ const b=num(p.totalBowlingBalls); return b ? num(p.totalBowlingRuns)/(b/6) : 0; }
-function hatTricks(p){ return num(p.bowlingHatTricks)+num(p.battingHatTricks)+num(p.fieldingHatTricks); }
-
-const AWARDS = [
-  ["SERIES_MOTM","ম্যান অব দ্য সিরিজ"], ["FINAL_MOTM","ফাইনাল ম্যান অব দ্য ম্যাচ"],
-  ["MATCH_MOTM","প্রতিটা ম্যাচের ম্যান অব দ্য ম্যাচ"], ["BEST_BATSMAN","সেরা ব্যাটসম্যান"],
-  ["BEST_BOWLER","সেরা বোলার"], ["BEST_ALLROUNDER","সেরা অলরাউন্ডার"],
-  ["BEST_WICKETKEEPER","সেরা উইকেটকিপার"], ["BEST_FIELDER","সেরা ফিল্ডার"],
-  ["MOST_RUNS","সর্বোচ্চ রান সংগ্রাহক"], ["MOST_WICKETS","সর্বোচ্চ উইকেট সংগ্রাহক"],
-  ["EMERGING","উদীয়মান খেলোয়াড় (Emerging Player)"], ["HAT_TRICK","হ্যাটট্রিক পুরস্কার"],
-  ["CENTURY","শতরান পুরস্কার"], ["FIFTY","অর্ধশতরান পুরস্কার"], ["BEST_CATCH","সেরা ক্যাচ"],
-  ["BEST_RUN_OUT","সেরা রান-আউট"], ["BEST_BOWLING_SPELL","সেরা বোলিং স্পেল"],
-  ["BEST_BATTING_INNINGS","সেরা ব্যাটিং ইনিংস"], ["MOST_SIXES","সর্বাধিক ছক্কা"],
-  ["FAIR_PLAY","Fair Play Trophy"], ["TEAM_SPIRIT","Best Team Spirit Award"],
-  ["BEST_CAPTAIN","Best Captain Award"], ["SUPPORTED_TEAM","Best Supported Team Award"],
-  ["SF1_MOTM","সেমিফাইনাল–১ ম্যান অব দ্য ম্যাচ"], ["SF2_MOTM","সেমিফাইনাল–২ ম্যান অব দ্য ম্যাচ"],
-  ["TOURNAMENT_MOMENT","Moment of the Tournament"]
+let players=[], awards=[], matches=[], matchEvents=new Map(), calculatedPlayer=null, calculatedRows=[], editingAwardId=null;
+const esc=s=>String(s??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const n=v=>Number(v||0);
+const MATCH_AWARDS=[
+ ["MATCH_MOTM","ম্যান অব দ্য ম্যাচ"],["MATCH_BEST_BATSMAN","ম্যাচের সেরা ব্যাটসম্যান"],["MATCH_BEST_BOWLER","ম্যাচের সেরা বোলার"],
+ ["MATCH_BEST_ALLROUNDER","ম্যাচের সেরা অলরাউন্ডার"],["MATCH_BEST_WICKETKEEPER","ম্যাচের সেরা উইকেটকিপার"],["MATCH_BEST_FIELDER","ম্যাচের সেরা ফিল্ডার"],
+ ["MATCH_MOST_RUNS","ম্যাচে সর্বোচ্চ রান"],["MATCH_MOST_WICKETS","ম্যাচে সর্বোচ্চ উইকেট"],["MATCH_BEST_CATCH","ম্যাচের সেরা ক্যাচ"],
+ ["MATCH_BEST_RUN_OUT","ম্যাচের সেরা রান-আউট"],["MATCH_BEST_BOWLING","ম্যাচের সেরা বোলিং স্পেল"],["MATCH_BEST_INNINGS","ম্যাচের সেরা ব্যাটিং ইনিংস"],
+ ["MATCH_MOST_SIXES","ম্যাচে সর্বাধিক ছক্কা"],["MATCH_HAT_TRICK","ম্যাচের হ্যাটট্রিক পুরস্কার"],["CUSTOM","Custom Award"]
 ];
-
-function playerRecord(p){
-  return {
-    runs:num(p.totalRuns), balls:num(p.totalBalls), fours:num(p.totalFours), sixes:num(p.totalSixes),
-    wickets:num(p.totalWickets), bowlingRuns:num(p.totalBowlingRuns), bowlingBalls:num(p.totalBowlingBalls),
-    economy:economy(p), strikeRate:strikeRate(p), catches:num(p.fieldingCatches),
-    stumpings:num(p.fieldingStumpings), runOuts:num(p.fieldingRunOuts),
-    fieldingDismissals:num(p.fieldingDismissals) || num(p.fieldingCatches)+num(p.fieldingStumpings)+num(p.fieldingRunOuts),
-    hatTricks:hatTricks(p), centuries:num(p.centuries), fifties:num(p.fifties)
-  };
+const TOURNAMENT_AWARDS=[
+ ["SERIES_MOTM","ম্যান অব দ্য সিরিজ"],["FINAL_MOTM","ফাইনাল ম্যান অব দ্য ম্যাচ"],["BEST_BATSMAN","সেরা ব্যাটসম্যান"],["BEST_BOWLER","সেরা বোলার"],
+ ["BEST_ALLROUNDER","সেরা অলরাউন্ডার"],["BEST_WICKETKEEPER","সেরা উইকেটকিপার"],["BEST_FIELDER","সেরা ফিল্ডার"],["MOST_RUNS","সর্বোচ্চ রান সংগ্রাহক"],
+ ["MOST_WICKETS","সর্বোচ্চ উইকেট সংগ্রাহক"],["EMERGING","উদীয়মান খেলোয়াড় (Emerging Player)"],["HAT_TRICK","হ্যাটট্রিক পুরস্কার"],
+ ["CENTURY","শতরান পুরস্কার"],["FIFTY","অর্ধশতরান পুরস্কার"],["BEST_CATCH","সেরা ক্যাচ"],["BEST_RUN_OUT","সেরা রান-আউট"],
+ ["BEST_BOWLING_SPELL","সেরা বোলিং স্পেল"],["BEST_BATTING_INNINGS","সেরা ব্যাটিং ইনিংস"],["MOST_SIXES","সর্বাধিক ছক্কা"],
+ ["FAIR_PLAY","Fair Play Trophy"],["TEAM_SPIRIT","Best Team Spirit Award"],["BEST_CAPTAIN","Best Captain Award"],
+ ["SUPPORTED_TEAM","Best Supported Team Award"],["SF1_MOTM","সেমিফাইনাল–১ ম্যান অব দ্য ম্যাচ"],["SF2_MOTM","সেমিফাইনাল–২ ম্যান অব দ্য ম্যাচ"],
+ ["TOURNAMENT_MOMENT","Moment of the Tournament"],["CUSTOM","Custom Award"]
+];
+const manualTypes=new Set(["EMERGING","FAIR_PLAY","TEAM_SPIRIT","BEST_CAPTAIN","SUPPORTED_TEAM","TOURNAMENT_MOMENT","CUSTOM"]);
+function scope(){return document.querySelector('input[name="awardScope"]:checked')?.value||"MATCH";}
+function currentList(){return scope()==="MATCH"?MATCH_AWARDS:TOURNAMENT_AWARDS;}
+function matchLabel(m){return [m.stageName||m.stage||"Match",[m.team1Name,m.team2Name].filter(Boolean).join(" vs ")||m.title||m.id,m.date||m.matchDate||""].filter(Boolean).join(" — ");}
+function selectedType(){return $("awardType").value;}
+function renderTypes(){const old=selectedType();const list=currentList();$("awardType").innerHTML=list.map(([v,t])=>`<option value="${v}">${esc(t)}</option>`).join("");if(list.some(x=>x[0]===old))$("awardType").value=old;const isMatch=scope()==="MATCH",needsStageMatch=["FINAL_MOTM","SF1_MOTM","SF2_MOTM"].includes(selectedType());$("matchAwardFields").classList.toggle("hidden",!(isMatch||needsStageMatch));$("matchSelectLabel").textContent=isMatch?"ম্যাচ নির্বাচন করুন":"নির্দিষ্ট Final / Semifinal ম্যাচ নির্বাচন করুন";$("matchSelectHint").textContent=isMatch?"নির্বাচিত ম্যাচের পরিসংখ্যান থেকে Award Calculate হবে।":"সঠিক Final বা Semi-final ম্যাচটি নির্বাচন করুন; সেই ম্যাচের পরিসংখ্যান থেকে Man of the Match নির্ধারিত হবে।";renderMatchSelect();$("calculateActions").classList.remove("hidden");$("calculateAward").textContent=isMatch?"Calculate Match Award →":"Calculate Tournament Award →";$("customAwardWrap").classList.toggle("hidden",selectedType()!=="CUSTOM");clearCalculation();}
+function renderMatchSelect(){const season=n($("awardSeason").value||2026),type=selectedType();let list=matches.filter(m=>n(m.season||2026)===season);if(scope()==="TOURNAMENT"&&type==="FINAL_MOTM")list=list.filter(m=>m.stage==="FINAL"||/final/i.test(m.stageName||""));if(scope()==="TOURNAMENT"&&["SF1_MOTM","SF2_MOTM"].includes(type))list=list.filter(m=>m.stage==="SF"||/semi/i.test(m.stageName||""));$("awardMatch").innerHTML='<option value="">ম্যাচ নির্বাচন করুন</option>'+list.map(m=>`<option value="${esc(m.id)}">${esc(matchLabel(m))}</option>`).join("");if(!list.length)$("awardMatch").innerHTML='<option value="">এই Category-র উপযুক্ত Match পাওয়া যায়নি</option>';}
+function clearCalculation(){calculatedPlayer=null;calculatedRows=[];$("awardResult").classList.add("hidden");$("calculatedPlayers").innerHTML="";$("calcMsg").textContent="";}
+function rec(p){const balls=n(p.totalBalls),bb=n(p.totalBowlingBalls),runs=n(p.totalRuns),w=n(p.totalWickets),c=n(p.fieldingCatches),st=n(p.fieldingStumpings),ro=n(p.fieldingRunOuts);return {runs,balls,fours:n(p.totalFours),sixes:n(p.totalSixes),wickets:w,bowlingRuns:n(p.totalBowlingRuns),bowlingBalls:bb,economy:bb?n(p.totalBowlingRuns)/(bb/6):0,sr:balls?runs/balls*100:0,catches:c,stumpings:st,runOuts:ro,fielding:c+st+ro,hatTricks:n(p.bowlingHatTricks)+n(p.battingHatTricks)+n(p.fieldingHatTricks),centuries:n(p.centuries),fifties:n(p.fifties)};}
+function blank(id,name){return {id,name,runs:0,balls:0,fours:0,sixes:0,wickets:0,bowlingRuns:0,bowlingBalls:0,catches:0,stumpings:0,runOuts:0,hatTricks:0,innings:{},spells:{},events:[]};}
+function addEvent(map,e){
+ const ensure=(id,name)=>{if(!id)return null;if(!map.has(id))map.set(id,blank(id,name||id));return map.get(id);};
+ const inn=String(e.inningsNo||1),over=String(e.over||"");
+ if(e.strikerId){const p=ensure(e.strikerId,e.batterName);p.runs+=n(e.batterRuns);p.balls+=e.legal?1:0;p.fours+=e.batterRuns===4?1:0;p.sixes+=e.batterRuns===6?1:0;const k=inn;p.innings[k]||={runs:0,balls:0,fours:0,sixes:0};p.innings[k].runs+=n(e.batterRuns);p.innings[k].balls+=e.legal?1:0;p.innings[k].fours+=e.batterRuns===4?1:0;p.innings[k].sixes+=e.batterRuns===6?1:0;}
+ if(e.bowlerId){const p=ensure(e.bowlerId,e.bowlerName);p.bowlingBalls+=e.legal?1:0;p.bowlingRuns+=n(e.bowlerRuns);p.wickets+=e.bowlerWicket?1:0;const k=`${inn}|${e.bowlerId}`;p.spells[k]||={balls:0,runs:0,wickets:0,over};p.spells[k].balls+=e.legal?1:0;p.spells[k].runs+=n(e.bowlerRuns);p.spells[k].wickets+=e.bowlerWicket?1:0;}
+ if(e.fielderId){const p=ensure(e.fielderId,e.fielderName);p.catches+=e.dismissalType==="caught"?1:0;p.stumpings+=e.dismissalType==="stumped"?1:0;p.runOuts+=e.dismissalType==="runOut"?1:0;}
+ if(e.type==="wicket"&&e.bowlerWicket&&e.bowlerId){const p=ensure(e.bowlerId,e.bowlerName);p.events.push({kind:"wicket",event:e});}
+ if(e.type==="wicket"&&e.fielderId){const p=ensure(e.fielderId,e.fielderName);p.events.push({kind:e.dismissalType,event:e});}
 }
-
-function recordHtml(p){
-  const r=playerRecord(p);
-  const items=[
-    ["Runs",r.runs],["Balls",r.balls],["SR",r.strikeRate.toFixed(2)],["4s",r.fours],["6s",r.sixes],
-    ["Wickets",r.wickets],["Bowling Runs",r.bowlingRuns],["Bowling Balls",r.bowlingBalls],["Economy",r.economy.toFixed(2)],
-    ["Catches",r.catches],["Stumpings",r.stumpings],["Run Outs",r.runOuts],["Hat-tricks",r.hatTricks]
-  ];
-  return items.map(([label,value])=>`<div class="record"><b>${esc(value)}</b><small>${esc(label)}</small></div>`).join("");
+async function eventsFor(m){if(matchEvents.has(m.id))return matchEvents.get(m.id);const snap=await getDocs(collection(db,"matches",m.id,"events"));const ev=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));matchEvents.set(m.id,ev);return ev;}
+async function aggregateFor(list){const map=new Map();for(const m of list){const ev=await eventsFor(m);ev.forEach(e=>addEvent(map,e));const md=Array.isArray(m.hatTricks)?m.hatTricks:[];for(const type of ["bowler","batter","fielder"]){for(const h of (m.hatTricks?.[type]||[])){if(!h.playerId)continue;if(!map.has(h.playerId))map.set(h.playerId,blank(h.playerId,h.playerName));map.get(h.playerId).hatTricks++;}}}return map;}
+function metric(p){const runs=n(p.runs??p.totalRuns),balls=n(p.balls??p.totalBalls),fours=n(p.fours??p.totalFours),sixes=n(p.sixes??p.totalSixes),wickets=n(p.wickets??p.totalWickets),bowlingRuns=n(p.bowlingRuns??p.totalBowlingRuns),bowlingBalls=n(p.bowlingBalls??p.totalBowlingBalls),catches=n(p.catches??p.fieldingCatches),stumpings=n(p.stumpings??p.fieldingStumpings),runOuts=n(p.runOuts??p.fieldingRunOuts);return {runs,balls,fours,sixes,wickets,bowlingRuns,bowlingBalls,economy:bowlingBalls?bowlingRuns/(bowlingBalls/6):0,sr:balls?runs/balls*100:0,catches,stumpings,runOuts,fielding:catches+stumpings+runOuts,hatTricks:n(p.hatTricks)||n(p.bowlingHatTricks)+n(p.battingHatTricks)+n(p.fieldingHatTricks)};}
+function score(type,p){const r=metric(p);switch(type){case"MATCH_MOTM":case"SERIES_MOTM":case"FINAL_MOTM":case"SF1_MOTM":case"SF2_MOTM":return r.runs+r.wickets*25+r.catches*8+r.stumpings*8+r.runOuts*8+r.sixes*2;case"MATCH_BEST_BATSMAN":case"BEST_BATSMAN":return r.runs+r.sixes*2+r.fours+r.sr*.2;case"MATCH_BEST_BOWLER":case"BEST_BOWLER":return r.wickets*100-r.economy*3+r.bowlingBalls*.05;case"MATCH_BEST_ALLROUNDER":case"BEST_ALLROUNDER":return r.runs+r.wickets*25+r.fielding*5;case"MATCH_BEST_WICKETKEEPER":case"BEST_WICKETKEEPER":return r.stumpings*30+r.catches*10+r.runs*.1;case"MATCH_BEST_FIELDER":case"BEST_FIELDER":return r.catches*20+r.runOuts*20+r.stumpings*15;case"MATCH_MOST_RUNS":case"MOST_RUNS":return r.runs;case"MATCH_MOST_WICKETS":case"MOST_WICKETS":return r.wickets;case"MATCH_MOST_SIXES":case"MOST_SIXES":return r.sixes;case"MATCH_BEST_CATCH":case"BEST_CATCH":return r.catches;case"MATCH_BEST_RUN_OUT":case"BEST_RUN_OUT":return r.runOuts;case"MATCH_HAT_TRICK":case"HAT_TRICK":return r.hatTricks*1000+r.wickets;case"CENTURY":return (p.centuries||0)*100000+r.runs;case"FIFTY":return (p.fifties||0)*10000+r.runs;default:return r.runs+r.wickets*25+r.fielding*8;}}
+function eligible(type,p){const r=metric(p);if(["MATCH_BEST_BOWLER","BEST_BOWLER","MOST_WICKETS","BEST_BOWLING_SPELL"].includes(type))return r.bowlingBalls>0||r.wickets>0;if(["MATCH_BEST_FIELDER","BEST_FIELDER","MATCH_BEST_CATCH","BEST_CATCH","MATCH_BEST_RUN_OUT","BEST_RUN_OUT"].includes(type))return r.fielding>0;if(["MATCH_BEST_WICKETKEEPER","BEST_WICKETKEEPER"].includes(type))return r.catches+r.stumpings>0;if(["HAT_TRICK","MATCH_HAT_TRICK"].includes(type))return r.hatTricks>0;if(type==="CENTURY")return (p.centuries||0)>0;if(type==="FIFTY")return (p.fifties||0)>0;if(["BEST_BATSMAN","MATCH_BEST_BATSMAN","MOST_RUNS","MATCH_MOST_RUNS","MOST_SIXES","MATCH_MOST_SIXES","BEST_BATTING_INNINGS","MATCH_BEST_INNINGS"].includes(type))return r.balls>0||r.runs>0;return r.runs+r.wickets+r.fielding>0;}
+function recordHtml(p){const r=metric(p);return [["Runs",r.runs],["Balls",r.balls],["4s",r.fours],["6s",r.sixes],["Wickets",r.wickets],["Bowling Runs",r.bowlingRuns],["Overs (legal balls)",r.bowlingBalls],["Economy",r.economy.toFixed(2)],["Catches",r.catches],["Stumpings",r.stumpings],["Run Outs",r.runOuts],["Hat-tricks",r.hatTricks]].map(([l,v])=>`<div class="record"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join("");}
+function renderPlayerStats(){const list=[...players].sort((a,b)=>n(b.totalRuns)-n(a.totalRuns)||n(b.totalWickets)-n(a.totalWickets));$("statsTable").innerHTML=list.length?`<div class="aw-table-wrap"><table><tr><th>Player</th><th>Team</th><th>Runs</th><th>Balls</th><th>SR</th><th>4s</th><th>6s</th><th>Wickets</th><th>Bowling Runs</th><th>Bowling Balls</th><th>Fielding</th><th>Hat-tricks</th></tr>${list.map(p=>{const r=rec(p);return `<tr><td><b>${esc(p.name||p.playerName||p.id)}</b></td><td>${esc(p.teamName||"")}</td><td>${r.runs}</td><td>${r.balls}</td><td>${r.sr.toFixed(1)}</td><td>${r.fours}</td><td>${r.sixes}</td><td>${r.wickets}</td><td>${r.bowlingRuns}</td><td>${r.bowlingBalls}</td><td>${r.fielding}</td><td>${r.hatTricks}</td></tr>`}).join("")}</table></div>`:`<div class="aw-empty">কোনো Player Record পাওয়া যায়নি।</div>`;}
+function playerOption(p){return `<option value="${esc(p.id)}">${esc(p.name||p.playerName||p.id)}${p.teamName?" — "+esc(p.teamName):""}</option>`;}
+function fillPlayerSelect(){ $("awardPlayer").innerHTML='<option value="">Player নির্বাচন করুন</option>'+players.map(playerOption).join(""); }
+function displayCandidates(rows,type){calculatedRows=rows;$("calculatedPlayers").innerHTML=rows.length?`<div class="calc-head"><b>${esc(currentList().find(x=>x[0]===type)?.[1]||type)}</b><span>${rows.length} জনের রেকর্ড</span></div><div class="player-cards">${rows.map((p,i)=>`<article class="player-card ${i===0?"recommended":""} ${calculatedPlayer?.id===p.id?"selected":""}"><div class="player-top"><div><div class="rank">#${i+1}${i===0?" • Recommended":""}</div><h3>${esc(p.name||p.playerName||p.id)}</h3><div class="team">${esc(p.teamName||"")}</div></div><button type="button" class="choose-player" data-id="${esc(p.id)}">Select</button></div><div class="aw-record-grid">${recordHtml(p)}</div></article>`).join("")}</div>`:`<div class="aw-empty">এই Award-এর জন্য পর্যাপ্ত পরিসংখ্যান পাওয়া যায়নি। ম্যানুয়ালি Player/Recipient নির্বাচন করুন।</div>`;$("calculatedPlayers").querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>selectPlayer(b.dataset.id));}
+function selectPlayer(id){const p=players.find(x=>x.id===id)||calculatedRows.find(x=>x.id===id);if(!p)return;calculatedPlayer=p;$("awardPlayer").value=p.id;$("awardRecipient").value=p.name||p.playerName||"";$("calculatedPlayer").textContent=(p.name||p.playerName||p.id)+(p.teamName?" • "+p.teamName:"");$("calculatedRecord").innerHTML=recordHtml(p);$("awardResult").classList.remove("hidden");displayCandidates(calculatedRows,selectedType());}
+function stageMatches(type,list){const sorted=[...list].sort((a,b)=>String(a.id).localeCompare(String(b.id)));if(type==="FINAL_MOTM")return sorted.filter(m=>m.stage==="FINAL"||/final/i.test(m.stageName||""));if(type==="SF1_MOTM"||type==="SF2_MOTM"){const sf=sorted.filter(m=>m.stage==="SF"||/semi/i.test(m.stageName||""));return type==="SF1_MOTM"?sf.slice(0,1):sf.slice(1,2);}return list;}
+async function calculateAward(){
+ const sc=scope(),type=selectedType(),season=n($("awardSeason").value||2026);let list=matches.filter(m=>n(m.season||2026)===season);if(sc==="MATCH"){const m=list.find(x=>x.id===$("awardMatch").value);if(!m){$("calcMsg").textContent="প্রথমে Match নির্বাচন করুন।";return;}list=[m];}else if(["FINAL_MOTM","SF1_MOTM","SF2_MOTM"].includes(type)){const m=list.find(x=>x.id===$("awardMatch").value);if(!m){$("calcMsg").textContent="সংশ্লিষ্ট Final/Semifinal ম্যাচ নির্বাচন করুন।";return;}list=[m];}
+ if(manualTypes.has(type)){clearCalculation();$("calcMsg").textContent="এই Award নির্ভরযোগ্যভাবে পরিসংখ্যান থেকে নির্ধারণ করা যায় না। Player/Team Recipient ম্যানুয়ালি নির্বাচন করুন।";return;}
+ try{$("calculateAward").disabled=true;$("calcMsg").textContent="ম্যাচের বল-বাই-বল ডেটা বিশ্লেষণ হচ্ছে…";const map=await aggregateFor(list);let rows=[...map.values()].map(x=>{const player=players.find(p=>p.id===x.id)||{};return {...x,name:player.name||player.playerName||x.name,teamName:player.teamName||"",teamId:player.teamId||""};});
+ if(sc==="TOURNAMENT"&&["MOST_RUNS","MOST_WICKETS","MOST_SIXES","BEST_BATSMAN","BEST_BOWLER","BEST_ALLROUNDER","BEST_WICKETKEEPER","BEST_FIELDER","HAT_TRICK"].includes(type)){
+   rows=players.map(p=>{const r=rec(p);return {id:p.id,name:p.name||p.playerName||p.id,teamName:p.teamName||"",teamId:p.teamId||"",...r,innings:{},spells:{}};});
+ }
+ if(["BEST_BATTING_INNINGS","MATCH_BEST_INNINGS"].includes(type)){rows=rows.map(p=>({...p,bestInnings:Math.max(0,...Object.values(p.innings||{}).map(i=>i.runs))}));rows.sort((a,b)=>b.bestInnings-a.bestInnings);}
+ if(["BEST_BOWLING_SPELL","MATCH_BEST_BOWLING"].includes(type)){rows=rows.map(p=>({...p,bestSpell:Object.values(p.spells||{}).sort((a,b)=>b.wickets-a.wickets||a.runs-b.runs)[0]||{wickets:0,runs:0,balls:0}}));rows.sort((a,b)=>b.bestSpell.wickets-a.bestSpell.wickets||a.bestSpell.runs-b.bestSpell.runs);}
+ rows=rows.filter(p=>eligible(type,p)||["BEST_BATTING_INNINGS","MATCH_BEST_INNINGS","BEST_BOWLING_SPELL","MATCH_BEST_BOWLING"].includes(type)&&((p.bestInnings||0)>0||(p.bestSpell?.balls||0)>0)).sort((a,b)=>score(type,b)-score(type,a));
+ if(["BEST_BATTING_INNINGS","MATCH_BEST_INNINGS"].includes(type))rows.sort((a,b)=>(b.bestInnings||0)-(a.bestInnings||0));if(["BEST_BOWLING_SPELL","MATCH_BEST_BOWLING"].includes(type))rows.sort((a,b)=>b.bestSpell.wickets-a.bestSpell.wickets||a.bestSpell.runs-b.bestSpell.runs);
+ calculatedRows=rows;calculatedPlayer=rows[0]||null;if(calculatedPlayer){$("awardPlayer").value=calculatedPlayer.id;$("awardRecipient").value=calculatedPlayer.name;$("calculatedPlayer").textContent=calculatedPlayer.name+(calculatedPlayer.teamName?" • "+calculatedPlayer.teamName:"");$("calculatedRecord").innerHTML=recordHtml(calculatedPlayer);$("awardResult").classList.remove("hidden");$("calcMsg").textContent=`${rows.length} জনের রেকর্ড বিশ্লেষণ হয়েছে। প্রথমজন Recommended; প্রয়োজনে অন্যজন Select করুন।`; }else{$("awardResult").classList.add("hidden");$("calcMsg").textContent="পরিসংখ্যান পাওয়া যায়নি; ম্যানুয়ালি নির্বাচন করুন।";}
+ displayCandidates(rows,type);
+ }catch(e){console.error(e);$("calcMsg").textContent="Calculate করা যায়নি: "+(e.message||e);}finally{$("calculateAward").disabled=false;}
 }
+function renderAwards(){const rows=[...awards].sort((a,b)=>n(b.createdAt?.seconds)-n(a.createdAt?.seconds));$("awardTable").innerHTML=rows.length?`<div class="aw-table-wrap"><table><tr><th>Season</th><th>Scope</th><th>Match</th><th>Award</th><th>Winner / Team</th><th>Prize</th><th>Note</th><th>Action</th></tr>${rows.map(a=>`<tr><td>${a.season||""}</td><td>${a.scope==="MATCH"?"Match":"Tournament"}</td><td>${esc(a.matchLabel||"—")}</td><td>${esc(a.awardName||"")}</td><td><b>${esc(a.recipientName||a.playerName||"")}</b></td><td>${esc(a.prize||"")}</td><td>${esc(a.note||"")}</td><td><button type="button" class="choose-player" data-edit="${esc(a.id)}">Edit</button></td></tr>`).join("")}</table></div>`:`<div class="aw-empty">এখনও কোনো Award Save হয়নি।</div>`;$("awardTable").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editAward(b.dataset.edit));}
+function resetEdit(){editingAwardId=null;$("saveAward").textContent="Save Award ✓";$("cancelEdit").classList.add("hidden");$("awardPrize").value="";$("awardNote").value="";$("awardRecipient").value="";$("awardCustomName").value="";}
+function editAward(id){const a=awards.find(x=>x.id===id);if(!a)return;editingAwardId=id;document.querySelector(`input[name="awardScope"][value="${a.scope||"TOURNAMENT"}"]`).checked=true;renderTypes();$("awardSeason").value=a.season||2026;renderMatchSelect();$("awardType").value=a.awardType||"CUSTOM";$("customAwardWrap").classList.toggle("hidden",$("awardType").value!=="CUSTOM");if(a.matchId)$("awardMatch").value=a.matchId;$("awardPlayer").value=a.playerId||"";$("awardRecipient").value=a.recipientName||a.playerName||"";$("awardCustomName").value=a.awardType==="CUSTOM"?a.awardName||"":"";$("awardPrize").value=a.prize||"";$("awardNote").value=a.note||"";$("saveAward").textContent="Update Award ✓";$("cancelEdit").classList.remove("hidden");$("awardMsg").textContent="Award Edit Mode: পরিবর্তন করে Update Award চাপুন।";window.scrollTo({top:0,behavior:"smooth"});}
+async function load(){try{$("statsTable").innerHTML='<div class="aw-empty">Player records লোড হচ্ছে…</div>';$ ("awardTable").innerHTML='<div class="aw-empty">Saved awards লোড হচ্ছে…</div>';const [ps,as,ms]=await Promise.all([getDocs(collection(db,"players")),getDocs(collection(db,"awards")),getDocs(collection(db,"matches"))]);players=ps.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||a.playerName||"").localeCompare(b.name||b.playerName||""));awards=as.docs.map(d=>({id:d.id,...d.data()}));matches=ms.docs.map(d=>({id:d.id,...d.data()}));fillPlayerSelect();renderPlayerStats();renderMatchSelect();renderAwards();}catch(e){console.error(e);$("statsTable").innerHTML=`<div class="aw-empty">ডেটা লোড হয়নি: ${esc(e.message||e)}</div>`;$("awardTable").innerHTML=`<div class="aw-empty">ডেটা লোড হয়নি: ${esc(e.message||e)}</div>`;}}
 
-function playerOption(p){ return `<option value="${esc(p.id)}">${esc(p.name||p.playerName||p.id)}${p.teamName?` — ${esc(p.teamName)}`:""}</option>`; }
-
-function scoreFor(type,p){
-  const r=playerRecord(p);
-  switch(type){
-    case "MOST_RUNS": return r.runs*100000+r.balls;
-    case "MOST_WICKETS": return r.wickets*100000-r.economy;
-    case "MOST_SIXES": return r.sixes*100000+r.runs;
-    case "HAT_TRICK": return r.hatTricks*100000+r.wickets;
-    case "CENTURY": return r.centuries*100000+r.runs;
-    case "FIFTY": return r.fifties*100000+r.runs;
-    case "BEST_BATSMAN": return r.runs + r.sixes*3 + r.fours*2 + r.strikeRate*0.5;
-    case "BEST_BOWLER": return r.wickets*100 - r.economy*2 + r.bowlingBalls*0.05;
-    case "BEST_ALLROUNDER": return r.runs + r.wickets*20 + r.fieldingDismissals*5;
-    case "BEST_WICKETKEEPER": return r.stumpings*30+r.catches*10+r.runs*0.2;
-    case "BEST_FIELDER": return r.catches*20+r.runOuts*20+r.stumpings*15;
-    case "BEST_CATCH": return r.catches*1000+r.fieldingDismissals;
-    case "BEST_RUN_OUT": return r.runOuts*1000+r.fieldingDismissals;
-    case "BEST_BOWLING_SPELL": return r.wickets*100-r.bowlingRuns+r.bowlingBalls*0.1;
-    case "BEST_BATTING_INNINGS": return r.runs+r.sixes*3+r.fours*2;
-    default: return r.runs+r.wickets*20+r.fieldingDismissals*10+r.sixes*2;
-  }
-}
-
-function eligibleFor(type,p){
-  const r=playerRecord(p);
-  if(["BEST_BOWLER","MOST_WICKETS","BEST_BOWLING_SPELL"].includes(type)) return r.bowlingBalls>0 || r.wickets>0;
-  if(["BEST_FIELDER","BEST_CATCH","BEST_RUN_OUT"].includes(type)) return r.fieldingDismissals>0;
-  if(type==="BEST_WICKETKEEPER") return r.catches>0 || r.stumpings>0;
-  if(type==="HAT_TRICK") return r.hatTricks>0;
-  if(type==="CENTURY") return r.centuries>0 || r.runs>=100;
-  if(type==="FIFTY") return r.fifties>0 || r.runs>=50;
-  if(["BEST_BATSMAN","MOST_RUNS","MOST_SIXES","BEST_BATTING_INNINGS"].includes(type)) return r.balls>0 || r.runs>0;
-  return r.runs>0 || r.wickets>0 || r.fieldingDismissals>0;
-}
-
-function renderPlayerStats(){
-  const ranked=[...players].sort((a,b)=>num(b.totalRuns)-num(a.totalRuns)||num(b.totalWickets)-num(a.totalWickets));
-  $("statsTable").innerHTML=ranked.length?`<div class="table-wrap"><table><tr><th>Player</th><th>Team</th><th>Runs</th><th>Balls</th><th>SR</th><th>4s</th><th>6s</th><th>Wickets</th><th>Bowling Runs</th><th>Economy</th><th>Fielding</th><th>Hat-tricks</th></tr>${ranked.map(p=>{const r=playerRecord(p);return `<tr><td><b>${esc(p.name||p.playerName||p.id)}</b></td><td>${esc(p.teamName||"")}</td><td>${r.runs}</td><td>${r.balls}</td><td>${r.strikeRate.toFixed(2)}</td><td>${r.fours}</td><td>${r.sixes}</td><td>${r.wickets}</td><td>${r.bowlingRuns}</td><td>${r.economy.toFixed(2)}</td><td>${r.fieldingDismissals}</td><td>${r.hatTricks}</td></tr>`}).join("")}</table></div>`:`<p class="muted">কোনো player record পাওয়া যায়নি।</p>`;
-}
-
-function renderPlayerSelect(){ $("awardPlayer").innerHTML=`<option value="">Player নির্বাচন করুন</option>`+players.map(playerOption).join(""); }
-
-function renderCalculatedRows(type){
-  const eligible=players.filter(p=>eligibleFor(type,p));
-  const rows=(eligible.length?eligible:[...players]).sort((a,b)=>scoreFor(type,b)-scoreFor(type,a));
-  calculatedRows=rows;
-  if(!rows.length){ $("calculatedPlayers").innerHTML="<p class='muted'>কোনো player record পাওয়া যায়নি।</p>"; return; }
-  $("calculatedPlayers").innerHTML=`<div class="calc-head"><b>${esc($("awardType").selectedOptions[0]?.textContent||type)}</b><span>${rows.length} জন player calculated</span></div><div class="player-cards">${rows.map((p,i)=>{const r=playerRecord(p);const selected=calculatedPlayer&&calculatedPlayer.id===p.id;return `<article class="player-card ${i===0?"recommended":""} ${selected?"selected":""}" data-player-id="${esc(p.id)}"><div class="player-top"><div><div class="rank">#${i+1}${i===0?" • Recommended":""}</div><h3>${esc(p.name||p.playerName||p.id)}</h3><div class="team">${esc(p.teamName||"")}</div></div><button type="button" class="choose-player" data-id="${esc(p.id)}">Select</button></div><div class="record-grid">${recordHtml(p)}</div></article>`}).join("")}</div>`;
-  $("calculatedPlayers").querySelectorAll(".choose-player").forEach(btn=>btn.addEventListener("click",()=>selectCalculatedPlayer(btn.dataset.id)));
-}
-
-function selectCalculatedPlayer(id){
-  const p=players.find(x=>x.id===id); if(!p)return;
-  calculatedPlayer=p; $("awardPlayer").value=p.id;
-  $("calculatedPlayer").innerHTML=`<b>${esc(p.name||p.playerName||p.id)}</b>${p.teamName?` • ${esc(p.teamName)}`:""}`;
-  $("calculatedRecord").innerHTML=recordHtml(p);
-  $("awardMsg").textContent=`${p.name||p.playerName||p.id} selected. Save Award চাপলে এই player-এর record save হবে।`;
-  renderCalculatedRows($("awardType").value);
-}
-
-function calculateAward(){
-  const type=$("awardType").value;
-  const rows=players.filter(p=>eligibleFor(type,p));
-  const ranked=(rows.length?rows:[...players]).sort((a,b)=>scoreFor(type,b)-scoreFor(type,a));
-  calculatedPlayer=ranked[0]||null;
-  $("awardResult").classList.remove("hidden");
-  if(calculatedPlayer){
-    $("awardPlayer").value=calculatedPlayer.id;
-    $("calculatedPlayer").innerHTML=`<b>${esc(calculatedPlayer.name||calculatedPlayer.playerName||calculatedPlayer.id)}</b>${calculatedPlayer.teamName?` • ${esc(calculatedPlayer.teamName)}`:""}`;
-    $("calculatedRecord").innerHTML=recordHtml(calculatedPlayer);
-    $("calcMsg").textContent=`${ranked.length} জন player-এর record calculate হয়েছে। প্রথম player-টি recommended; চাইলে নিচের list থেকে অন্য player Select করতে পারবেন।`;
-    $("awardMsg").textContent="Calculate Award-এর পরে প্রতিটি player-এর নাম ও সম্পূর্ণ record নিচে দেখানো হয়েছে।";
-  }else{
-    $("calculatedPlayer").textContent="Player record পাওয়া যায়নি।";
-    $("calculatedRecord").innerHTML="";
-    $("calcMsg").textContent="Calculation-এর জন্য player record প্রয়োজন।";
-  }
-  renderCalculatedRows(type);
-}
-
-async function load(){
-  const [ps,as]=await Promise.all([getDocs(collection(db,"players")),getDocs(collection(db,"awards"))]);
-  players=ps.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||a.playerName||"").localeCompare(b.name||b.playerName||""));
-  awards=as.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>Number(b.createdAt?.seconds||0)-Number(a.createdAt?.seconds||0));
-  renderPlayerSelect(); renderPlayerStats();
-  $("awardTable").innerHTML=awards.length?`<div class="table-wrap"><table><tr><th>Season</th><th>Award</th><th>Player</th><th>Team</th><th>Prize</th><th>Record at Award</th><th>Note</th></tr>${awards.map(a=>{const r=a.recordSnapshot||{};return `<tr><td>${a.season||""}</td><td>${esc(a.awardName||"")}</td><td><b>${esc(a.playerName||"")}</b></td><td>${esc(a.teamName||"")}</td><td>${esc(a.prize||"")}</td><td>${r.runs??0} R • ${r.wickets??0} W • ${r.fieldingDismissals??0} F • ${r.hatTricks??0} H</td><td>${esc(a.note||"")}</td></tr>`}).join("")}</table></div>`:"<p class='muted'>এখনও কোনো award save হয়নি।</p>";
-}
-
-$("awardType").innerHTML=AWARDS.map(([v,t])=>`<option value="${v}">${esc(t)}</option>`).join("");
+renderTypes();
+document.querySelectorAll('input[name="awardScope"]').forEach(el=>el.addEventListener("change",renderTypes));
+$("awardSeason").onchange=()=>{renderMatchSelect();clearCalculation();};
+$("awardType").onchange=()=>{$("customAwardWrap").classList.toggle("hidden",selectedType()!=="CUSTOM");renderMatchSelect();const isMatch=scope()==="MATCH",needsStageMatch=["FINAL_MOTM","SF1_MOTM","SF2_MOTM"].includes(selectedType());$("matchAwardFields").classList.toggle("hidden",!(isMatch||needsStageMatch));$("matchSelectLabel").textContent=isMatch?"ম্যাচ নির্বাচন করুন":"নির্দিষ্ট Final / Semifinal ম্যাচ নির্বাচন করুন";clearCalculation();};
 $("calculateAward").onclick=calculateAward;
-$("awardType").onchange=()=>{calculatedPlayer=null;$("awardResult").classList.add("hidden");$("calculatedPlayers").innerHTML="";$("calcMsg").textContent="";};
-$("awardPlayer").onchange=()=>selectCalculatedPlayer($("awardPlayer").value);
-$("saveAward").onclick=async()=>{
-  const pid=$("awardPlayer").value; const p=players.find(x=>x.id===pid);
-  if(!p){$("awardMsg").textContent="Calculate Award করুন বা নিচের list থেকে player Select করুন।";return;}
-  const type=$("awardType").value; const label=$("awardType").selectedOptions[0]?.textContent||type;
-  const awardName=type==="CUSTOM"?$("awardCustomName").value.trim():($("awardCustomName").value.trim()||label);
-  if(!awardName){$("awardMsg").textContent="Award-এর নাম দিন।";return;}
-  const season=Number($("awardSeason").value||2026); const r=playerRecord(p); const id=`award-${season}-${Date.now()}`;
-  await setDoc(doc(db,"awards",id),{id,season,awardName,awardType:type,playerId:p.id,playerName:p.name||p.playerName||p.id,teamId:p.teamId||"",teamName:p.teamName||"",prize:$("awardPrize").value.trim(),note:$("awardNote").value.trim(),recordSnapshot:r,public:true,calculatedBy:"VCAJ Awards Calculator",createdAt:serverTimestamp()});
-  $("awardMsg").textContent=`Award Save হয়েছে: ${p.name||p.playerName||p.id} — ${awardName}`;
-  $("awardPrize").value=""; $("awardNote").value=""; $("awardCustomName").value=""; await load();
-};
-
+$("awardPlayer").onchange=()=>{const p=players.find(x=>x.id===$("awardPlayer").value);if(p){calculatedPlayer=p;$("awardRecipient").value=p.name||p.playerName||"";}};
+$("saveAward").onclick=async()=>{try{const sc=scope(),type=selectedType(),p=players.find(x=>x.id===$("awardPlayer").value)||null,recipient=$("awardRecipient").value.trim()||(p?.name||p?.playerName||"");if(!p&&!recipient){$("awardMsg").textContent="Player অথবা Team/Recipient নির্বাচন বা লিখুন।";return;}const match=sc==="MATCH"?matches.find(m=>m.id===$("awardMatch").value):null;if(sc==="MATCH"&&!match){$("awardMsg").textContent="Match নির্বাচন করুন।";return;}if(type==="CUSTOM"&&!$("awardCustomName").value.trim()){ $("awardMsg").textContent="Custom Award-এর নাম লিখুন।";return;}const label=currentList().find(x=>x[0]===type)?.[1]||type;const awardName=type==="CUSTOM"?$("awardCustomName").value.trim():label;const data={season:n($("awardSeason").value||2026),scope:sc,matchId:match?.id||"",matchLabel:match?matchLabel(match):"",awardName,awardType:type,playerId:p?.id||"",playerName:p?.name||p?.playerName||"",recipientName:recipient,teamId:p?.teamId||"",teamName:p?.teamName||"",prize:$("awardPrize").value.trim(),note:$("awardNote").value.trim(),recordSnapshot:p?rec(p):null,public:true,updatedAt:serverTimestamp()};if(editingAwardId){await updateDoc(doc(db,"awards",editingAwardId),data);$("awardMsg").textContent="Award Update হয়েছে।";}else{const id=`award-${sc.toLowerCase()}-${Date.now()}`;await setDoc(doc(db,"awards",id),{id,...data,recordSnapshot:p?rec(p):null,calculatedBy:"VCAJ Awards Manager",createdAt:serverTimestamp()});$("awardMsg").textContent="Award Save হয়েছে: "+recipient+" — "+awardName;}resetEdit();await load();}catch(e){console.error(e);$("awardMsg").textContent="Save/Update হয়নি: "+(e.message||e);}};
+$("cancelEdit").onclick=()=>{resetEdit();$("awardMsg").textContent="Edit বাতিল হয়েছে।";};
 await load();
