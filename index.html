@@ -16,6 +16,45 @@
 
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    .tournament-countdown{margin:24px 0;padding:clamp(22px,5vw,46px);border-radius:22px;text-align:center;color:#fff;background:radial-gradient(circle at 50% 0%,#254c86 0,#10294f 52%,#091a35 100%);box-shadow:0 16px 38px rgba(7,25,55,.22);overflow:hidden}
+    .countdown-kicker{font-size:clamp(11px,2vw,14px);font-weight:800;letter-spacing:.08em;color:#fbbf24}
+    .tournament-countdown h1{font-size:clamp(25px,5vw,42px);line-height:1.2;margin:12px 0 8px;color:#fff}
+    .countdown-date{margin:0 0 22px;color:#dbeafe;font-weight:700;font-size:clamp(15px,2.5vw,20px)}
+    .countdown-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,2vw,16px);max-width:720px;margin:0 auto}
+    .countdown-unit{padding:clamp(12px,3vw,22px) 6px;border:1px solid rgba(255,255,255,.22);border-radius:15px;background:rgba(255,255,255,.10);backdrop-filter:blur(5px)}
+    .countdown-unit strong{display:block;font-size:clamp(30px,7vw,54px);line-height:1.1;font-variant-numeric:tabular-nums;color:#fbbf24}
+    .countdown-unit span{display:block;margin-top:7px;color:#e2e8f0;font-size:clamp(12px,2vw,15px);font-weight:700}
+    .countdown-status{margin-top:18px;color:#cbd5e1;font-weight:700}
+    @media(max-width:420px){.countdown-grid{gap:6px}.countdown-unit{border-radius:11px}.countdown-unit strong{font-size:29px}}
+  
+    .live-scoreboard{margin:24px 0;padding:clamp(18px,3vw,34px);border-radius:22px;background:linear-gradient(135deg,#071a35,#102f59 58%,#071a35);color:#fff;box-shadow:0 18px 45px #071a3540}
+    .live-scoreboard h2{color:#fff;margin:0;font-size:clamp(22px,3vw,34px)}
+    .scoreboard-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .score-live{color:#fecaca;font-weight:900;letter-spacing:.12em;font-size:13px}
+    .score-match-title{text-align:center;color:#cbd5e1;margin:20px 0 8px;font-size:clamp(13px,2vw,18px)}
+    .score-main{text-align:center;padding:clamp(18px,4vw,38px) 8px;background:#ffffff0d;border:1px solid #ffffff22;border-radius:18px}
+    .score-team{font-size:clamp(20px,3.4vw,36px);font-weight:900;color:#fff}
+    .score-big{font-size:clamp(58px,12vw,112px);font-weight:1000;line-height:1.05;letter-spacing:-.04em;color:#fbbf24;font-variant-numeric:tabular-nums}
+    .score-overs{font-size:clamp(18px,3vw,27px);font-weight:800;color:#e2e8f0}
+    .score-meta{margin-top:12px;color:#cbd5e1;font-size:clamp(13px,2vw,17px)}
+    .score-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+    .score-panel{padding:15px;background:#fff;border-radius:14px;color:#0f172a;min-width:0}
+    .score-panel h3{margin:0 0 10px;font-size:16px;color:#10294f}
+    .score-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:clamp(13px,1.7vw,17px)}
+    .score-row:last-child{border-bottom:0}.score-row strong{overflow-wrap:anywhere}
+    .score-result{text-align:center;color:#fde68a;font-size:clamp(17px,2.5vw,25px);font-weight:900;margin-top:16px}
+    .score-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .score-actions a,.score-actions button{display:inline-block;padding:11px 16px;border:0;border-radius:10px;background:#f59e0b;color:#111827;font-weight:900;text-decoration:none;cursor:pointer}
+    .score-wait{text-align:center;color:#e2e8f0;padding:35px 10px;font-size:clamp(17px,2.4vw,25px)}
+    .scoreboard-fullscreen{position:fixed!important;inset:0!important;z-index:99999!important;margin:0!important;border-radius:0!important;overflow:auto!important;width:100vw!important;height:100dvh!important;max-height:none!important}
+    .scoreboard-fullscreen .score-big{font-size:clamp(76px,16vw,170px)}
+    .scoreboard-fullscreen .score-team{font-size:clamp(28px,4vw,54px)}
+    @media(max-width:600px){.score-columns{grid-template-columns:1fr}.scoreboard-head{align-items:flex-start}}
+
+  </style>
+
 </head>
 
 <body>
@@ -58,17 +97,32 @@
   <main class="container">
 
 
-    <!-- POSTER -->
-
-    <section class="poster-card">
-
-      <img
-        src="tournament-poster.png"
-        alt="জেলিয়াখালী 'মন্ডল এন্ড মন্ডল' ক্রিকেট টুর্নামেন্ট"
-      >
-
+    <!-- TOURNAMENT COUNTDOWN: 25 DECEMBER 2026, 8:00 AM IST -->
+    <section class="tournament-countdown" aria-labelledby="countdownTitle">
+      <div class="countdown-kicker">VCAJ • জেলিয়াখালী মন্ডল এন্ড মন্ডল ক্রিকেট টুর্নামেন্ট ২০২৬</div>
+      <h1 id="countdownTitle">টুর্নামেন্ট শুরু হতে বাকি</h1>
+      <p class="countdown-date">২৫ ডিসেম্বর ২০২৬ • সকাল ৮:০০টা</p>
+      <div class="countdown-grid" id="tournamentCountdown" aria-live="polite">
+        <div class="countdown-unit"><strong id="cdDays">--</strong><span>দিন</span></div>
+        <div class="countdown-unit"><strong id="cdHours">--</strong><span>ঘণ্টা</span></div>
+        <div class="countdown-unit"><strong id="cdMinutes">--</strong><span>মিনিট</span></div>
+        <div class="countdown-unit"><strong id="cdSeconds">--</strong><span>সেকেন্ড</span></div>
+      </div>
+      <div class="countdown-status" id="countdownStatus">উদ্বোধনী দিনের অপেক্ষায়…</div>
     </section>
 
+
+    <!-- LIVE SCOREBOARD: automatically replaces countdown after tournament start -->
+    <section id="liveScoreboard" class="live-scoreboard" hidden aria-live="polite">
+      <div class="scoreboard-head">
+        <div><div class="score-live">● VCAJ LIVE SCORE</div><h2>লাইভ স্কোরবোর্ড</h2></div>
+        <div class="score-actions">
+          <a href="scoreboard.html" target="_blank" rel="noopener">পূর্ণ স্ক্রিন স্কোরবোর্ড ↗</a>
+          <button type="button" id="scoreFullscreen">এই স্ক্রিন বড় করুন ⛶</button>
+        </div>
+      </div>
+      <div id="scoreboardContent" class="score-wait">টুর্নামেন্ট শুরু হয়েছে। স্কোরার ম্যাচ চালু করলে এখানে লাইভ স্কোর দেখা যাবে।</div>
+    </section>
 
     <!-- HERO -->
 
@@ -358,9 +412,43 @@
        home.js শুধুমাত্র একবার
   ================================= -->
 
+
+  <script>
+    (() => {
+      // Fixed tournament start: 25 December 2026, 08:00 India Standard Time.
+      const target = new Date('2026-12-25T08:00:00+05:30').getTime();
+      const ids = { days: 'cdDays', hours: 'cdHours', minutes: 'cdMinutes', seconds: 'cdSeconds' };
+      const status = document.getElementById('countdownStatus');
+      const pad = value => String(value).padStart(2, '0');
+      function updateCountdown() {
+        const distance = target - Date.now();
+        if (distance <= 0) {
+          Object.values(ids).forEach(id => { document.getElementById(id).textContent = '00'; });
+          status.textContent = 'টুর্নামেন্ট শুরু হয়ে গেছে! লাইভ স্কোরবোর্ড চালু হচ্ছে।';
+          document.querySelector('.tournament-countdown').hidden = true;
+          document.getElementById('liveScoreboard').hidden = false;
+          return;
+        }
+        const days = Math.floor(distance / 86400000);
+        const hours = Math.floor((distance % 86400000) / 3600000);
+        const minutes = Math.floor((distance % 3600000) / 60000);
+        const seconds = Math.floor((distance % 60000) / 1000);
+        document.getElementById(ids.days).textContent = String(days);
+        document.getElementById(ids.hours).textContent = pad(hours);
+        document.getElementById(ids.minutes).textContent = pad(minutes);
+        document.getElementById(ids.seconds).textContent = pad(seconds);
+        status.textContent = 'সময় গণনা চলছে — জেলিয়াখালী ক্রিকেট উৎসবের অপেক্ষায়!';
+      }
+      updateCountdown();
+      window.setInterval(updateCountdown, 1000);
+    })();
+  </script>
+
+  <script type="module" src="scoreboard.js?v=1"></script>
+
   <script
     type="module"
-    src="home.js?v=3"
+    src="home.js?v=4"
   ></script>
 
   <script
