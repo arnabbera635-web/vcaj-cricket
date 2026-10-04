@@ -1,18 +1,59 @@
-<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VCAJ Awards Admin</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><style>
-.grid.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grid label{display:grid;gap:6px}.record-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}.record{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:9px}.record b{display:block;font-size:18px}.record small,.muted,.team{color:#64748b}.calc-head,.player-top{display:flex;justify-content:space-between;gap:10px;align-items:center}.player-cards{display:grid;gap:10px;margin-top:12px}.player-card{background:#fff;border:1px solid #dbe3ee;border-radius:14px;padding:12px}.player-card.recommended{border:2px solid #2563eb;background:#f8fbff}.rank{font-size:12px;font-weight:800;color:#2563eb}.player-top h3{margin:3px 0}.player-top button{width:auto}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}td,th{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left}th{background:#f8fafc}.notice{padding:12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.muted{font-size:13px}@media(max-width:650px){.grid.two{grid-template-columns:1fr}.record-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:450px){.record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style></head><body class="auth-pending"><header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header><main class="wrap">
-<section class="card"><div class="actions" style="justify-content:space-between"><div><h1>🏆 AWARDS</h1><p class="muted">Match Awards ও Tournament Awards আলাদা হিসাব</p></div><button id="logout">Logout</button></div></section>
-<section class="card"><h2>Player Database</h2><div id="playerCount">Loading...</div></section>
-<section class="card"><h2>Calculate Award</h2><div class="grid two">
-<label>Season<input id="season" type="number" value="2026"></label>
-<label>Award Type<select id="awardScope"><option value="TOURNAMENT">🏆 Tournament Award</option><option value="MATCH">🏏 Match Award</option></select></label>
-<div id="matchWrap" class="hidden"><label>Match<select id="matchPicker"><option value="">ম্যাচ নির্বাচন করুন</option></select></label></div>
-<label>Award<select id="awardType"></select></label></div><p id="modeNote" class="muted"></p>
-<div class="actions"><button id="calculate">Calculate Award</button><span id="calcMsg" class="muted"></span></div><div id="results"></div></section>
-<section class="card"><h2>Save Award</h2><div class="grid two">
-<label>Winner Player<select id="winnerPlayer"><option value="">আগে Calculate করুন</option></select></label>
-<label>Custom Award Name<input id="customName" placeholder="Custom Award হলে লিখুন"></label>
-<label>Prize / Title<input id="prize" placeholder="Trophy + Prize Money"></label>
-<label>Note<textarea id="note" placeholder="প্রয়োজনে মন্তব্য লিখুন"></textarea></label></div>
-<div class="actions"><button id="save">💾 Save Award</button><span id="saveMsg" class="muted"></span></div></section>
-<section class="card"><h2>Saved Awards</h2><div id="saved">Loading...</div></section></main><script type="module" src="awards.js?v=8"></script></body></html>
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCAJ — Awards Admin</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css">
+<style>
+.award-calc{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}.award-calc button{font-weight:900}
+.award-result{margin-top:14px;padding:15px;border:1px solid #dbe3ee;border-radius:14px;background:#f8fafc}.award-result h3{margin:0 0 8px}
+.record-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}.record{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:9px}.record b{display:block;font-size:18px}.record small{color:#64748b}
+.selected-player{background:#eff6ff;padding:10px;border-radius:10px}.calc-head{display:flex;justify-content:space-between;gap:10px;margin:14px 0 8px}.player-cards{display:grid;gap:10px}.player-card{background:#fff;border:1px solid #dbe3ee;border-radius:14px;padding:12px}.player-card.recommended{border:2px solid #2563eb;background:#f8fbff}.player-card.selected{box-shadow:0 0 0 2px #16a34a inset}.player-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.player-top h3{margin:2px 0}.rank{font-size:12px;font-weight:800;color:#2563eb}.team,.muted{color:#64748b}.choose-player{width:auto;padding:8px 12px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:820px}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left}th{background:#f8fafc}
+@media(max-width:800px){.record-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:520px){.record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.calc-head{display:block}.player-top{align-items:flex-start}}
+</style>
+</head>
+<body class="auth-pending">
+<header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header>
+<main class="wrap">
+<section class="card"><div class="admin-toolbar"><div><h1>🏆 AWARDS</h1><p class="muted">Calculate Award • All Player Records • Save Award</p></div><button data-logout>Logout</button></div></section>
+<section class="card"><h2>Player Records</h2><div id="statsTable">Loading...</div></section>
+<section class="card"><h2>Calculate Award</h2>
+<div class="grid two"><label>Season<input id="awardSeason" type="number" value="2026"></label><label>Award<select id="awardType"></select></label></div>
+<div class="award-calc"><button id="calculateAward" type="button">🏆 Calculate Award</button><span id="calcMsg" class="muted"></span></div>
+<div id="awardResult" class="award-result hidden"><h3>Recommended Player</h3><div id="calculatedPlayer" class="selected-player"></div><div id="calculatedRecord" class="record-grid"></div></div>
+<div id="calculatedPlayers"></div>
+</section>
+<section class="card"><h2>Save Award</h2><div class="grid two"><label>Player<select id="awardPlayer"></select></label><label>Custom Award Name<input id="awardCustomName" placeholder="Custom Award হলে লিখুন"></label><label>Prize / Title<input id="awardPrize" placeholder="যেমন: Trophy + ₹5,000"></label><label>Note<textarea id="awardNote" placeholder="প্রয়োজনে মন্তব্য লিখুন"></textarea></label></div>
+<div class="award-calc"><button id="saveAward" type="button">💾 Save Award</button><span id="awardMsg" class="muted">Calculate Award করলে প্রতিটি player-এর নাম ও record automatically আসবে।</span></div></section>
+<section class="card"><h2>Saved Awards</h2><div id="awardTable">Loading...</div></section>
+</main>
+<script type="module">
+import {auth,isAdmin,onAuthStateChanged,signOut} from "./firebase.js";
+const status=document.createElement("p");
+status.id="awardsBootStatus";
+status.className="muted";
+status.style.cssText="padding:12px;margin:12px auto;max-width:1100px";
+document.querySelector("main")?.prepend(status);
+status.textContent="Admin access যাচাই হচ্ছে...";
+
+const user=await new Promise(resolve=>{
+  const stop=onAuthStateChanged(auth,u=>{stop();resolve(u);},err=>{stop();resolve(null);});
+});
+if(!user || !isAdmin(user)){
+  document.body.classList.remove("auth-pending");
+  status.textContent="এই Awards Panel দেখতে Admin Login করতে হবে। Admin Panel-এ ফিরে Login করুন।";
+  const link=document.createElement("a"); link.href="admin.html"; link.textContent="Admin Login-এ ফিরে যান"; link.className="btn";
+  status.append(" ",link);
+}else{
+  document.body.classList.remove("auth-pending");
+  status.textContent="";
+  document.querySelector("[data-logout]")?.addEventListener("click",()=>signOut(auth).then(()=>location.href="admin.html"));
+  try{
+    await import("./awards.js?v=7");
+  }catch(error){
+    console.error("AWARDS PANEL LOAD ERROR:",error);
+    status.textContent="Awards Panel load হয়নি: "+(error?.message||"Unknown error")+" — Firebase rules, awards.js এবং file path পরীক্ষা করুন।";
+  }
+}
+</script>
+</body></html>
