@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="bn">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <meta
+    name="description"
+    content="VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI — Knockout Tournament live score, fixtures, bracket, records and awards."
+  >
+
+  <title>
+    জেলিয়াখালী “মন্ডল এন্ড মন্ডল” ক্রিকেট টুর্নামেন্ট — VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI — Knockout Tournament
+  </title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ================================
+       HEADER
+  ================================= -->
+
+  <header class="topbar">
+
+    <a class="brand" href="index.html">
+      <span>
+        VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI
+
+        <small class="tournament-brand">
+          জেলিয়াখালী “মন্ডল এন্ড মন্ডল” ক্রিকেট টুর্নামেন্ট
+        </small>
+      </span>
+    </a>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="live.html">Live Score</a>
+      <a href="bracket.html">Bracket</a>
+      <a href="matches.html">Matches</a>
+      <a href="players.html">Players</a>
+      <a href="records.html">Records</a>
+      <a href="season-awards.html">Awards</a>
+      <a href="team-registration.html">Team Registration</a>
+      <a href="scorer.html">Admin</a>
+    </nav>
+
+  </header>
+
+
+  <!-- ================================
+       MAIN CONTENT
+  ================================= -->
+
+  <main class="container">
+
+
+    <!-- TOURNAMENT COUNTDOWN -->
+    <section class="countdown-card" aria-label="Tournament countdown">
+      <div class="countdown-content">
+        <p class="countdown-eyebrow">🏏 VCAJ • KNOCKOUT TOURNAMENT 2026</p>
+        <h2>টুর্নামেন্ট শুরু হতে বাকি</h2>
+        <p class="countdown-date">২৫শে ডিসেম্বর ২০২৬ • সকাল ৮:০০টা</p>
+        <div class="countdown-grid" id="tournamentCountdown" role="timer">
+          <div class="countdown-unit"><strong id="countdownDays">--</strong><span>দিন</span></div>
+          <div class="countdown-unit"><strong id="countdownHours">--</strong><span>ঘণ্টা</span></div>
+          <div class="countdown-unit"><strong id="countdownMinutes">--</strong><span>মিনিট</span></div>
+          <div class="countdown-unit"><strong id="countdownSeconds">--</strong><span>সেকেন্ড</span></div>
+        </div>
+        <p class="countdown-started" id="countdownStarted" hidden>🏆 টুর্নামেন্ট শুরু হয়ে গেছে!</p>
+        <p class="countdown-footer">জেলিয়াখালী ‘মন্ডল এন্ড মন্ডল’ ক্রিকেট টুর্নামেন্ট</p>
+      </div>
+    </section>
+
+    <style>
+      .countdown-card {
+        position:relative; overflow:hidden; margin:18px 0;
+        padding:clamp(24px,5vw,48px) 16px; border-radius:22px;
+        color:#fff; text-align:center;
+        background:
+          radial-gradient(circle at 12% 15%,rgba(255,255,255,.16),transparent 25%),
+          radial-gradient(circle at 90% 85%,rgba(255,180,0,.18),transparent 28%),
+          linear-gradient(135deg,#071b3d 0%,#123c70 52%,#071b3d 100%);
+        box-shadow:0 12px 30px rgba(7,27,61,.18);
+      }
+      .countdown-content{position:relative;z-index:1}
+      .countdown-eyebrow{margin:0 0 10px;color:#ffd36a;font-size:11px;font-weight:800;letter-spacing:1.5px}
+      .countdown-card h2{margin:0;color:#fff;font-size:clamp(23px,5vw,34px);font-weight:900}
+      .countdown-date{margin:9px 0 22px;color:#dbeafe;font-weight:700}
+      .countdown-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(7px,2vw,14px);max-width:600px;margin:0 auto}
+      .countdown-unit{padding:13px 5px 11px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(255,255,255,.1)}
+      .countdown-unit strong{display:block;color:#ffd36a;font-size:clamp(25px,7vw,42px);line-height:1.15;font-variant-numeric:tabular-nums}
+      .countdown-unit span{display:block;margin-top:5px;color:#fff;font-size:12px}
+      .countdown-footer{margin:20px 0 0;color:#dbeafe;font-size:12px}
+      .countdown-started{margin:12px 0 0;color:#ffe08a;font-size:clamp(20px,5vw,30px);font-weight:900}
+      @media(max-width:360px){.countdown-grid{gap:5px}.countdown-unit{padding:10px 2px}}
+    </style>
+
+    <script>
+      (() => {
+        // Browser local time; for India this is IST.
+        const target = new Date(2026, 11, 25, 8, 0, 0).getTime();
+        const ids = ["countdownDays","countdownHours","countdownMinutes","countdownSeconds"];
+        const pad = n => String(n).padStart(2,"0");
+        function updateCountdown(){
+          const remaining = target - Date.now();
+          const grid = document.getElementById("tournamentCountdown");
+          const started = document.getElementById("countdownStarted");
+          if(!grid || !started) return;
+          if(remaining <= 0){grid.hidden = true;started.hidden = false;return;}
+          const values = [
+            Math.floor(remaining/86400000),
+            Math.floor((remaining%86400000)/3600000),
+            Math.floor((remaining%3600000)/60000),
+            Math.floor((remaining%60000)/1000)
+          ];
+          values.forEach((v,i)=>{
+            const node=document.getElementById(ids[i]);
+            if(node) node.textContent=i===0?String(v):pad(v);
+          });
+        }
+        updateCountdown();
+        window.setInterval(updateCountdown,1000);
+      })();
+    </script>
+
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+      <div>
+
+        <p class="eyebrow">
+          VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI • KNOCKOUT TOURNAMENT
+        </p>
+
+        <h1>
+          জেলিয়াখালী 'মন্ডল এন্ড মন্ডল' ক্রিকেট টুর্নামেন্ট
+        </h1>
+
+        <p>
+          16-team knockout tournament hub —
+          Live Score, Knockout Bracket,
+          Player Records, Fielding Stats এবং Awards।
+        </p>
+
+      </div>
+
+      <a
+        class="primary"
+        style="background:var(--orange);color:#fff;padding:12px 16px;border-radius:12px;font-weight:900"
+        href="bracket.html"
+      >
+        Tournament Bracket →
+      </a>
+
+    </section>
+
+
+    <!-- STATS -->
+
+    <section class="grid four">
+
+      <div class="stat">
+        <span>Format</span>
+        <strong>16</strong>
+        <span>Team Knockout</span>
+      </div>
+
+      <div class="stat">
+        <span>Rounds</span>
+        <strong>4</strong>
+        <span>R16 → QF → SF → Final</span>
+      </div>
+
+      <div class="stat">
+        <span>Scoring</span>
+        <strong>Live</strong>
+        <span>Ball-by-ball</span>
+      </div>
+
+      <div class="stat">
+        <span>Records</span>
+        <strong>∞</strong>
+        <span>Season-wise archive</span>
+      </div>
+
+    </section>
+
+
+    <!-- TOURNAMENT SECTIONS -->
+
+    <div class="section-title">
+      <h2>টুর্নামেন্টের প্রধান অংশ</h2>
+    </div>
+
+
+    <section class="nav-grid">
+
+      <a class="nav-tile" href="bracket.html">
+        <strong>🏆 Knockout Bracket</strong>
+        <span>16 দল, seeding, winner progression</span>
+      </a>
+
+      <a class="nav-tile" href="live.html">
+        <strong>📺 Public Live Score</strong>
+        <span>Automatically updating real-time score</span>
+      </a>
+
+      <a class="nav-tile" href="scorer.html">
+        <strong>📱 Live Scorer</strong>
+        <span>Runs, extras, wickets, commentary</span>
+      </a>
+
+      <a class="nav-tile" href="matches.html">
+        <strong>📋 Match Centre</strong>
+        <span>Live ও completed ম্যাচ</span>
+      </a>
+
+      <a class="nav-tile" href="players.html">
+        <strong>👤 Player Database</strong>
+        <span>Career ও season records</span>
+      </a>
+
+      <a class="nav-tile" href="records.html">
+        <strong>📊 Records</strong>
+        <span>Batting, bowling, fielding, partnerships</span>
+      </a>
+
+      <a class="nav-tile" href="season-awards.html">
+        <strong>🥇 Awards</strong>
+        <span>Best batsman, bowler, keeper, fielder, MOTM</span>
+      </a>
+
+      <a class="nav-tile" href="team-registration.html">
+        <strong>📝 Team Registration</strong>
+        <span>ইচ্ছুক টিমের online registration form</span>
+      </a>
+
+    </section>
+
+
+    <!-- LIVE MATCH -->
+
+    <div class="section-title">
+
+      <h2>Live Match</h2>
+
+      <span class="muted">
+        Firebase real-time data
+      </span>
+
+    </div>
+
+
+    <section id="liveBox" class="card">
+
+      <div class="empty">
+        Live match data loading…
+      </div>
+
+    </section>
+
+
+    <!-- LOGIN PANELS -->
+
+    <section class="grid two login-panels">
+
+
+      <!-- ================================
+           ADMIN LOGIN
+      ================================= -->
+
+      <section class="card">
+
+        <p class="eyebrow">
+          ADMIN PANEL
+        </p>
+
+        <h2>
+          🔐 Admin Panel Login
+        </h2>
+
+        <p class="muted">
+          Admin Email + Admin Password
+        </p>
+
+
+        <input
+          id="homeAdminEmail"
+          type="email"
+          value="vcajofficial@gmail.com"
+          placeholder="Admin Email"
+          autocomplete="username"
+        >
+
+
+        <input
+          id="homeAdminPassword"
+          type="password"
+          placeholder="Admin Password"
+          autocomplete="current-password"
+        >
+
+
+        <button
+          id="homeAdminLogin"
+          type="button"
+          class="primary"
+        >
+          Admin Login
+        </button>
+
+
+        <p
+          id="homeAdminMsg"
+          class="msg"
+        ></p>
+
+
+        <a
+          class="btn"
+          href="scorer.html"
+        >
+          Admin Panel খুলুন →
+        </a>
+
+      </section>
+
+
+      <!-- ================================
+           MEMBER LOGIN
+      ================================= -->
+
+      <section class="card">
+
+        <p class="eyebrow">
+          MEMBER PANEL
+        </p>
+
+        <h2>
+          👤 Member Panel Login
+        </h2>
+
+        <p class="muted">
+          Mobile Number + Member Password
+        </p>
+
+
+        <input
+          id="homeMemberPhone"
+          type="tel"
+          inputmode="numeric"
+          placeholder="Mobile Number"
+          autocomplete="username"
+        >
+
+
+        <input
+          id="homeMemberPassword"
+          type="password"
+          placeholder="Member Password"
+          autocomplete="current-password"
+        >
+
+
+        <button
+          id="homeMemberLogin"
+          type="button"
+          class="secondary"
+        >
+          Member Login
+        </button>
+
+
+        <p
+          id="homeMemberMsg"
+          class="msg"
+        ></p>
+
+
+        <a
+          class="btn"
+          href="member-panel.html"
+        >
+          Member Panel খুলুন →
+        </a>
+
+      </section>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================================
+       FOOTER
+  ================================= -->
+
+  <footer class="footer">
+
+    VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI
+    • Permanent season records
+    • Admin/scorer protected
+
+  </footer>
+
+
+  <!-- ================================
+       JAVASCRIPT
+       IMPORTANT:
+       home.js শুধুমাত্র একবার
+  ================================= -->
+
+  <script
+    type="module"
+    src="home.js?v=3"
+  ></script>
+
+  <script
+    type="module"
+    src="portal-login.js?v=3"
+  ></script>
+
+
+</body>
+
+</html>
