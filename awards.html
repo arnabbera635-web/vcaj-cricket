@@ -1,102 +1,65 @@
 <!doctype html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101b32">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VCAJ — Awards Management</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css">
 <style>
-:root{--aw-navy:#101b32;--aw-blue:#18345b;--aw-gold:#f3bd4b;--aw-ink:#17243a;--aw-muted:#718096;--aw-line:#e5eaf1;--aw-bg:#f3f6fb}
-body{background:var(--aw-bg);color:var(--aw-ink)}
-.aw-wrap{width:min(1180px,calc(100% - 28px));margin:22px auto 56px}
-.aw-top{background:linear-gradient(120deg,#101b32 0%,#193c66 72%,#24547a 100%);color:#fff;border-radius:22px;padding:22px 24px;box-shadow:0 12px 30px #14274625;position:relative;overflow:hidden}
-.aw-top:after{content:"🏆";position:absolute;right:28px;top:10px;font-size:92px;opacity:.12;transform:rotate(12deg)}
-.aw-nav{display:flex;justify-content:space-between;align-items:center;gap:14px;position:relative;z-index:1}
-.aw-back{color:#dce8f7;text-decoration:none;font-size:13px;font-weight:700}.aw-logout{width:auto!important;background:#ffffff18!important;color:#fff!important;border:1px solid #ffffff50!important;border-radius:10px!important;padding:9px 14px!important}
-.aw-kicker{font-size:11px;letter-spacing:1.6px;color:#f5cf7a;font-weight:800;margin:24px 0 7px}.aw-top h1{font-size:clamp(26px,5vw,38px);margin:0;color:#fff}.aw-top p{margin:8px 0 0;color:#d5e0ef;font-size:14px;max-width:650px;line-height:1.6}
-.aw-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.aw-pill{font-size:11px;border:1px solid #ffffff35;background:#ffffff12;border-radius:30px;padding:7px 11px;color:#eef4fc}
-.aw-section{margin-top:18px;background:#fff;border:1px solid var(--aw-line);border-radius:18px;padding:20px;box-shadow:0 5px 18px #1a31500a}
-.aw-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}.aw-section-head h2{font-size:19px;margin:0;color:#17243a}.aw-section-head p{font-size:12px;color:var(--aw-muted);margin:5px 0 0}.aw-tag{font-size:11px;font-weight:800;border-radius:30px;background:#fff6df;color:#916313;padding:7px 10px;white-space:nowrap}
-.aw-fields{display:grid;grid-template-columns:1fr 2fr;gap:14px}.aw-scope{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 16px}.aw-scope label{display:flex;gap:10px;align-items:center;padding:13px;border:1px solid #dce3ec;border-radius:12px;background:#f8fafc;font-size:13px;font-weight:800;cursor:pointer}.aw-scope input{accent-color:#18345b}.aw-match-fields{margin-bottom:14px;padding:14px;border:1px solid #dce3ec;background:#f8fafc;border-radius:13px}.aw-match-fields label{display:block;font-size:12px;font-weight:700;color:#536176}.aw-match-fields select{display:block;width:100%;margin-top:7px;border:1px solid #dce3ec;border-radius:11px;padding:12px;background:#fff;font:inherit;min-height:44px;box-sizing:border-box}.aw-fields label{display:block;font-size:12px;font-weight:700;color:#536176}.aw-fields input,.aw-fields select,.aw-fields textarea{display:block;width:100%;margin-top:7px;border:1px solid #dce3ec;border-radius:11px;padding:12px 13px;background:#fbfcfe;color:#1c2a40;font:inherit;font-size:14px;min-height:44px;box-sizing:border-box}.aw-fields textarea{min-height:86px;resize:vertical}
-.aw-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px}.aw-btn{width:auto!important;border:0!important;border-radius:11px!important;padding:11px 17px!important;font-weight:800!important;cursor:pointer}.aw-btn-primary{background:var(--aw-navy)!important;color:#fff!important}.aw-btn-gold{background:var(--aw-gold)!important;color:#2c2415!important}.aw-hint{font-size:12px;color:var(--aw-muted);line-height:1.5}.aw-message{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f3f6fa;color:#59687b;font-size:12px;line-height:1.5;min-height:18px}
-.aw-result{margin-top:16px;border:1px solid #e8d39c;border-radius:15px;background:linear-gradient(135deg,#fffaf0,#fff);padding:16px}.aw-result h3{margin:0 0 10px;font-size:15px}.aw-selected{background:#fff1c9;border-radius:10px;padding:12px;font-weight:800;color:#4b3810}.aw-record-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}.record{background:#fff;border:1px solid #e7ebf0;border-radius:10px;padding:10px}.record b{display:block;font-size:18px;color:#17243a}.record small{font-size:10px;color:#778397}
-.calc-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:18px 0 10px;font-size:13px}.calc-head span{color:var(--aw-muted);font-size:11px}.player-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.player-card{background:#fff;border:1px solid var(--aw-line);border-radius:14px;padding:13px}.player-card.recommended{border:1.5px solid #e4b54b;background:#fffdf7}.player-card.selected{box-shadow:0 0 0 2px #1c9a69 inset}.player-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.player-top h3{font-size:15px;margin:4px 0}.rank{font-size:10px;font-weight:900;color:#a4771e}.team{font-size:11px;color:var(--aw-muted)}.choose-player{width:auto!important;padding:8px 11px!important;border-radius:9px!important;font-size:11px!important;background:#edf2f8!important;color:#213653!important}
-.aw-table-wrap{overflow:auto;border:1px solid var(--aw-line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:760px;font-size:12px}th,td{padding:12px 13px;border-bottom:1px solid #edf0f4;text-align:left;vertical-align:top}th{background:#f5f7fb;color:#526178;font-size:11px;white-space:nowrap}tr:last-child td{border-bottom:0}tbody tr:hover{background:#fafcff}.aw-empty{padding:20px;border:1px dashed #d7e0eb;border-radius:12px;text-align:center;color:var(--aw-muted);font-size:13px}
-#statsTable .aw-table-wrap table{min-width:850px}.hidden{display:none!important}
-@media(max-width:700px){.aw-wrap{width:min(100% - 18px,1180px);margin:10px auto 36px}.aw-top{padding:18px;border-radius:17px}.aw-top:after{right:12px;font-size:70px}.aw-section{padding:15px;border-radius:15px}.aw-fields{grid-template-columns:1fr 1fr}.aw-record-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.player-cards{grid-template-columns:1fr}.aw-section-head h2{font-size:17px}}
-@media(max-width:420px){.aw-fields{grid-template-columns:1fr}.aw-record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.aw-top p{font-size:12px}.aw-pill{font-size:10px}}
+.aw-wrap{max-width:1180px;margin:auto;padding:12px}.aw-hero{background:linear-gradient(135deg,#173b63,#0b294a);color:#fff;border-radius:18px;padding:18px;margin:12px 0}.aw-hero h1{margin:4px 0 5px;font-size:28px}.aw-hero p{margin:0;opacity:.9;font-size:13px}.aw-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.aw-pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);padding:7px 10px;border-radius:20px;font-size:12px}.aw-card{background:#fff;border:1px solid #dbe3ee;border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 5px 20px rgba(15,23,42,.04)}.aw-card h2{margin:0 0 5px;font-size:18px}.aw-sub{color:#64748b;font-size:12px;margin-bottom:12px}.aw-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.aw-grid label{font-size:12px;font-weight:700;color:#334155}.aw-grid input,.aw-grid select,.aw-grid textarea{width:100%;box-sizing:border-box;margin-top:5px;padding:10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}.aw-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}.aw-btn{border:0;border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer;background:#122d4c;color:#fff}.aw-btn.gold{background:#e9ad27;color:#172033}.aw-btn.gray{background:#64748b}.aw-btn:disabled{opacity:.55}.aw-status{font-size:12px;color:#64748b}.aw-error{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;padding:9px;border-radius:9px}.aw-ok{color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;padding:9px;border-radius:9px}.aw-table{overflow:auto}.aw-table table{width:100%;border-collapse:collapse;min-width:900px}.aw-table th,.aw-table td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:12px}.aw-table th{background:#f8fafc}.aw-rank{display:grid;gap:8px;margin-top:12px}.aw-candidate{border:1px solid #dbe3ee;border-radius:12px;padding:11px}.aw-candidate.top{border:2px solid #2563eb;background:#f8fbff}.aw-candidate b{font-size:15px}.aw-meta{color:#64748b;font-size:12px;margin:3px 0 8px}.aw-tag{display:inline-block;padding:3px 7px;border-radius:20px;background:#eff6ff;color:#1d4ed8;font-size:11px;margin-right:4px}.aw-record{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:9px}.aw-stat{background:#f8fafc;border-radius:8px;padding:7px}.aw-stat b{display:block;font-size:15px}.aw-stat small{color:#64748b}.aw-note{font-size:11px;color:#64748b;margin-top:8px}.hidden{display:none!important}@media(max-width:700px){.aw-grid{grid-template-columns:1fr}.aw-record{grid-template-columns:repeat(3,1fr)}.aw-hero h1{font-size:23px}}
 </style>
 </head>
 <body class="auth-pending">
 <header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header>
 <main class="aw-wrap">
-  <section class="aw-top">
-    <div class="aw-nav"><a class="aw-back" href="admin.html">← Admin Dashboard</a><button class="aw-logout" id="logoutBtn" type="button">Logout</button></div>
-    <div class="aw-kicker">VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI</div>
-    <h1>🏆 Awards Management</h1>
-    <p>টুর্নামেন্টের সেরা খেলোয়াড় নির্বাচন, সম্পূর্ণ Player Records দেখা এবং পুরস্কার সংরক্ষণের জন্য Admin Control Centre।</p>
-    <div class="aw-pills"><span class="aw-pill">Season Awards</span><span class="aw-pill">Player Statistics</span><span class="aw-pill">Saved Winners</span></div>
-  </section>
+<section class="aw-hero">
+<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+<div><div style="font-size:10px;letter-spacing:1.5px;opacity:.75">VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI</div>
+<h1>🏆 Awards Management</h1><p>Smart event-based calculation, player records, award selection ও admin approval</p>
+<div class="aw-pills"><span class="aw-pill">Season Awards</span><span class="aw-pill">Match Awards</span><span class="aw-pill">Saved Winners</span><span class="aw-pill">Free Smart Engine</span></div></div>
+<button id="logout" class="aw-btn gray">Logout</button></div>
+</section>
 
-  <section class="aw-section">
-    <div class="aw-section-head"><div><h2>📊 Player Records</h2><p>সকল খেলোয়াড়ের ব্যাটিং, বোলিং ও ফিল্ডিং পরিসংখ্যান</p></div><span class="aw-tag">LIVE DATABASE</span></div>
-    <div id="statsTable"><div class="aw-empty">Player records লোড হচ্ছে…</div></div>
-  </section>
+<div id="authError" class="aw-error hidden"></div>
+<div id="app" class="hidden">
 
-  <section class="aw-section">
-    <div class="aw-section-head"><div><h2>🥇 Calculate Award</h2><p>পুরস্কারের ধরন বেছে নিয়ে পরিসংখ্যান অনুযায়ী খেলোয়াড়ের তালিকা তৈরি করুন</p></div><span class="aw-tag">STEP 01</span></div>
-    <div class="aw-scope" role="group" aria-label="Award scope">
-      <label><input type="radio" name="awardScope" value="MATCH" checked> 🏏 প্রতিটি ম্যাচের Award</label>
-      <label><input type="radio" name="awardScope" value="TOURNAMENT"> 🏆 পুরো Tournament Award</label>
-    </div>
-    <div id="matchAwardFields" class="aw-match-fields">
-      <label id="matchSelectLabel">ম্যাচ নির্বাচন করুন<select id="awardMatch"><option value="">Match লোড হচ্ছে…</option></select></label>
-      <p class="aw-hint" id="matchSelectHint">নির্বাচিত ম্যাচের পরিসংখ্যান থেকে Award Calculate হবে।</p>
-    </div>
-    <div class="aw-fields">
-      <label>Season<input id="awardSeason" type="number" value="2026" min="2000" max="2100"></label>
-      <label>Award Category<select id="awardType"></select></label>
-    </div>
-    <div class="aw-actions" id="calculateActions"><button id="calculateAward" class="aw-btn aw-btn-primary" type="button">Calculate Award →</button><span id="calcMsg" class="aw-hint">Category নির্বাচন করে Calculate করুন।</span></div>
-    <div id="awardResult" class="aw-result hidden"><h3>⭐ Recommended Player</h3><div id="calculatedPlayer" class="aw-selected"></div><div id="calculatedRecord" class="aw-record-grid"></div></div>
-    <div id="calculatedPlayers"></div>
-  </section>
+<section class="aw-card">
+<h2>📊 Player Records</h2><div class="aw-sub">বর্তমান Firestore player summary record — event calculation-এর সময় completed matches দিয়ে cross-check করা হবে</div>
+<div id="statsTable">Loading...</div>
+</section>
 
-  <section class="aw-section">
-    <div class="aw-section-head"><div><h2>💾 Save Award</h2><p>নির্বাচিত খেলোয়াড়ের নামে পুরস্কারটি সংরক্ষণ করুন</p></div><span class="aw-tag">STEP 02</span></div>
-    <div class="aw-fields">
-      <label>Player<select id="awardPlayer"></select></label>
-      <label>Team / Recipient (ঐচ্ছিক)<input id="awardRecipient" placeholder="দলভিত্তিক বা বিশেষ পুরস্কারের জন্য নাম লিখুন"></label>
-      <label id="customAwardWrap" class="hidden">Custom Award Name<input id="awardCustomName" placeholder="Custom Award-এর নাম লিখুন"></label>
-      <label>Prize / Title<input id="awardPrize" placeholder="যেমন: Trophy + ₹5,000"></label>
-      <label>Note<textarea id="awardNote" placeholder="প্রয়োজনে মন্তব্য লিখুন"></textarea></label>
-    </div>
-    <div class="aw-actions"><button id="saveAward" class="aw-btn aw-btn-gold" type="button">Save Award ✓</button><button id="cancelEdit" class="aw-btn hidden" type="button">Edit বাতিল</button><span class="aw-hint">স্বয়ংক্রিয় ফলাফল যাচাই করে Player/Recipient পরিবর্তন করতে পারবেন।</span></div>
-    <div id="awardMsg" class="aw-message" aria-live="polite">এখনও কোনো Award সংরক্ষণ করা হয়নি।</div>
-  </section>
+<section class="aw-card">
+<h2>🏅 Calculate Award</h2><div class="aw-sub">প্রথমে Award-এর ধরন নির্বাচন করুন। Match Award হলে নির্দিষ্ট ম্যাচ নির্বাচন করুন।</div>
+<div class="aw-grid">
+<label>Award Scope<select id="awardScope"><option value="MATCH">প্রতিটা ম্যাচের Award</option><option value="TOURNAMENT">পুরো Tournament Award</option></select></label>
+<label>Season<input id="awardSeason" type="number" value="2026"></label>
+<label>Award Category<select id="awardType"></select></label>
+<label id="matchBox" class="hidden">Match<select id="matchId"></select></label>
+</div>
+<div class="aw-actions"><button id="calculateAward" class="aw-btn">🏆 Calculate Smart Award</button><span id="calcMsg" class="aw-status"></span></div>
+<div id="calcError" class="hidden"></div>
+<div id="candidateList" class="aw-rank"></div>
+</section>
 
-  <section class="aw-section">
-    <div class="aw-section-head"><div><h2>🏅 Saved Awards</h2><p>ইতিমধ্যে সংরক্ষিত পুরস্কার ও বিজয়ীদের তালিকা</p></div><span class="aw-tag">AWARD ARCHIVE</span></div>
-    <div id="awardTable"><div class="aw-empty">Saved awards লোড হচ্ছে…</div></div>
-  </section>
+<section class="aw-card">
+<h2>💾 Save / Edit Award</h2><div class="aw-sub">Smart recommendation শুধু suggestion; Save করার আগে Admin প্রাপক পরিবর্তন করতে পারবেন। Team awards-এর ক্ষেত্রেও নাম লিখতে পারবেন।</div>
+<div class="aw-grid">
+<label>Award<select id="saveType"></select></label>
+<label>Player / Recipient / Team<input id="recipient" placeholder="প্রাপকের নাম"></label>
+<label>Team / Organization<input id="teamName" placeholder="প্রয়োজনে দলের নাম"></label>
+<label>Prize / Title<input id="awardPrize" placeholder="যেমন: Trophy + ₹5,000"></label>
+<label>Custom Award Name<input id="awardCustomName" placeholder="Custom Award হলে লিখুন"></label>
+<label>Linked Match<select id="saveMatch"><option value="">প্রযোজ্য নয়</option></select></label>
+</div>
+<label style="display:block;font-size:12px;font-weight:700;color:#334155;margin-top:10px">Note<textarea id="awardNote" rows="2" placeholder="প্রয়োজনে মন্তব্য"></textarea></label>
+<div class="aw-actions"><button id="saveAward" class="aw-btn gold">💾 Save Award</button><button id="cancelEdit" class="aw-btn gray hidden">Cancel Edit</button><span id="awardMsg" class="aw-status"></span></div>
+</section>
+
+<section class="aw-card">
+<h2>🏆 Saved Awards</h2><div class="aw-sub">আগের award Edit করা যাবে। Delete রাখা হয়নি যাতে ভুল করে পুরস্কারের ইতিহাস নষ্ট না হয়।</div>
+<div id="awardTable" class="aw-table">Loading...</div>
+</section>
+
+</div>
 </main>
-<script type="module">
-import {auth,isAdmin,onAuthStateChanged,signOut} from "./firebase.js";
-const logout=document.getElementById("logoutBtn");
-logout.addEventListener("click",async()=>{try{await signOut(auth);location.href="admin.html";}catch(e){alert("Logout করা যায়নি: "+e.message);}});
-onAuthStateChanged(auth,async user=>{
-  if(!user || !isAdmin(user)){location.href="admin.html";return;}
-  document.body.classList.remove("auth-pending");
-  try{await import("./awards.js?v=10");}
-  catch(error){
-    const message="Awards Panel load হয়নি: "+(error?.message||error);
-    for(const id of ["statsTable","awardTable"])document.getElementById(id).innerHTML=`<div class="aw-empty">${message}</div>`;
-    document.getElementById("calcMsg").textContent=message;
-    console.error(error);
-  }
-});
-</script>
-</body>
-</html>
+<script type="module" src="awards-smart-compatible.js?v=1"></script>
+</body></html>
