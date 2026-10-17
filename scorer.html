@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VCAJ — Live Scoring</title>
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="scorer-ui.css?v=20261017">
 </head>
 <body class="auth-pending">
 <header class="topbar">
@@ -106,8 +106,8 @@
    <option value="obstructing">Obstructing the Field</option><option value="hitTwice">Hit the Ball Twice</option>
    <option value="timedOut">Timed Out</option><option value="retiredOut">Retired Out</option>
   </select></label>
-  <div id="fielderBox" class="hidden"><label id="fielderLabel" for="fielder">Catcher / Fielder</label><select id="fielder"><option value="">ফিল্ডার নির্বাচন করুন</option></select></div>
-  <div class="admin-actions"><button type="button" id="confirmWicket">Confirm Wicket</button><button type="button" id="cancelWicket">Cancel</button></div>
+  <div id="fielderBox" class="hidden"><label for="fielder"><span id="fielderLabel">Fielder</span></label><select id="fielder"><option value="">ফিল্ডার নির্বাচন করুন</option></select></div>
+  <div class="admin-actions"><button id="confirmWicket">Confirm Wicket</button><button id="cancelWicket">Cancel</button></div>
  </div>
 </div>
 
@@ -115,7 +115,7 @@
 import {guardAdmin,bindLogout} from "./admin.js";
 await guardAdmin();
 bindLogout();
-await import("./scorer.js?v=20261017-wicket4");
+await import("./scorer.js?v=12");
 </script>
 </body>
 </html>
