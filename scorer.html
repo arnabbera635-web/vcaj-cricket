@@ -18,7 +18,7 @@
  <h2>16 TEAM KNOCKOUT — MATCH SETUP</h2>
  <div class="grid two">
   <label>Season<input id="season" type="number" value="2026"></label>
-  <label>Stage<select id="stage"><option value="R16">Round of 16</option><option value="QF">Quarter Final</option><option value="SF">Semi Final</option><option value="FINAL">Final</option><option value="PRACTICE">Practice Match (টুর্নামেন্টের বাইরে)</option><option value="CUSTOM">Custom</option></select></label>
+  <label>Stage<select id="stage"><option value="R16">Round of 16</option><option value="QF">Quarter Final</option><option value="SF">Semi Final</option><option value="FINAL">Final</option><option value="CUSTOM">Custom</option></select></label>
   <label>Bracket Key<input id="bracketKey" placeholder="যেমন R16-1"></label>
   <label>Overs<select id="overs"><option value="5">5</option><option value="10">10</option><option value="15" selected>15</option><option value="20">20</option><option value="custom">Custom</option></select><input id="customOvers" class="hidden" type="number" min="1" max="50" value="15"></label>
   <label>প্রথম দল<select id="team1"><option value="">প্রথম দল</option></select></label>
@@ -30,11 +30,6 @@
   <button id="createMatch">Match তৈরি করে Scoring শুরু করুন</button>
  </div>
  <p id="setupMsg" class="muted"></p>
- <div class="legacy-mapping card" id="legacyMappingCard" style="margin-top:16px;display:none">
-  <h3>⚠️ পুরনো Player Team Mapping ঠিক করুন</h3>
-  <p class="muted">যে খেলোয়াড়ের teamId কোনো বর্তমান দলের ID-এর সঙ্গে মেলে না, তাকে সঠিক দলের সঙ্গে যুক্ত করুন। Save না করা পর্যন্ত Firestore-এর তথ্য বদলাবে না।</p>
-  <div id="legacyPlayerMappings"></div>
- </div>
 </section>
 
 <section class="card">
@@ -120,7 +115,7 @@
 import {guardAdmin,bindLogout} from "./admin.js";
 await guardAdmin();
 bindLogout();
-await import("./scorer.js?v=20261017-fix1");
+await import("./scorer.js?v=12");
 </script>
 </body>
 </html>
