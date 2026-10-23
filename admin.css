@@ -17,9 +17,3 @@
 
 .modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55)}
 .modal-content{width:min(900px,100%);max-height:90vh;overflow:auto}
-
-/* Awards tile click/touch reliability patch */
-.admin-grid{position:relative;isolation:isolate}
-.admin-card{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation}
-.admin-card h3,.admin-card p,.admin-card .admin-card-open{pointer-events:none}
-.admin-card-open{display:inline-block;margin-top:10px;font-size:.86rem;font-weight:800;color:#2457d6}

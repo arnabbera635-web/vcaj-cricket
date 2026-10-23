@@ -22,7 +22,6 @@
   <a class="card admin-card" href="scorer.html"><h3>🏏 Live Scoring</h3><p>Match setup, live score, wickets, innings, Super Over, undo ও backup.</p></a>
   <a class="card admin-card" href="team-registrations.html"><h3>📝 Team Registration</h3><p>Registration applications, verification ও payment details.</p></a>
   <a class="card admin-card" href="players.html"><h3>👥 Teams & Players</h3><p>দল তৈরি, খেলোয়াড় যোগ এবং খেলোয়াড়ের নাম update.</p></a>
-  <a id="awardsAdminLink" class="card admin-card" href="./awards.html" role="link" tabindex="0" aria-label="Open Awards Management"><h3>🏆 Awards</h3><p>Player statistics দেখে tournament awards manage করুন.</p><span class="admin-card-open">Open Awards →</span></a>
   <a class="card admin-card" href="accounts.html"><h3>💰 হিসেব / Accounts</h3><p>Entry fee, Kasanmani, paid/due ও registration payment overview.</p></a>
   <a class="card admin-card" href="members.html"><h3>⚙️ Members</h3><p>Association member information ও member directory.</p></a>
  </div>
@@ -31,20 +30,6 @@
 <script type="module">
 import {guardAdmin,bindLogout} from "./admin.js";
 await guardAdmin(); bindLogout();
-// Explicit navigation fallback for the Awards tile on touch/mobile browsers.
-const awardsLink = document.getElementById("awardsAdminLink");
-if (awardsLink) {
-  const openAwards = () => { window.location.href = new URL("awards.html", window.location.href).href; };
-  awardsLink.addEventListener("click", (event) => {
-    // Keep normal open-in-new-tab/browser link behavior; only intercept a normal primary click.
-    if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
-      event.preventDefault(); openAwards();
-    }
-  });
-  awardsLink.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openAwards(); }
-  });
-}
 </script>
 </body>
 </html>
