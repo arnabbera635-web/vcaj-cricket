@@ -9,6 +9,8 @@ const seasonEl = document.getElementById('season');
 const statusEl = document.getElementById('status');
 const awardsEl = document.getElementById('tournamentAwards');
 const matchesEl = document.getElementById('matchesList');
+const adminTournamentEl = document.getElementById('adminSavedTournamentAwards');
+const adminMatchEl = document.getElementById('adminSavedMatchAwards');
 
 const AWARDS = [
   ['bestBatsman', '🏏 Best Batsman'],
@@ -113,6 +115,39 @@ async function loadMatchAwards(season) {
   }
 }
 
+
+function savedAwardCard(a) {
+  const label = a.awardName || a.awardType || 'Award';
+  const recipient = a.playerName || a.recipientName || a.teamName || 'নাম পাওয়া যায়নি';
+  const detail = [a.teamName && a.teamName !== recipient ? `দল: ${a.teamName}` : '', a.prize ? `পুরস্কার: ${a.prize}` : ''].filter(Boolean).join(' • ');
+  return `<article class="award-card"><div class="metric">🏅 ${esc(label)}</div><div class="winner">${esc(recipient)}</div>${detail ? `<div class="metric">${esc(detail)}</div>` : ''}${a.note ? `<div class="recommend">${esc(a.note)}</div>` : ''}</article>`;
+}
+
+async function loadAdminSavedAwards(season) {
+  if (adminTournamentEl) adminTournamentEl.innerHTML = '<div class="empty">Admin ঘোষিত awards loading…</div>';
+  if (adminMatchEl) adminMatchEl.innerHTML = '<div class="empty">Match awards loading…</div>';
+  const [awardSnap, matchSnap] = await Promise.all([getDocs(collection(db, 'awards')), getDocs(collection(db, 'matches'))]);
+  const all = awardSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => String(a.season ?? '') === String(season) && a.public !== false);
+  const tournament = all.filter(a => a.scope !== 'MATCH' && !a.matchId);
+  const byMatch = new Map();
+  for (const a of all.filter(a => a.scope === 'MATCH' || !!a.matchId)) {
+    const key = a.matchId || 'unlinked';
+    if (!byMatch.has(key)) byMatch.set(key, []);
+    byMatch.get(key).push(a);
+  }
+  if (adminTournamentEl) adminTournamentEl.innerHTML = tournament.length ? tournament.map(savedAwardCard).join('') : '<div class="empty">Admin panel থেকে এখনও কোনো tournament award ঘোষণা করা হয়নি।</div>';
+  if (adminMatchEl) {
+    const matchMap = new Map(matchSnap.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
+    const blocks = [];
+    for (const [id, rows] of byMatch) {
+      const m = matchMap.get(id);
+      const title = m ? (m.title || `${m.team1Name || m.battingTeam || 'Team 1'} vs ${m.team2Name || m.bowlingTeam || 'Team 2'}`) : (id === 'unlinked' ? 'Match সংযুক্ত হয়নি' : id);
+      blocks.push(`<article class="match-card"><div class="match-head"><h3>${esc(title)}</h3><div class="muted">${esc(m?.stageName || m?.stage || '')}</div></div><div class="match-awards">${rows.map(savedAwardCard).join('')}</div></article>`);
+    }
+    adminMatchEl.innerHTML = blocks.length ? blocks.join('') : '<div class="empty">Admin panel থেকে এখনও কোনো match award ঘোষণা করা হয়নি।</div>';
+  }
+}
+
 async function loadAll() {
   const season = seasonEl.value;
   statusEl.textContent = 'Loading…';
@@ -120,10 +155,13 @@ async function loadAll() {
     // Tournament awards are intentionally independent of match/event queries.
     await loadTournamentAwards(season);
     await loadMatchAwards(season);
+    await loadAdminSavedAwards(season);
   } catch (err) {
     console.error('Public awards load error:', err);
     statusEl.textContent = 'Award load করতে সমস্যা হয়েছে।';
     awardsEl.innerHTML = `<div class="empty">Award load হয়নি: ${esc(err?.message || err)}</div>`;
+    if (adminTournamentEl) adminTournamentEl.innerHTML = `<div class="empty">Admin awards load হয়নি: ${esc(err?.message || err)}</div>`;
+    if (adminMatchEl) adminMatchEl.innerHTML = `<div class="empty">Match awards load হয়নি: ${esc(err?.message || err)}</div>`;
   }
 }
 

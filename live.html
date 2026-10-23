@@ -7,6 +7,20 @@
 <link rel="stylesheet" href="style.css">
 <style>
 .live-hero{background:linear-gradient(135deg,#071b3a,#0d2f5c);color:#fff;border-radius:20px;padding:22px;margin-bottom:18px}.live-hero h1{margin:4px 0 8px}.live-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.live-stat{padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff}.live-stat span{display:block;color:#64748b;font-size:12px}.live-stat strong{display:block;font-size:24px;margin-top:4px}.score-card{padding:20px;border:1px solid var(--line);border-radius:18px;background:#fff}.score-line{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.score{font-size:46px;font-weight:950;line-height:1}.teams{font-size:18px;font-weight:850}.pill-live{display:inline-flex;align-items:center;gap:6px;background:#fee2e2;color:#991b1b;border-radius:999px;padding:6px 10px;font-weight:800;font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:#dc2626;display:inline-block}.commentary-live{margin-top:16px;max-height:420px;overflow:auto}.commentary-live>div{padding:10px 0;border-bottom:1px solid var(--line)}.select-live{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}.muted2{color:#64748b}.hidden-live{display:none}.public-note{margin-top:10px;font-size:12px;color:#64748b}.innings-card{margin-top:16px}.innings-card h2{margin:0 0 4px}.scorecard-title{margin:24px 0 10px}.scorecard-title h2{margin:0 0 4px}.scorecard-title p{margin:0;color:#64748b;font-size:13px}.score-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.score-summary>div{padding:12px;border:1px solid var(--line);border-radius:12px;background:#f7f9fc}.score-summary b{display:block;font-size:11px;color:#64748b}.score-summary span{display:block;margin-top:4px;font-weight:800}.scorecard-tables{margin-top:10px}.scorecard-tables h3{margin:0 0 8px}.status-mini{font-size:9px;border-radius:999px;padding:2px 5px;font-weight:800}.status-mini.out{background:#fee2e2;color:#991b1b}.status-mini.notout{background:#dcfce7;color:#166534}@media(max-width:800px){.live-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.score{font-size:38px}.score-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.score-summary{grid-template-columns:1fr}.scorecard-tables{display:block}.scorecard-tables>div{margin-bottom:18px}}
+
+.powerplay-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:16px 0 4px;padding:16px 18px;border-radius:16px;border:2px solid #facc15;background:linear-gradient(110deg,#fff7cc,#ffec8a);color:#713f12;box-shadow:0 8px 22px rgba(161,98,7,.13)}
+.powerplay-banner .pp-kicker{font-size:12px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}
+.powerplay-banner .pp-title{font-size:clamp(20px,3vw,28px);font-weight:1000;line-height:1.15;margin:3px 0}
+.powerplay-banner .pp-sub{font-size:13px;font-weight:700}
+.powerplay-banner .pp-badge{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;background:#b91c1c;color:white;font-weight:1000;font-size:13px;box-shadow:0 3px 0 rgba(127,29,29,.18)}
+.powerplay-banner .pp-dot{width:9px;height:9px;border-radius:50%;background:#fff;display:inline-block;animation:ppPulse 1.2s infinite}
+.powerplay-banner.pp-upcoming{background:#eff6ff;border-color:#93c5fd;color:#1e3a8a;box-shadow:none}
+.powerplay-banner.pp-ended{background:#f1f5f9;border-color:#cbd5e1;color:#475569;box-shadow:none}
+.powerplay-banner.pp-disabled{background:#f8fafc;border-color:#e2e8f0;color:#64748b;box-shadow:none}
+.powerplay-banner.pp-upcoming .pp-badge,.powerplay-banner.pp-ended .pp-badge,.powerplay-banner.pp-disabled .pp-badge{background:#475569;box-shadow:none}
+@keyframes ppPulse{0%,100%{opacity:1}50%{opacity:.3}}
+@media(prefers-reduced-motion:reduce){.powerplay-banner .pp-dot{animation:none}}
+
 </style>
 </head>
 <body>
@@ -17,5 +31,5 @@
 <section id="liveBox" style="margin-top:16px"><div class="empty">Live match data loading…</div></section>
 </main>
 <footer class="footer">VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI • Public read-only live score</footer>
-<script type="module" src="live.js"></script>
+<script type="module" src="live.js?v=powerplay-public-20261023"></script>
 </body></html>

@@ -5,7 +5,25 @@ const matchLabels={bestBatsman:['🏏','Best Batsman'],bestBowler:['🎯','Best 
 function n(v){return Number(v||0)}
 function metrics(v){if(!v)return '';return v.metrics||v.note||''}
 async function getTeams(){const s=await getDocs(collection(db,'teams'));return Object.fromEntries(s.docs.map(d=>[d.id,{id:d.id,...d.data()}]));}
-async function load(){const season=n($('season').value||2026);$('status').textContent='লোড হচ্ছে…';try{const [tSnap,ms,teams]=await Promise.all([getDoc(doc(db,'tournaments',String(season))),getDocs(collection(db,'matches')),getTeams()]);const t=tSnap.exists()?tSnap.data():{};renderTournament(t,teams);const matches=ms.docs.map(d=>({id:d.id,...d.data()})).filter(m=>n(m.season)===season).sort((a,b)=>String(a.stage||a.stageName||'').localeCompare(String(b.stage||b.stageName||'')));renderMatches(matches);$('status').textContent=`${season} season`; }catch(e){console.error(e);$('status').textContent='লোড করতে সমস্যা হয়েছে';}}
+
+function savedAwardCard(a){
+ const label=a.awardName||a.awardType||'Award';
+ const name=a.playerName||a.recipientName||a.teamName||'নাম পাওয়া যায়নি';
+ const detail=[a.teamName&&a.teamName!==name?`দল: ${a.teamName}`:'',a.prize?`পুরস্কার: ${a.prize}`:''].filter(Boolean).join(' • ');
+ return `<article class="award-card"><div class="icon">🏅</div><h3>${esc(label)}</h3><div class="winner">${esc(name)}</div>${detail?`<div class="metric">${esc(detail)}</div>`:''}${a.note?`<div class="metric">${esc(a.note)}</div>`:''}</article>`;
+}
+async function loadAdminAwards(season){
+ const snap=await getDocs(collection(db,'awards'));
+ const rows=snap.docs.map(d=>({id:d.id,...d.data()})).filter(a=>String(a.season??'')===String(season)&&a.public!==false);
+ const tournament=rows.filter(a=>a.scope!=='MATCH'&&!a.matchId);
+ const byMatch=new Map();
+ rows.filter(a=>a.scope==='MATCH'||!!a.matchId).forEach(a=>{const k=a.matchId||'unlinked';if(!byMatch.has(k))byMatch.set(k,[]);byMatch.get(k).push(a)});
+ const tEl=$('adminSavedTournamentAwards'),mEl=$('adminSavedMatchAwards');
+ if(tEl)tEl.innerHTML=tournament.length?tournament.map(savedAwardCard).join(''):'<div class="empty">Admin panel থেকে এখনও কোনো tournament award ঘোষণা করা হয়নি।</div>';
+ if(mEl){const ms=await getDocs(collection(db,'matches'));const mm=new Map(ms.docs.map(d=>[d.id,{id:d.id,...d.data()}]));const blocks=[];for(const [id,items] of byMatch){const m=mm.get(id);const title=m?(m.title||`${m.team1Name||m.battingTeam||'Team 1'} vs ${m.team2Name||m.bowlingTeam||'Team 2'}`):(id==='unlinked'?'Match সংযুক্ত হয়নি':id);blocks.push(`<article class="match-card"><div class="match-head"><h3>${esc(title)}</h3><small class="muted">${esc(m?.stageName||m?.stage||'')}</small></div><div class="match-awards">${items.map(savedAwardCard).join('')}</div></article>`)}mEl.innerHTML=blocks.length?blocks.join(''):'<div class="empty">Admin panel থেকে এখনও কোনো match award ঘোষণা করা হয়নি।</div>';}
+}
+
+async function load(){const season=n($('season').value||2026);$('status').textContent='লোড হচ্ছে…';try{const [tSnap,ms,teams]=await Promise.all([getDoc(doc(db,'tournaments',String(season))),getDocs(collection(db,'matches')),getTeams()]);const t=tSnap.exists()?tSnap.data():{};renderTournament(t,teams);const matches=ms.docs.map(d=>({id:d.id,...d.data()})).filter(m=>n(m.season)===season).sort((a,b)=>String(a.stage||a.stageName||'').localeCompare(String(b.stage||b.stageName||'')));renderMatches(matches);await loadAdminAwards(season);$('status').textContent=`${season} season`; }catch(e){console.error(e);$('status').textContent='লোড করতে সমস্যা হয়েছে';}}
 function renderTournament(t,teams){const champ=t.championTeamId?teams[t.championTeamId]:null;$('championWrap').innerHTML=champ?`<section class="card champion"><div class="icon">🏆</div><h2>Season Champion</h2><div class="winner">${esc(champ.name||champ.teamName||champ.id)}</div><div class="metric">${esc(t.season||'')} Tournament Champion</div></section>`:'<div class="notice">🏆 এই season-এর Champion এখনও ঘোষণা করা হয়নি।</div>';
 const a=t.awards||{};$('tournamentAwards').innerHTML=Object.keys(labels).map(k=>{const v=a[k];const [icon,label]=labels[k];return `<article class="award-card"><div class="icon">${icon}</div><h3>${label}</h3>${v?.playerName?`<div class="winner">${esc(v.playerName)}</div><div class="metric">${esc(metrics(v))}</div>`:'<div class="muted">Award এখনও ঘোষণা করা হয়নি।</div>'}</article>`}).join('');}
 function renderMatches(matches){$('matchCount').textContent=`${matches.length} ম্যাচ`;if(!matches.length){$('matchesList').innerHTML='<div class="empty">এই season-এ এখনও কোনো match পাওয়া যায়নি।</div>';return;}$('matchesList').innerHTML=matches.map((m,i)=>{const a=m.awards||{};const title=m.title||`${m.team1Name||''} vs ${m.team2Name||''}`;const cards=Object.keys(matchLabels).map(k=>{const v=a[k];const [icon,label]=matchLabels[k];return `<div class="mini-award"><b>${icon} ${label}</b>${v?.playerName?`<div>${esc(v.playerName)}</div><small class="muted">${esc(metrics(v))}</small>`:'<small class="muted">এখনও ঘোষণা হয়নি</small>'}</div>`}).join('');return `<article class="match-card"><div class="match-head"><h3>${i+1}. ${esc(title)}</h3><small class="muted">${esc(m.stageName||m.stage||'')}</small></div><div class="match-awards">${cards}</div></article>`}).join('');}

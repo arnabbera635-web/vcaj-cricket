@@ -322,7 +322,7 @@ async function saveAward(){
  const matchId=$("saveMatch").value||"";
  const player=players.find(p=>(p.name||p.playerName)===recipient);
  const payload={
-  season,awardType:type,awardName:name,playerId:player?.id||"",playerName:recipient,recipientName:recipient,
+  season,scope:(AWARDS.find(a=>a[0]===type)?.[2]|| (matchId?"MATCH":"TOURNAMENT")),awardType:type,awardName:name,playerId:player?.id||"",playerName:recipient,recipientName:recipient,
   teamId:player?.teamId||"",teamName:$("teamName").value.trim(),matchId,
   prize:$("awardPrize").value.trim(),note:$("awardNote").value.trim(),public:true,
   calculatedBy:"VCAJ Free Smart Awards Engine",updatedAt:serverTimestamp()
