@@ -2,6 +2,10 @@ import {db,collection,getDocs} from './firebase.js';
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function rows(a,metric,label){return a.slice(0,10).map((p,i)=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span><b>${i+1}. ${esc(p.name)}</b><br><small class="muted">${esc(p.teamName||'')}</small></span><strong>${p[metric]||0} ${label}</strong></div>`).join('')||'<div class="empty">No data yet</div>'}
 function hatRows(a,key,label){return a.filter(p=>(p[key]||0)>0).sort((a,b)=>(b[key]||0)-(a[key]||0)).slice(0,10).map((p,i)=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><span><b>${i+1}. ${esc(p.name)}</b><br><small class="muted">${esc(p.teamName||'')}</small></span><strong>${p[key]||0} ${label}</strong></div>`).join('')||'<div class="empty">No hat-trick record yet</div>'}
+async function loadSavedMatchRecords(){
+ const main=document.querySelector('main.container');if(!main)return;const section=document.createElement('section');section.className='card';section.innerHTML='<h2>📋 Admin-Saved Match Records</h2><p class="muted">Admin panel থেকে Save করা match-wise records</p><div id="savedMatchRecords">Loading…</div>';const grid=main.querySelector('.grid');if(grid)main.insertBefore(section,grid);else main.appendChild(section);
+ try{const snap=await getDocs(collection(db,'publicMatchRecords'));const list=snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.public!==false).sort((a,b)=>String(a.matchTitle||'').localeCompare(String(b.matchTitle||'')));document.getElementById('savedMatchRecords').innerHTML=list.map(m=>`<article style="padding:12px 0;border-bottom:1px solid var(--line)"><h3>${esc(m.matchTitle||m.id)}</h3><div class="grid two">${(m.records||[]).map(r=>`<div><b>${esc(r.label)}</b><br>${(r.players||[]).map(p=>`${esc(p.playerName)}${p.teamName?' ('+esc(p.teamName)+')':''} — ${esc(p.value)}`).join('<br>')}</div>`).join('')}</div></article>`).join('')||'<div class="empty">এখনও কোনো match record প্রকাশ করা হয়নি।</div>';}catch(e){console.error(e);document.getElementById('savedMatchRecords').textContent='Saved match records load হয়নি: '+e.message;}
+}
 async function load(){
  const s=await getDocs(collection(db,'players'));const p=s.docs.map(d=>({id:d.id,...d.data()}));
  document.getElementById('batting').innerHTML=rows([...p].sort((a,b)=>(b.totalRuns||0)-(a.totalRuns||0)),'totalRuns','runs');
@@ -12,4 +16,4 @@ async function load(){
  document.getElementById('batterHat').innerHTML=hatRows(p,'battingHatTricks','batting hat-trick');
  document.getElementById('fielderHat').innerHTML=hatRows(p,'fieldingHatTricks','fielding hat-trick');
  document.getElementById('candidates').innerHTML=`<p>Best Batsman: <b>${esc([...p].sort((a,b)=>(b.totalRuns||0)-(a.totalRuns||0))[0]?.name||'—')}</b></p><p>Best Bowler: <b>${esc([...p].sort((a,b)=>(b.totalWickets||0)-(a.totalWickets||0))[0]?.name||'—')}</b></p><p>Best Fielder/keeper: <b>${esc(field[0]?.name||'—')}</b></p>`;
-}load();
+}load();loadSavedMatchRecords();
