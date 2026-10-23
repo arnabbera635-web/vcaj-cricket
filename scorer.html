@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VCAJ — Live Scoring</title>
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="scorer-ui.css?v=20261017">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="scorer-ui.css?v=powerplay20261022-v2">
 </head>
 <body class="auth-pending">
 <header class="topbar">
@@ -21,6 +21,12 @@
   <label>Stage<select id="stage"><option value="R16">Round of 16</option><option value="QF">Quarter Final</option><option value="SF">Semi Final</option><option value="FINAL">Final</option><option value="PRACTICE">Practice Match (টুর্নামেন্টের বাইরে)</option><option value="CUSTOM">Custom</option></select></label>
   <label>Bracket Key<input id="bracketKey" placeholder="যেমন R16-1"></label>
   <label>Overs<select id="overs"><option value="5">5</option><option value="10">10</option><option value="15" selected>15</option><option value="20">20</option><option value="custom">Custom</option></select><input id="customOvers" class="hidden" type="number" min="1" max="50" value="15"></label>
+  <div class="powerplay-settings">
+   <label class="powerplay-toggle"><span>Powerplay</span><span class="powerplay-check"><input id="powerplayEnabled" type="checkbox" checked> চালু</span></label>
+   <label>শুরুর ওভার<input id="powerplayStart" type="number" min="1" max="15" value="1"></label>
+   <label>শেষের ওভার<input id="powerplayEnd" type="number" min="1" max="15" value="6"></label>
+   <p class="muted powerplay-help">ম্যাচ তৈরি করার আগে Powerplay-এর ওভার নির্ধারণ করুন। উদাহরণ: ১–৬ মানে প্রথম ৬ ওভার।</p>
+  </div>
   <label>প্রথম দল<select id="team1"><option value="">প্রথম দল</option></select></label>
   <label>দ্বিতীয় দল<select id="team2"><option value="">দ্বিতীয় দল</option></select></label>
   <label>Match ID<input id="matchId" placeholder="Auto generated"></label>
@@ -57,6 +63,7 @@
   <div class="stat-box"><span>Run Rate</span><strong id="crr">CRR 0.00</strong></div>
   <div class="stat-box"><span>Target</span><strong id="rrr">Target —</strong></div>
   <div class="stat-box"><span>Innings</span><strong id="inningsNo">Innings 1 of 2</strong></div>
+  <div class="stat-box powerplay-stat"><span>Powerplay</span><strong id="powerplayStatus">—</strong><small id="powerplayRuns">Powerplay runs: 0</small></div>
  </div>
  <div class="admin-actions" style="margin-top:12px">
   <span id="freeHitBadge" class="pill hidden">FREE HIT</span>
@@ -120,7 +127,7 @@
 import {guardAdmin,bindLogout} from "./admin.js";
 await guardAdmin();
 bindLogout();
-await import("./scorer.js?v=20261017-recovery1");
+await import("./scorer.js?v=powerplay20261022-v2");
 </script>
 </body>
 </html>

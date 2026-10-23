@@ -19,3 +19,8 @@ button{min-height:40px;border:1px solid #dce4f0!important;border-radius:12px!imp
 #wicketModal #fielderBox label{display:block;margin:10px 0 6px}
 #wicketModal #fielder{display:block;width:100%;min-height:42px;margin-top:6px}
 #wicketModal.hidden{display:none!important}
+
+/* Admin-controlled Powerplay */
+.powerplay-settings{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:14px;border:1px solid var(--sc-line);border-radius:15px;background:linear-gradient(135deg,#f4f8ff,#fff)}
+.powerplay-toggle{justify-content:center;align-items:flex-start;gap:8px}.powerplay-check{display:flex;align-items:center;gap:8px;font-weight:750}.powerplay-check input{width:20px;min-height:20px;height:20px;margin:0;accent-color:#2457d6}.powerplay-help{grid-column:1/-1;margin:0;font-size:.85rem}.powerplay-stat{background:linear-gradient(145deg,#e8f5ed,#fff)!important;border-color:#c9ead6!important}.powerplay-stat strong{color:#08704e}.powerplay-stat small{display:block;margin-top:6px;font-size:.72rem;line-height:1.35}
+@media(max-width:760px){.powerplay-settings{grid-template-columns:1fr;gap:10px;padding:12px}.powerplay-help{grid-column:1}.powerplay-toggle{align-items:flex-start}}
