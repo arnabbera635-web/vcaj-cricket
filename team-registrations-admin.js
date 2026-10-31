@@ -363,7 +363,7 @@ function ensureVoucherStyles() {
   style.textContent = `
     .vv-backdrop{position:fixed;inset:0;z-index:99999;background:rgba(11,36,71,.78);backdrop-filter:blur(3px);display:flex;flex-direction:column}
     .vv-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0b2447;color:#fff;flex-wrap:wrap}
-    .vv-title{font-weight:700;font-size:14px;margin-right:auto}
+    .vv-title{font-weight:700;font-size:14px;margin-right:auto;min-width:0}
     .vv-title span{display:block;font:700 12px 'Courier New',monospace;color:#e6c65c;letter-spacing:1px}
     .vv-bar button{border:0;border-radius:8px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}
     .vv-bar button.vv-main{background:#c9a227;color:#0b2447}
@@ -381,6 +381,7 @@ function closeVoucherViewer() {
 function voucherEsc(event) { if (event.key === "Escape") closeVoucherViewer(); }
 
 function openHtmlViewer({code, build, whatsapp}) {
+  window.scrollTo(0, window.scrollY);
   ensureVoucherStyles();
   closeVoucherViewer();
   const wrap = document.createElement("div");
@@ -451,6 +452,45 @@ async function generateReceipt(id) {
    No team registration is needed.
    ===================================================================== */
 const RECEIPT_COLLECTION = "paymentReceipts";
+const SIG_KEYS = {recv: "vcajSigReceived", auth: "vcajSigAuthorized"};
+
+// Finger / mouse signature pad (transparent PNG, so it sits cleanly on the receipt)
+function makeSignaturePad(canvas) {
+  const ctx = canvas.getContext("2d");
+  let drawing = false, ink = false, last = null;
+  const style = () => { ctx.lineWidth = 3.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#0b1f4d"; };
+  const pos = e => {
+    const b = canvas.getBoundingClientRect();
+    return {x: (e.clientX - b.left) * canvas.width / b.width, y: (e.clientY - b.top) * canvas.height / b.height};
+  };
+  canvas.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+    drawing = true; last = pos(e); style();
+    ctx.beginPath(); ctx.arc(last.x, last.y, 1.7, 0, 7); ctx.fillStyle = "#0b1f4d"; ctx.fill();
+    ink = true;
+  });
+  canvas.addEventListener("pointermove", e => {
+    if (!drawing) return;
+    e.preventDefault();
+    const q = pos(e); style();
+    ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+    last = q;
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev => canvas.addEventListener(ev, () => { drawing = false; }));
+  return {
+    clear() { ctx.clearRect(0, 0, canvas.width, canvas.height); ink = false; },
+    has() { return ink; },
+    data() { return ink ? canvas.toDataURL("image/png") : ""; },
+    load(url) {
+      if (!url) return;
+      const img = new Image();
+      img.onload = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); ink = true; };
+      img.src = url;
+    }
+  };
+}
+const safeSig = v => (typeof v === "string" && v.startsWith("data:image/png;base64,") && v.length < 300000) ? v : "";
 const LOCAL_KEY = "vcajIssuedReceipts";
 const PREF_KEY = "vcajReceiptPrefs";
 const THEMES = {
@@ -493,6 +533,8 @@ function receiptState(r) {
   if (balance === 0) return {balance, label: "FULLY PAID", stamp: "PAID", color: "#16a34a"};
   return {balance, label: "PARTIALLY PAID", stamp: "PARTIAL", color: "#d97706"};
 }
+
+const sigImg = v => safeSig(v) ? `<img alt="signature" src="${esc(safeSig(v))}">` : `<span class="sp"></span>`;
 
 function buildReceiptHtml(r, standalone) {
   const t = THEMES[r.theme] || THEMES.royal;
@@ -563,8 +605,9 @@ tr.ok td{background:#dcfce7;color:#166534;font-weight:800}
 .progress i{display:block;height:100%;width:${pct}%;background:linear-gradient(90deg,#16a34a,#4ade80)}
 .pt{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
 .note{margin-top:14px;padding:10px 12px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;font-size:12px}
-.sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:46px}
-.sign div{border-top:1px solid #64748b;padding-top:6px;text-align:center;font-size:11.5px;color:var(--muted)}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:28px}
+.sg img,.sg .sp{display:block;margin:0 auto;height:66px;max-width:100%;object-fit:contain}
+.sg .ln{border-top:1px solid #64748b;padding-top:6px;text-align:center;font-size:11.5px;color:var(--muted)}
 .thanks{margin-top:22px;text-align:center;font-weight:800;color:var(--c1);font-size:14px}
 .foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--muted)}
 .foot b{color:var(--c1)}
@@ -615,7 +658,10 @@ tr.ok td{background:#dcfce7;color:#166534;font-weight:800}
   ${hasTotal ? `<div class="progress"><i></i></div><div class="pt"><span>${pct}% paid</span><span>${money(paidSoFar)} of ${money(r.total)}</span></div>` : ""}
   ${r.note ? `<div class="note"><strong>Note:</strong> ${esc(r.note)}</div>` : ""}
 
-  <div class="sign"><div>Received by: ${esc(r.receivedBy || "—")}</div><div>Authorized Signature / VCAJ</div></div>
+  <div class="sign">
+    <div class="sg">${sigImg(r.sigReceived)}<div class="ln">Received by: ${esc(r.receivedBy || "—")}</div></div>
+    <div class="sg">${sigImg(r.sigAuth)}<div class="ln">Authorized Signature / VCAJ</div></div>
+  </div>
   <div class="thanks">ধন্যবাদ · Thank you for your payment!</div>
   <div class="foot"><span>Computer-generated receipt · issued by ${esc(r.issuedBy || "VCAJ Admin")}</span><span>Code: <b>${esc(r.code)}</b></span></div>
   ${actions}
@@ -677,6 +723,13 @@ function ensureDeskStyles() {
     .rc-swatches{display:flex;gap:10px;flex-wrap:wrap}
     .rc-sw{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #cbd5e1;cursor:pointer}
     .rc-sw.on{box-shadow:0 0 0 3px #172033}
+    .rc-body input[type=checkbox]{width:auto;margin-right:6px;transform:scale(1.2)}
+    .rc-sig{border:1.5px solid #e2e8f0;border-radius:14px;padding:12px;background:#f8fafc}
+    .rc-pad{border:2px dashed #94a3b8;border-radius:12px;background:#fff}
+    .rc-pad canvas{display:block;width:100%;height:120px;touch-action:none;cursor:crosshair}
+    .rc-sigbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#475569}
+    .rc-sigbar label{margin:0;text-transform:none;letter-spacing:0;font-weight:600;font-size:12px}
+    .rc-sigbar button{border:0;border-radius:8px;padding:7px 12px;font-weight:700;background:#e2e8f0;color:#334155;cursor:pointer}
     .rc-bal{padding:10px 12px;border-radius:10px;background:#f1f5f9;font-weight:700;font-size:14px}
     .rc-bal.due{background:#fee2e2;color:#991b1b}.rc-bal.ok{background:#dcfce7;color:#166534}
     .rc-go{width:100%;margin-top:6px;border:0;border-radius:12px;padding:15px;font-weight:800;font-size:16px;color:#fff;cursor:pointer;background:linear-gradient(120deg,#059669,#16a34a)}
@@ -693,6 +746,7 @@ function ensureDeskStyles() {
 }
 
 function openDesk() {
+  window.scrollTo(0, window.scrollY);
   ensureDeskStyles();
   $("rcDesk")?.remove();
   const prefs = readJson(PREF_KEY, {});
@@ -727,6 +781,15 @@ function openDesk() {
           <div class="full"><label>Receipt colour</label>
             <div class="rc-swatches">${Object.entries(THEMES).map(([k, t]) =>
               `<button type="button" class="rc-sw" data-theme="${k}" title="${esc(t.name)}" style="background:linear-gradient(135deg,${t.c1},${t.c2})"></button>`).join("")}</div></div>
+        </div>
+        <div class="rc-grid" style="margin-top:12px">
+          <div class="full"><label>Digital signatures — আঙুল দিয়ে সই করুন</label></div>
+          <div class="full rc-sig"><label>① Received by (যিনি টাকা নিলেন)</label>
+            <div class="rc-pad"><canvas id="rcSigRecv" width="640" height="220"></canvas></div>
+            <div class="rc-sigbar"><label><input type="checkbox" id="rcKeepRecv">এই device-এ সই মনে রাখুন</label><button type="button" id="rcClrRecv">Clear</button></div></div>
+          <div class="full rc-sig"><label>② Authorized signature / VCAJ</label>
+            <div class="rc-pad"><canvas id="rcSigAuth" width="640" height="220"></canvas></div>
+            <div class="rc-sigbar"><label><input type="checkbox" id="rcKeepAuth">এই device-এ সই মনে রাখুন</label><button type="button" id="rcClrAuth">Clear</button></div></div>
         </div>
         <button class="rc-go" id="rcCreate">Create Receipt</button>
         <div class="rc-msg" id="rcMsg"></div>
@@ -769,6 +832,13 @@ function openDesk() {
 
   $("rcSearch").addEventListener("input", renderIssued);
 
+  const padRecv = makeSignaturePad($("rcSigRecv")), padAuth = makeSignaturePad($("rcSigAuth"));
+  const savedRecv = safeSig(localStorage.getItem(SIG_KEYS.recv)), savedAuth = safeSig(localStorage.getItem(SIG_KEYS.auth));
+  if (savedRecv) { padRecv.load(savedRecv); $("rcKeepRecv").checked = true; }
+  if (savedAuth) { padAuth.load(savedAuth); $("rcKeepAuth").checked = true; }
+  $("rcClrRecv").onclick = () => padRecv.clear();
+  $("rcClrAuth").onclick = () => padAuth.clear();
+
   $("rcCreate").onclick = async () => {
     const msg = $("rcMsg");
     const payer = $("rcName").value.trim(), amount = num("rcAmt"), total = num("rcTotal"), previous = num("rcPrev") || 0;
@@ -781,19 +851,32 @@ function openDesk() {
       code: newReceiptCode(), payer, phone: $("rcPhone").value.trim(), location: $("rcLoc").value.trim(),
       category: $("rcCat").value, total: total === null ? null : total, previous, amount,
       method: $("rcMethod").value, paymentDate: $("rcDate").value || today, receivedBy: $("rcBy").value.trim(),
-      note: $("rcNote").value.trim(), theme: deskTheme, issuedBy: auth.currentUser?.email || "", issuedAtMs: Date.now()
+      note: $("rcNote").value.trim(), theme: deskTheme, issuedBy: auth.currentUser?.email || "", issuedAtMs: Date.now(),
+      sigReceived: padRecv.data(), sigAuth: padAuth.data()
     };
+    const keep = (key, box, pad) => { try { if (box.checked && pad.has()) localStorage.setItem(key, pad.data()); else if (!box.checked) localStorage.removeItem(key); } catch (_) {} };
+    keep(SIG_KEYS.recv, $("rcKeepRecv"), padRecv);
+    keep(SIG_KEYS.auth, $("rcKeepAuth"), padAuth);
     writeJson(PREF_KEY, {theme: deskTheme, receivedBy: r.receivedBy});
     $("rcCreate").disabled = true;
     const result = await saveReceipt(r);
     $("rcCreate").disabled = false;
 
-    if (result.ok) { msg.className = "rc-msg good"; msg.textContent = `Receipt ${r.code} তৈরি ও save হয়েছে।`; }
+    if (result.ok) { msg.className = "rc-msg good"; msg.textContent = `Receipt ${r.code} তৈরি ও save হয়েছে ✔`; }
     else {
+      const email = auth.currentUser?.email || "YOUR_ADMIN_EMAIL";
+      const rule = `match /${RECEIPT_COLLECTION}/{id} {\n  allow read, create, update: if request.auth != null\n    && request.auth.token.email == "${email}";\n}`;
       msg.className = "rc-msg warn";
-      msg.textContent = `Receipt তৈরি হয়েছে (${r.code}), কিন্তু cloud-এ save হয়নি — Firestore rules-এ “${RECEIPT_COLLECTION}” collection-এ লেখার অনুমতি লাগবে। আপাতত এই device-এ রাখা হয়েছে। (${result.error})`;
+      msg.innerHTML = `Receipt তৈরি হয়েছে ✔ (${esc(r.code)})<br>কিন্তু Firestore rules-এ অনুমতি নেই বলে cloud-এ save হয়নি; আপাতত এই device-এ আছে।
+        <br><button type="button" id="rcCopyRule" style="margin-top:8px;border:0;border-radius:8px;padding:8px 12px;font-weight:700;background:#92400e;color:#fff;cursor:pointer">Rules copy করুন</button>`;
+      $("rcCopyRule").onclick = async () => {
+        try { await navigator.clipboard.writeText(rule); $("rcCopyRule").textContent = "Copied ✔ — Firebase Console > Firestore > Rules-এ paste করে Publish করুন"; }
+        catch (_) { prompt("এই rule copy করুন:", rule); }
+      };
     }
     ["rcName", "rcPhone", "rcLoc", "rcPrev", "rcAmt", "rcNote"].forEach(id => $(id).value = "");
+    if (!$("rcKeepRecv").checked) padRecv.clear();
+    if (!$("rcKeepAuth").checked) padAuth.clear();
     updateBalance();
     openReceiptViewer(r);
   };
