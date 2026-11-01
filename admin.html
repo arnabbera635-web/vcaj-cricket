@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VCAJ — Admin Panel</title>
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="vcaj-theme.css">
+  <meta name="theme-color" content="#07152d"><link rel="stylesheet" href="admin.css">
+  <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body class="auth-pending">
 <header class="topbar">
@@ -32,5 +35,6 @@
 import {guardAdmin,bindLogout} from "./admin.js";
 await guardAdmin(); bindLogout();
 </script>
+  <script src="vcaj-enhance.js" defer></script>
 </body>
 </html>
