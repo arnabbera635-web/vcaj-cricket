@@ -1,0 +1,56 @@
+/* VCAJ unified enhancements: nav, theme, offline banner, PWA, toast, scroll-top. Pure vanilla, no dependencies. */
+(function(){
+"use strict";
+var d=document,$=function(s,r){return(r||d).querySelector(s)};
+function el(t,a,h){var e=d.createElement(t);for(var k in a||{})e.setAttribute(k,a[k]);if(h)e.innerHTML=h;return e}
+// theme
+try{var t=localStorage.getItem("vcTheme");if(t)d.documentElement.setAttribute("data-theme",t)}catch(e){}
+function ready(f){d.readyState!=="loading"?f():d.addEventListener("DOMContentLoaded",f)}
+window.vcToast=function(msg){var x=$("#vc-toast");if(!x){x=el("div",{id:"vc-toast",role:"status"});d.body.appendChild(x)}x.textContent=msg;x.classList.add("show");clearTimeout(x._t);x._t=setTimeout(function(){x.classList.remove("show")},2800)};
+ready(function(){
+ var page=(location.pathname.split("/").pop()||"index.html");
+ var links=[["index.html","🏠 Home"],["live.html","🔴 Live Score"],["bracket.html","🏆 Bracket"],["matches.html","📅 Matches"],["teams.html","👥 Teams"],["stats.html","📈 Stats"],["players.html","🏏 Players"],["records.html","📊 Records"],["season-awards.html","🥇 Awards"],["team-registration.html","📝 Registration"],["member-panel.html","🔐 Member"],["scorer.html","⚙️ Admin"]];
+ var isAdminPage=/^(scorer|admin|accounts|admin-records|member-setup|team-registrations-admin)/.test(page);
+ var bar=$(".topbar");
+ if(!bar&&!isAdminPage&&page.indexOf("google")!==0){
+  bar=el("header",{"class":"topbar"},'<a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav>'+links.map(function(l){return'<a href="'+l[0]+'">'+l[1]+'</a>'}).join("")+"</nav>");
+  d.body.insertBefore(bar,d.body.firstChild);
+ }
+ if(bar){
+  var nav=$("nav",bar);
+  if(nav){
+   if(!nav.querySelector('a[href="stats.html"]')&&!isAdminPage){var sa=el("a",{href:"stats.html"},"Stats");var rc=nav.querySelector('a[href="records.html"]');rc?nav.insertBefore(sa,rc):nav.appendChild(sa)}
+   [].forEach.call(nav.querySelectorAll("a"),function(a){if((a.getAttribute("href")||"").split("?")[0]===page)a.classList.add("vc-active")});
+   var b=el("button",{id:"vc-burger","aria-label":"মেনু","aria-expanded":"false",type:"button"},"☰");
+   bar.insertBefore(b,nav);
+   b.onclick=function(){var o=nav.classList.toggle("vc-open");b.setAttribute("aria-expanded",o);b.textContent=o?"✕":"☰"};
+   nav.addEventListener("click",function(e){if(e.target.tagName==="A")nav.classList.remove("vc-open")});
+  }
+ }
+ // theme toggle
+ var tb=el("button",{id:"vc-theme","aria-label":"Dark / Light mode",type:"button"},"🌓");
+ tb.onclick=function(){var n=d.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";d.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("vcTheme",n)}catch(e){}vcToast(n==="dark"?"🌙 Dark mode":"☀️ Light mode")};
+ d.body.appendChild(tb);
+ // scroll to top
+ var up=el("button",{id:"vc-top","aria-label":"উপরে যান",type:"button"},"↑");
+ up.onclick=function(){scrollTo({top:0,behavior:"smooth"})};d.body.appendChild(up);
+ addEventListener("scroll",function(){up.classList.toggle("show",scrollY>400)},{passive:true});
+ // offline banner
+ var nb=el("div",{id:"vc-net",role:"alert"});d.body.appendChild(nb);
+ function net(){if(navigator.onLine){if(nb.classList.contains("show")){nb.textContent="✅ ইন্টারনেট ফিরে এসেছে";nb.classList.add("ok");setTimeout(function(){nb.classList.remove("show")},2200)}}else{nb.textContent="⚠️ ইন্টারনেট নেই — অফলাইন মোড";nb.classList.remove("ok");nb.classList.add("show")}}
+ addEventListener("online",net);addEventListener("offline",net);net();
+ // wrap tables for safe scroll + share/install footer
+ if(page.indexOf("google")!==0&&!$(".vc-footer")){
+  var f=el("footer",{"class":"vc-footer"},'<div><button type="button" id="vc-share">📤 শেয়ার করুন</button><button type="button" id="vc-install">📲 অ্যাপ ইনস্টল</button><button type="button" id="vc-print">🖨️ প্রিন্ট</button></div>© '+new Date().getFullYear()+' <b>VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI</b><div style="margin-top:8px"><a href="index.html">Home</a><a href="live.html">Live</a><a href="records.html">Records</a><a href="team-registration.html">Registration</a></div>');
+  d.body.appendChild(f);
+  $("#vc-print").onclick=function(){print()};
+  $("#vc-share").onclick=function(){var u={title:d.title,url:location.href};if(navigator.share)navigator.share(u).catch(function(){});else if(navigator.clipboard){navigator.clipboard.writeText(u.url).then(function(){vcToast("🔗 লিংক কপি হয়েছে")})}else prompt("Link:",u.url)};
+ }
+ // PWA install
+ var dp;addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;var i=$("#vc-install");if(i)i.style.display="inline-block"});
+ var ib=$("#vc-install");if(ib)ib.onclick=function(){if(!dp)return;dp.prompt();dp.userChoice.then(function(){dp=null;ib.style.display="none"})};
+ addEventListener("appinstalled",function(){vcToast("✅ অ্যাপ ইনস্টল হয়েছে")});
+ // service worker
+ if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
+});
+})();
