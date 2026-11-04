@@ -1,0 +1,22 @@
+import {auth,db,isAdmin,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDocs,setDoc,deleteDoc} from "./firebase.js";
+const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const TIERS=["Title Sponsor","Gold Sponsor","Silver Sponsor","Supporter"],ICON={"Title Sponsor":"👑","Gold Sponsor":"🥇","Silver Sponsor":"🥈","Supporter":"🙏"};
+let list=[],logo="",editId="",admin=false;
+const safeUrl=u=>/^https?:\/\//i.test(u||"")?u:"";
+function card(s){const l=safeUrl(s.link);return `<div class="sp ${s.tier==="Title Sponsor"?"title":""}">${s.logo?`<img src="${esc(s.logo)}" alt="${esc(s.name)}">`:`<div class="ini">${esc((s.name||"?").trim()[0]||"?")}</div>`}<h3>${esc(s.name)}</h3><span class="badge">${ICON[s.tier]||""} ${esc(s.tier)}</span>${s.msg?`<p>${esc(s.msg)}</p>`:""}${s.phone?`<p>📞 <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a></p>`:""}${l?`<p><a href="${esc(l)}" target="_blank" rel="noopener">🔗 দেখুন</a></p>`:""}</div>`}
+function pub(){const a=list.filter(s=>s.active!==false&&s.active!==0).sort((x,y)=>(x.order??99)-(y.order??99));
+ $("pub").innerHTML=a.length?TIERS.map(t=>{const g=a.filter(s=>s.tier===t);return g.length?`<div class="tier">${ICON[t]} ${t}</div><div class="sgrid">${g.map(card).join("")}</div>`:""}).join(""):'<p class="muted" style="text-align:center">Sponsor-দের তালিকা শীঘ্রই আসছে।</p>'}
+function adminRender(){$("adminList").innerHTML=list.length?`<div class="table-wrap"><table><tr><th>নাম</th><th>ধরন</th><th>অবস্থা</th><th></th></tr>${[...list].sort((x,y)=>(x.order??99)-(y.order??99)).map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.tier)}</td><td>${s.active===false?"লুকানো":"দেখাচ্ছে"}</td><td><button data-e="${esc(s.id)}">Edit</button> <button data-d="${esc(s.id)}">মুছুন</button></td></tr>`).join("")}</table></div>`:"<p class='muted'>কোনো Sponsor নেই।</p>";
+ $("adminList").querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const s=list.find(x=>x.id===b.dataset.e);editId=s.id;logo=s.logo||"";$("name").value=s.name||"";$("tier").value=s.tier;$("phone").value=s.phone||"";$("link").value=s.link||"";$("msg").value=s.msg||"";$("ord").value=s.order??10;$("active").value=s.active===false?"0":"1";$("prev").src=logo;$("prev").classList.toggle("hide",!logo);scrollTo({top:$("app").offsetTop,behavior:"smooth"})});
+ $("adminList").querySelectorAll("[data-d]").forEach(b=>b.onclick=async()=>{if(!confirm("সত্যিই মুছবেন?"))return;await deleteDoc(doc(db,"sponsors",b.dataset.d));await load()})}
+async function load(){const s=await getDocs(collection(db,"sponsors"));list=s.docs.map(d=>({id:d.id,...d.data()}));pub();if(admin)adminRender()}
+$("logoFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const m=260,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);logo=c.toDataURL("image/webp",.82);$("prev").src=logo;$("prev").classList.remove("hide")};im.src=r.result};r.readAsDataURL(f)};
+function clear(){editId="";logo="";["name","phone","link","msg"].forEach(i=>$(i).value="");$("ord").value=10;$("logoFile").value="";$("prev").classList.add("hide")}
+$("clearBtn").onclick=clear;
+$("saveBtn").onclick=async()=>{const name=$("name").value.trim();if(!name){$("saveMsg").textContent="⚠️ নাম দিন";return}
+ const id=editId||"sp"+Date.now().toString(36);try{await setDoc(doc(db,"sponsors",id),{id,name,tier:$("tier").value,phone:$("phone").value.trim(),link:$("link").value.trim(),msg:$("msg").value.trim(),order:Number($("ord").value)||10,active:$("active").value==="1",logo});$("saveMsg").textContent="✅ সেভ হয়েছে";clear();await load()}catch(e){$("saveMsg").textContent="❌ "+(e.code==="permission-denied"?"firestore.rules-এ sponsors-এর নিয়ম publish করুন":e.message)}};
+$("loginBtn").onclick=async()=>{try{await signInWithEmailAndPassword(auth,$("em").value,$("pw").value)}catch(e){$("loginMsg").textContent="Login হয়নি: "+e.message}};
+$("adminToggle").onclick=e=>{e.preventDefault();$("adminWrap").classList.toggle("hide")};
+$("ctaLink").href="https://wa.me/?text="+encodeURIComponent("VCAJ Cricket Tournament-এ Sponsor হতে চাই। যোগাযোগ করুন।");
+onAuthStateChanged(auth,u=>{admin=isAdmin(u);$("loginBox").classList.toggle("hide",admin);$("app").classList.toggle("hide",!admin);if(admin)adminRender()});
+load().catch(()=>{$("pub").innerHTML='<p class="muted">তালিকা লোড হয়নি।</p>'});

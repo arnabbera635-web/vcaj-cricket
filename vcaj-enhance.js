@@ -9,7 +9,7 @@ function ready(f){d.readyState!=="loading"?f():d.addEventListener("DOMContentLoa
 window.vcToast=function(msg){var x=$("#vc-toast");if(!x){x=el("div",{id:"vc-toast",role:"status"});d.body.appendChild(x)}x.textContent=msg;x.classList.add("show");clearTimeout(x._t);x._t=setTimeout(function(){x.classList.remove("show")},2800)};
 ready(function(){
  var page=(location.pathname.split("/").pop()||"index.html");
- var links=[["index.html","🏠 Home"],["live.html","🔴 Live Score"],["bracket.html","🏆 Bracket"],["matches.html","📅 Matches"],["teams.html","👥 Teams"],["stats.html","📈 Stats"],["players.html","🏏 Players"],["records.html","📊 Records"],["season-awards.html","🥇 Awards"],["team-registration.html","📝 Registration"],["member-panel.html","🔐 Member"],["scorer.html","⚙️ Admin"]];
+ var links=[["index.html","🏠 Home"],["live.html","🔴 Live Score"],["bracket.html","🏆 Bracket"],["matches.html","📅 Matches"],["teams.html","👥 Teams"],["stats.html","📈 Stats"],["sponsors.html","🤝 Sponsors"],["sponsors.html","🏢 Sponsors"],["players.html","🏏 Players"],["records.html","📊 Records"],["season-awards.html","🥇 Awards"],["team-registration.html","📝 Registration"],["member-panel.html","🔐 Member"],["scorer.html","⚙️ Admin"]];
  var isAdminPage=/^(scorer|admin|accounts|admin-records|member-setup|team-registrations-admin)/.test(page);
  var bar=$(".topbar");
  if(!bar&&!isAdminPage&&page.indexOf("google")!==0){
@@ -20,6 +20,7 @@ ready(function(){
   var nav=$("nav",bar);
   if(nav){
    if(!nav.querySelector('a[href="stats.html"]')&&!isAdminPage){var sa=el("a",{href:"stats.html"},"Stats");var rc=nav.querySelector('a[href="records.html"]');rc?nav.insertBefore(sa,rc):nav.appendChild(sa)}
+   if(!nav.querySelector('a[href="sponsors.html"]')&&!isAdminPage){nav.appendChild(el("a",{href:"sponsors.html"},"Sponsors"))}
    [].forEach.call(nav.querySelectorAll("a"),function(a){if((a.getAttribute("href")||"").split("?")[0]===page)a.classList.add("vc-active")});
    var b=el("button",{id:"vc-burger","aria-label":"মেনু","aria-expanded":"false",type:"button"},"☰");
    bar.insertBefore(b,nav);
@@ -46,6 +47,8 @@ ready(function(){
   $("#vc-print").onclick=function(){print()};
   $("#vc-share").onclick=function(){var u={title:d.title,url:location.href};if(navigator.share)navigator.share(u).catch(function(){});else if(navigator.clipboard){navigator.clipboard.writeText(u.url).then(function(){vcToast("🔗 লিংক কপি হয়েছে")})}else prompt("Link:",u.url)};
  }
+ // home sponsor strip
+ if(page==="index.html"||page===""){import("./firebase.js").then(function(F){return F.getDocs(F.collection(F.db,"sponsors"))}).then(function(s){var l=s.docs.map(function(d){return d.data()});if(!l.length)return;var o={Gold:0,Silver:1,Bronze:2,Supporter:3};l.sort(function(a,b){return(o[a.tier]||9)-(o[b.tier]||9)});var w=el("section",{id:"vc-spstrip"});w.appendChild(el("h3",{},"🏢 আমাদের Sponsors"));var r=el("div",{"class":"vc-sprow"});l.forEach(function(x){var a=el("a",{href:"sponsors.html"});a.textContent=x.name;r.appendChild(a)});w.appendChild(r);var f=$(".vc-footer");f?f.parentNode.insertBefore(w,f):d.body.appendChild(w)}).catch(function(){})}
  // PWA install
  var dp;addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;var i=$("#vc-install");if(i)i.style.display="inline-block"});
  var ib=$("#vc-install");if(ib)ib.onclick=function(){if(!dp)return;dp.prompt();dp.userChoice.then(function(){dp=null;ib.style.display="none"})};

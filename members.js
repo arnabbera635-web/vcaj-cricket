@@ -18,7 +18,7 @@ function reset(){
 function render(){
  const box=$("memberAdminTable");
  box.innerHTML=members.length?`<div class="table-wrap"><table><tr><th>নাম</th><th>ভূমিকা</th><th>ফোন</th><th>দল</th><th>Season</th><th>Fee</th><th>Status</th><th>Action</th></tr>${
-  members.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.role)}</td><td>${esc(m.phone)}</td><td>${esc(m.teamName||"")}</td><td>${esc(m.season||"")}</td><td>${esc(m.fee||"")}</td><td>${esc(m.feeStatus||"")}</td><td><button data-edit="${esc(m.id)}">Edit</button> <button data-del="${esc(m.id)}">Delete</button></td></tr>`).join("")
+  members.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.role)}</td><td>${esc(m.phone)}</td><td>${esc(m.teamName||"")}</td><td>${esc(m.season||"")}</td><td>${esc(m.fee||"")}</td><td>${esc(m.feeStatus||"")}</td><td><a href="receipts.html?member=${encodeURIComponent(m.id)}"><button type="button">🧾 Receipt</button></a> <a href="member-card.html?id=${encodeURIComponent(m.id)}"><button type="button">🪪 ID</button></a> <a href="member-card.html?id=${encodeURIComponent(m.id)}"><button type="button">🪪 কার্ড</button></a> <button data-edit="${esc(m.id)}">Edit</button> <button data-del="${esc(m.id)}">Delete</button></td></tr>`).join("")
  }</table></div>`:"<p class='muted'>এখনও কোনো সদস্যের তথ্য নেই।</p>";
  box.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>edit(b.dataset.edit));
  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>remove(b.dataset.del));

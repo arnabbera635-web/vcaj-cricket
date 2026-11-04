@@ -5,7 +5,7 @@
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}.tile{padding:14px;border-radius:14px;background:linear-gradient(135deg,#0d2344,#17365f);color:#fff;text-align:center}.tile b{display:block;font-size:22px;color:#fbbf24}.tile span{font-size:12px;color:#cbd5e1}
 #receipt{max-width:560px;margin:16px auto;background:#fff;color:#111;border:2px dashed #0d2344;border-radius:14px;padding:22px;font-size:15px}#receipt h2{margin:0;text-align:center;color:#0d2344;font-size:17px}#receipt .sub{text-align:center;color:#555;font-size:12px;margin-bottom:10px}#receipt .r{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #e5e7eb}#receipt .amt{font-size:26px;font-weight:900;text-align:center;margin:14px 0;color:#16a34a}#receipt .sig{display:flex;justify-content:space-between;margin-top:34px;font-size:12px;color:#555}
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.wa{background:#16a34a!important;color:#fff!important}.sms{background:#0d2344!important;color:#fff!important}.hide{display:none!important}.note{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px 12px;border-radius:12px;font-size:13px}
-@media print{body *{visibility:hidden}#receipt,#receipt *{visibility:visible}#receipt{position:absolute;left:0;top:0;width:100%;border:0;max-width:none}}
+@media print{body *{visibility:hidden}body.pr-qr #upiQr,body.pr-qr #upiQr *{visibility:visible}body.pr-qr #upiQr{position:absolute;left:0;top:0;width:100%}body:not(.pr-qr) #receipt,body:not(.pr-qr) #receipt *{visibility:visible}#receipt{position:absolute;left:0;top:0;width:100%;border:0;max-width:none}}
 </style></head>
 <body><header class="topbar"><a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav><a href="index.html">Home</a><a href="admin.html">Admin</a><a href="accounts.html">Accounts</a><a href="receipts.html">Receipts</a><a href="vouchers.html">Vouchers</a></nav></header>
 <main class="container">
@@ -30,15 +30,17 @@
 </div>
 <p style="margin-top:12px"><button id="saveBtn">💾 Receipt তৈরি করুন</button> <span id="saveMsg" class="muted"></span></p></section>
 
+<section class="card"><h2>📲 UPI QR</h2><div class="rc-grid"><div><label>ক্লাবের UPI ID</label><input id="upiId" placeholder="যেমন: vcaj@upi"></div><div><label>টাকা (ঐচ্ছিক, ফাঁকা = প্রাপক বসাবে)</label><input id="upiAmt" type="number" inputmode="numeric"></div></div><p><button id="upiBtn">QR তৈরি করুন</button> <button id="upiPrint" class="hide">🖨️ QR Print</button></p><div id="upiQr" style="text-align:center"></div></section>
 <section class="card hide" id="rcCard"><h2>🧾 Receipt</h2>
 <div id="receipt"></div>
 <div class="actions"><button class="wa" id="waBtn">📲 WhatsApp-এ confirmation</button><button class="sms" id="smsBtn">💬 SMS পাঠান</button><button id="printBtn">🖨️ Print / PDF</button><button id="copyBtn">📋 মেসেজ কপি</button></div>
 <p class="note" style="margin-top:12px">ℹ️ Receipt সেভ হওয়ার পর বাটন চাপলে ওই নম্বরে লেখা মেসেজ তৈরি হয়ে WhatsApp/SMS খুলবে — শুধু "Send" চাপতে হবে। সম্পূর্ণ নিজে থেকে পাঠাতে paid SMS service লাগে, যা আপনার free setup-এ নেই।</p></section>
 
+<section class="card"><h2>📱 UPI QR (টাকা নেওয়ার জন্য)</h2><div class="rc-grid"><div><label>ক্লাবের UPI ID</label><input id="upiId" placeholder="যেমন: vcaj@upi"></div><div><label>টাকা (ঐচ্ছিক)</label><input id="upiAmt" type="number" min="1" inputmode="numeric"></div><div style="align-self:end"><button id="qrBtn" type="button">QR তৈরি করুন</button></div></div><div id="qrOut" style="text-align:center;margin-top:12px"></div><p class="muted" id="qrNote"></p></section>
 <section class="card"><h2>📚 সব Receipt</h2>
 <div class="tiles" id="tiles"></div>
 <div class="rc-grid" style="margin-bottom:10px"><select id="fType"><option value="">সব ধরন</option><option value="member">Member চাঁদা</option><option value="donation">অনুদান</option><option value="sponsor">Sponsor</option></select><input id="fSearch" placeholder="নাম / নম্বর / Receipt No খুঁজুন"><button id="csvBtn">⬇️ CSV Export</button></div>
 <div id="list">লোড হচ্ছে…</div></section>
 </div>
 </main>
-<script type="module" src="receipts.js"></script><script src="vcaj-enhance.js" defer></script></body></html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script type="module" src="receipts.js"></script><script src="vcaj-enhance.js" defer></script></body></html>

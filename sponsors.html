@@ -1,0 +1,28 @@
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07152d"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="vcaj-theme.css"><link rel="stylesheet" href="admin.css"><link rel="manifest" href="manifest.webmanifest"><title>Our Sponsors — VCAJ</title>
+<style>.rc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.rc-grid label{display:block;font-weight:700;font-size:13px;margin-bottom:4px}.rc-grid input,.rc-grid select,.rc-grid textarea{width:100%}.hide{display:none!important}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}.tile{padding:14px;border-radius:14px;background:linear-gradient(135deg,#0d2344,#17365f);color:#fff;text-align:center}.tile b{display:block;font-size:22px;color:#fbbf24}.tile span{font-size:12px;color:#cbd5e1}.wa{background:#16a34a!important;color:#fff!important}
+.tier{margin:22px 0 8px;font-size:18px;font-weight:900}.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.sp{text-align:center;padding:18px;border-radius:16px;border:1px solid var(--line);background:#fff;transition:.25s}.sp:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(7,21,45,.15)}.sp img{width:100%;max-height:110px;object-fit:contain;margin-bottom:10px}.sp .ini{width:84px;height:84px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;font-size:34px;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--orange),#ffb347)}.sp h3{margin:0 0 4px;font-size:16px}.sp p{margin:4px 0;font-size:13px;color:var(--muted)}.sp.title{border:2px solid #fbbf24;background:linear-gradient(135deg,#fffbeb,#fff)}.badge{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;background:#0d2344;color:#fbbf24}
+html[data-theme=dark] .sp{background:#111d33}html[data-theme=dark] .sp.title{background:#1b2a47}
+.cta{text-align:center;padding:22px;border-radius:16px;background:linear-gradient(135deg,#0d2344,#17365f);color:#fff;margin-top:26px}.cta a{color:#fbbf24;font-weight:800}</style></head>
+<body><header class="topbar"><a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav><a href="index.html">Home</a><a href="live.html">Live Score</a><a href="matches.html">Matches</a><a href="players.html">Players</a><a href="sponsors.html">Sponsors</a><a href="records.html">Records</a></nav></header>
+<main class="container">
+<section class="hero small"><div><p class="eyebrow">THANK YOU</p><h1>🤝 আমাদের Sponsors</h1><p>VCAJ Cricket Tournament-এর পাশে থাকার জন্য সবাইকে ধন্যবাদ</p></div></section>
+<div id="pub"><p class="muted">লোড হচ্ছে…</p></div>
+<div class="cta" id="cta">আপনিও কি Sponsor হতে চান? <a id="ctaLink" href="#">WhatsApp-এ যোগাযোগ করুন</a></div>
+<p style="text-align:center;margin-top:18px"><a href="#" id="adminToggle" class="muted">🔐 Admin</a></p>
+<div id="adminWrap" class="hide">
+<section class="card" id="loginBox"><h2>🔐 Admin Login</h2><div class="rc-grid"><input id="em" type="email" placeholder="Admin email" autocomplete="username"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button id="loginBtn">Login</button></div><p id="loginMsg" class="muted"></p></section>
+<div id="app" class="hide"><section class="card"><h2>➕ Sponsor যোগ / সম্পাদনা</h2>
+<div class="rc-grid">
+<div><label>নাম *</label><input id="name"></div>
+<div><label>ধরন</label><select id="tier"><option>Title Sponsor</option><option>Gold Sponsor</option><option selected>Silver Sponsor</option><option>Supporter</option></select></div>
+<div><label>মোবাইল (প্রকাশ্যে দেখাবে)</label><input id="phone" inputmode="numeric"></div>
+<div><label>Website / Facebook লিংক</label><input id="link" placeholder="https://"></div>
+<div><label>ছোট বার্তা / ঠিকানা</label><input id="msg"></div>
+<div><label>ক্রম (ছোট সংখ্যা আগে)</label><input id="ord" type="number" value="10"></div>
+<div><label>লোগো (ছবি বাছুন)</label><input id="logoFile" type="file" accept="image/*"></div>
+<div><label>দেখাবে?</label><select id="active"><option value="1">হ্যাঁ</option><option value="0">না (লুকানো)</option></select></div>
+</div><p><img id="prev" class="hide" style="max-height:70px"></p>
+<p><button id="saveBtn">💾 সেভ করুন</button> <button id="clearBtn" type="button">নতুন ফর্ম</button> <span id="saveMsg" class="muted"></span></p></section>
+<section class="card"><h2>📋 সব Sponsor</h2><div id="adminList"></div></section></div>
+</div></main>
+<script type="module" src="sponsors.js"></script><script src="vcaj-enhance.js" defer></script></body></html>
