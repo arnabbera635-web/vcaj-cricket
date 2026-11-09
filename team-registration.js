@@ -1,4 +1,5 @@
 import { db, collection, doc, writeBatch, serverTimestamp } from "./firebase.js";
+import { STAMP } from "./vcaj-stamp.js";
 
 const form = document.getElementById("registrationForm");
 const btn = document.getElementById("submitBtn");
@@ -78,6 +79,7 @@ function printReceivedCopy(data){
   <tr><th>Kasanmani</th><td>Method: ${esc(data.kasanmani.paymentMethod)}<br>Date: ${esc(data.kasanmani.paymentDate)}<br>Received by: ${esc(data.kasanmani.receivedBy)}</td></tr></table>
   <p><strong>Status:</strong> ${esc(data.status)}</p><p><strong>Rules Accepted:</strong> ${esc(data.rulesAccepted)} &nbsp; <strong>Stay Required:</strong> ${esc(data.stayRequired)}</p>
   <p class="note"><strong>OFFICIAL PAYMENT RECEIPT</strong><br>এই receipt VCAJ tournament registration system দ্বারা ইস্যু করা payment receipt। Registration ID + Verification Code দিয়ে অফিসিয়াল তথ্য যাচাই করা যাবে। Receipt-এর Team/Payment তথ্য পরিবর্তন করলে verification-এর সঙ্গে মিলবে না।<br><strong>Verification:</strong> ${esc(verifyUrl)}<br>Submitted: ${esc(submitted)}</p>
+  <div style="text-align:right;margin:14px 0 0"><img src="${STAMP}" alt="VCAJ Stamp" style="width:112px;opacity:.9;transform:rotate(-9deg);-webkit-print-color-adjust:exact;print-color-adjust:exact"></div>
   <button class="print" onclick="window.print()">Print / Save as PDF</button>
   </div></body></html>`);
   win.document.close();

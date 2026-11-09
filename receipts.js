@@ -1,3 +1,4 @@
+import {STAMP} from "./vcaj-stamp.js";
 import {auth,db,isAdmin,updateDoc,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDoc,getDocs,setDoc,query,orderBy} from "./firebase.js";
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const money=v=>"₹"+Number(v||0).toLocaleString("en-IN");
@@ -14,7 +15,7 @@ function showReceipt(r){cur=r;$("rcCard").classList.remove("hide");
  <div class="r"><span>প্রাপ্ত হয়েছে</span><b>${esc(r.name)}</b></div>${r.phone?`<div class="r"><span>মোবাইল</span><b>${esc(r.phone)}</b></div>`:""}
  ${r.purpose?`<div class="r"><span>বিবরণ</span><b>${esc(r.purpose)}</b></div>`:""}<div class="r"><span>মাধ্যম</span><b>${esc(r.method)}${r.ref?" • "+esc(r.ref):""}</b></div>
  <div class="amt">${money(r.amount)}</div><div class="r"><span>Verification Code</span><b style="font-size:11px">${esc(r.code)}</b></div>
- <div class="sig"><span>গ্রহীতার স্বাক্ষর</span><span>কোষাধ্যক্ষ / VCAJ</span></div>`;
+ <div class="sig"><span>গ্রহীতার স্বাক্ষর</span><span>কোষাধ্যক্ষ / VCAJ</span></div><img class="stamp" src="${STAMP}" alt="VCAJ Stamp">`;
  $("rcCard").scrollIntoView({behavior:"smooth"})}
 async function load(){
  const s=await getDocs(query(collection(db,"paymentReceipts"),orderBy("createdAtMs","desc")));rows=s.docs.map(d=>d.data());render()}

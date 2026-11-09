@@ -1,4 +1,5 @@
 import {db,auth,collection,doc,getDocs,writeBatch,serverTimestamp} from "./firebase.js";
+import {STAMP} from "./vcaj-stamp.js";
 
 const $ = id => document.getElementById(id);
 let registrations = [];
@@ -346,6 +347,7 @@ tr{page-break-inside:avoid}
   </table></div>
 
   <div class="sign"><div>Team Representative</div><div>Authorized Signature / VCAJ</div></div>
+<div style="text-align:center;height:0;position:relative;top:-100px;pointer-events:none"><img src="${STAMP}" alt="VCAJ Stamp" style="width:112px;opacity:.9;transform:rotate(-9deg);-webkit-print-color-adjust:exact;print-color-adjust:exact"></div>
 
   <div class="foot">
     <span>Computer-generated voucher · issued by ${esc(issuedBy)}</span>
@@ -662,6 +664,7 @@ tr.ok td{background:#dcfce7;color:#166534;font-weight:800}
     <div class="sg">${sigImg(r.sigReceived)}<div class="ln">Received by: ${esc(r.receivedBy || "—")}</div></div>
     <div class="sg">${sigImg(r.sigAuth)}<div class="ln">Authorized Signature / VCAJ</div></div>
   </div>
+  <div style="text-align:center;height:0;position:relative;top:-100px;pointer-events:none"><img src="${STAMP}" alt="VCAJ Stamp" style="width:112px;opacity:.9;transform:rotate(-9deg);-webkit-print-color-adjust:exact;print-color-adjust:exact"></div>
   <div class="thanks">ধন্যবাদ · Thank you for your payment!</div>
   <div class="foot"><span>Computer-generated receipt · issued by ${esc(r.issuedBy || "VCAJ Admin")}</span><span>Code: <b>${esc(r.code)}</b></span></div>
   ${actions}

@@ -1,3 +1,4 @@
+import {STAMP} from "./vcaj-stamp.js";
 import {auth,db,isAdmin,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDocs,setDoc,query,orderBy} from "./firebase.js";
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const money=v=>"₹"+Number(v||0).toLocaleString("en-IN");
@@ -22,7 +23,7 @@ function show(v){cur=v;$("vCard").classList.remove("hide");
  <div class="tot">মোট: ${money(v.total)}</div><div class="words">In words: Rupees ${words(v.total)} Only</div>
  <div class="r" style="margin-top:8px"><span>মাধ্যম</span><b>${esc(v.method)}${v.ref?" • Ref: "+esc(v.ref):""}</b></div>
  <p style="font-size:12px;color:#444;margin:10px 0 0">আমি উপরোক্ত টাকা ${esc(v.payee)} হিসেবে বুঝিয়া পাইলাম।</p>
- <div class="sig"><span>প্রাপকের স্বাক্ষর</span><span>${esc(v.approver||"অনুমোদনকারী")}</span><span>কোষাধ্যক্ষ</span></div>`;
+ <div class="sig"><span>প্রাপকের স্বাক্ষর</span><span>${esc(v.approver||"অনুমোদনকারী")}</span><span>কোষাধ্যক্ষ</span></div><img class="stamp" src="${STAMP}" alt="VCAJ Stamp">`;
  $("vCard").scrollIntoView({behavior:"smooth"})}
 function render(){
  const f=$("fCat").value,q=$("fSearch").value.trim().toLowerCase();
