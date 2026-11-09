@@ -7,6 +7,9 @@
 .stamp{position:absolute;left:50%;bottom:6px;width:118px;margin-left:-59px;opacity:.9;transform:rotate(-9deg);pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.wa{background:#16a34a!important;color:#fff!important}.sms{background:#0d2344!important;color:#fff!important}.hide{display:none!important}.note{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px 12px;border-radius:12px;font-size:13px}
 @media print{body *{visibility:hidden}body.pr-qr #upiQr,body.pr-qr #upiQr *{visibility:visible}body.pr-qr #upiQr{position:absolute;left:0;top:0;width:100%}body:not(.pr-qr) #receipt,body:not(.pr-qr) #receipt *{visibility:visible}#receipt{position:absolute;left:0;top:0;width:100%;border:0;max-width:none}}
+.pad{width:100%;height:120px;border:2px dashed #94a3b8;border-radius:12px;background:#fff;touch-action:none;display:block}.padbar{display:flex;justify-content:space-between;align-items:center;margin-top:4px}.padbar button{padding:5px 10px;font-size:12px}
+.sigs{display:flex;gap:26px;margin-top:22px}.sg{flex:1;text-align:center}.sg img,.sg .sp{display:block;margin:0 auto;height:64px;max-width:100%;object-fit:contain}.sg .sp{height:64px}.sg .ln{border-top:1px solid #555;padding-top:4px;font-size:12px;color:#555}
+.stamp{mix-blend-mode:multiply}
 </style></head>
 <body><header class="topbar"><a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav><a href="index.html">Home</a><a href="admin.html">Admin</a><a href="accounts.html">Accounts</a><a href="receipts.html">Receipts</a><a href="vouchers.html">Vouchers</a></nav></header>
 <main class="container">
@@ -17,7 +20,7 @@
 <section class="card" id="loginBox"><h2>🔐 Admin Login</h2><div class="rc-grid"><input id="em" type="email" placeholder="Admin email" autocomplete="username"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button id="loginBtn">Login</button></div><p id="loginMsg" class="muted"></p></section>
 
 <div id="app" class="hide">
-<section class="card"><h2>➕ নতুন Receipt</h2>
+<section class="card" id="formCard"><h2 id="formTitle">➕ নতুন Receipt</h2>
 <div class="types" id="types"><button data-t="member" class="on">👤 Member চাঁদা</button><button data-t="donation">🤝 অতিথি অনুদান</button><button data-t="sponsor">🏢 Sponsor Payment</button></div>
 <div class="rc-grid">
 <div id="memberPick"><label>Member বাছুন (ঐচ্ছিক)</label><input id="memberSel" list="memberList" placeholder="নাম লিখে খুঁজুন"><datalist id="memberList"></datalist></div>
@@ -29,7 +32,10 @@
 <div><label id="purposeLbl">কিসের জন্য</label><input id="purpose" placeholder="যেমন: মাসিক চাঁদা — নভেম্বর"></div>
 <div><label>Transaction / Ref নম্বর</label><input id="ref" placeholder="ঐচ্ছিক"></div>
 </div>
-<p style="margin-top:12px"><button id="saveBtn">💾 Receipt তৈরি করুন</button> <span id="saveMsg" class="muted"></span></p></section>
+<div class="rc-grid" style="margin-top:14px"><div><label>✍️ গ্রাহক / দাতার স্বাক্ষর</label><canvas id="padPayer" class="pad"></canvas><div class="padbar"><small class="muted">আঙুল দিয়ে সই করুন</small><button type="button" data-clr="padPayer">🧹 মুছুন</button></div></div>
+<div><label>✍️ গ্রহীতার স্বাক্ষর (কোষাধ্যক্ষ)</label><canvas id="padRecv" class="pad"></canvas><div class="padbar"><small class="muted">এই ফোনে মনে থাকবে</small><button type="button" data-clr="padRecv">🧹 মুছুন</button></div></div>
+<div><label>গ্রহীতার নাম</label><input id="recvBy" placeholder="যেমন: কোষাধ্যক্ষের নাম"></div></div>
+<p style="margin-top:12px"><button id="saveBtn">💾 Receipt তৈরি করুন</button> <button id="cancelEdit" type="button" class="hide">✖️ সম্পাদনা বাতিল</button> <span id="saveMsg" class="muted"></span></p></section>
 
 <section class="card"><h2>📲 UPI QR</h2><div class="rc-grid"><div><label>ক্লাবের UPI ID</label><input id="upiId" placeholder="যেমন: vcaj@upi"></div><div><label>টাকা (ঐচ্ছিক, ফাঁকা = প্রাপক বসাবে)</label><input id="upiAmt" type="number" inputmode="numeric"></div></div><p><button id="upiBtn">QR তৈরি করুন</button> <button id="upiPrint" class="hide">🖨️ QR Print</button></p><div id="upiQr" style="text-align:center"></div></section>
 <section class="card hide" id="rcCard"><h2>🧾 Receipt</h2>
@@ -37,11 +43,10 @@
 <div class="actions"><button class="wa" id="waBtn">📲 WhatsApp-এ confirmation</button><button class="sms" id="smsBtn">💬 SMS পাঠান</button><button id="printBtn">🖨️ Print / PDF</button><button id="copyBtn">📋 মেসেজ কপি</button></div>
 <p class="note" style="margin-top:12px">ℹ️ Receipt সেভ হওয়ার পর বাটন চাপলে ওই নম্বরে লেখা মেসেজ তৈরি হয়ে WhatsApp/SMS খুলবে — শুধু "Send" চাপতে হবে। সম্পূর্ণ নিজে থেকে পাঠাতে paid SMS service লাগে, যা আপনার free setup-এ নেই।</p></section>
 
-<section class="card"><h2>📱 UPI QR (টাকা নেওয়ার জন্য)</h2><div class="rc-grid"><div><label>ক্লাবের UPI ID</label><input id="upiId" placeholder="যেমন: vcaj@upi"></div><div><label>টাকা (ঐচ্ছিক)</label><input id="upiAmt" type="number" min="1" inputmode="numeric"></div><div style="align-self:end"><button id="qrBtn" type="button">QR তৈরি করুন</button></div></div><div id="qrOut" style="text-align:center;margin-top:12px"></div><p class="muted" id="qrNote"></p></section>
 <section class="card"><h2>📚 সব Receipt</h2>
 <div class="tiles" id="tiles"></div>
 <div class="rc-grid" style="margin-bottom:10px"><select id="fType"><option value="">সব ধরন</option><option value="member">Member চাঁদা</option><option value="donation">অনুদান</option><option value="sponsor">Sponsor</option></select><input id="fSearch" placeholder="নাম / নম্বর / Receipt No খুঁজুন"><button id="csvBtn">⬇️ CSV Export</button></div>
 <div id="list">লোড হচ্ছে…</div></section>
 </div>
 </main>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script type="module" src="receipts.js"></script><script src="vcaj-enhance.js" defer></script></body></html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script type="module" src="receipts.js"></script><script src="vcaj-enhance.js" defer></script></body></html>

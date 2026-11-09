@@ -38,12 +38,18 @@ $("addPlayer").onclick=async()=>{
 };
 $("editPlayerSelect").onchange=()=>{
  const p=players.find(x=>x.id===$("editPlayerSelect").value);
- $("editPlayerName").value=p?.name||"";
+ $("editPlayerName").value=p?.name||"";$("editPlayerTeam").value=p?.teamId||"";
 };
 $("editPlayer").onclick=async()=>{
  const id=$("editPlayerSelect").value,name=$("editPlayerName").value.trim();
  if(!id||!name){$("editPlayerMsg").textContent="খেলোয়াড় ও নতুন নাম দিন।";return;}
- await updateDoc(doc(db,"players",id),{name,updatedAt:serverTimestamp()});
+ const pl=players.find(x=>x.id===id),nt=$("editPlayerTeam").value,tm=teams.find(x=>x.id===nt),upd={name,updatedAt:serverTimestamp()};if(tm&&pl&&pl.teamId!==nt){upd.teamId=nt;upd.teamName=tm.name;const ot=teams.find(x=>x.id===pl.teamId);if(ot)await setDoc(doc(db,"teams",ot.id),{playersCount:Math.max(0,(ot.playersCount||1)-1)},{merge:true});await setDoc(doc(db,"teams",nt),{playersCount:(tm.playersCount||0)+1},{merge:true})}await updateDoc(doc(db,"players",id),upd);
  $("editPlayerMsg").textContent="নাম আপডেট হয়েছে।";await load();$("editPlayerSelect").value=id;$("editPlayerName").value=name;
 };
+
+function fillT(){const o='<option value="">— Team —</option>'+teams.map(t=>`<option value="${t.id}">${String(t.name||"").replace(/[<>&"]/g,"")}</option>`).join(""),a=$("editTeamSelect").value,b=$("editPlayerTeam").value;$("editTeamSelect").innerHTML=o;$("editPlayerTeam").innerHTML=o;$("editTeamSelect").value=a;$("editPlayerTeam").value=b}
+const _ld=load;load=async function(){await _ld();fillT()};
+$("editTeamSelect").onchange=()=>{const t=teams.find(x=>x.id===$("editTeamSelect").value);$("editTeamName").value=t?.name||"";$("editTeamShort").value=t?.shortName||""};
+$("editTeam").onclick=async()=>{const id=$("editTeamSelect").value,name=$("editTeamName").value.trim(),shortName=$("editTeamShort").value.trim();if(!id||!name){$("editTeamMsg").textContent="Team বাছুন ও নাম দিন";return}
+ try{await updateDoc(doc(db,"teams",id),{name,shortName,updatedAt:serverTimestamp()});for(const p of players.filter(x=>x.teamId===id))await updateDoc(doc(db,"players",p.id),{teamName:name});$("editTeamMsg").textContent="✅ Team আপডেট হয়েছে (খেলোয়াড়দের team নামও বদলেছে)";await load();$("editTeamSelect").value=id}catch(e){$("editTeamMsg").textContent="❌ "+e.message}};
 await load();

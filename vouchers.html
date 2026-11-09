@@ -9,13 +9,16 @@
 @media print{body *{visibility:hidden}#voucher,#voucher *{visibility:visible}#voucher{position:absolute;left:0;top:0;width:100%;max-width:none;border:0}}
 .sr{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}.sr.tt{font-size:17px;border-top:2px solid var(--orange);margin-top:4px}.sumbox{margin:12px 0 18px}
 @media print{body.pr-sum #voucher,body.pr-sum #voucher *{visibility:hidden}body.pr-sum .sumbox,body.pr-sum .sumbox *{visibility:visible}body.pr-sum .sumbox{position:absolute;left:0;top:0;width:100%}body.pr-sum #printSum{display:none}}
+.pad{width:100%;height:120px;border:2px dashed #94a3b8;border-radius:12px;background:#fff;touch-action:none;display:block}.padbar{display:flex;justify-content:space-between;align-items:center;margin-top:4px}.padbar button{padding:5px 10px;font-size:12px}
+.sigs{display:flex;gap:26px;margin-top:26px}.sg{flex:1;text-align:center}.sg img,.sg .sp{display:block;margin:0 auto;height:64px;max-width:100%;object-fit:contain}.sg .ln{border-top:1px solid #555;padding-top:4px;font-size:12px;color:#555}
+.stamp{mix-blend-mode:multiply}
 </style></head>
 <body><header class="topbar"><a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav><a href="index.html">Home</a><a href="admin.html">Admin</a><a href="accounts.html">Accounts</a><a href="receipts.html">Receipts</a><a href="vouchers.html">Vouchers</a></nav></header>
 <main class="container">
 <section class="hero small"><div><p class="eyebrow">ACCOUNTS</p><h1>📑 Bill Voucher &amp; Payment Receipt</h1><p>Tournament-এর খরচ — আম্পায়ার, মাঠ, ট্রফি, খাবার ইত্যাদি</p></div></section>
 <section class="card" id="loginBox"><h2>🔐 Admin Login</h2><div class="rc-grid"><input id="em" type="email" placeholder="Admin email" autocomplete="username"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button id="loginBtn">Login</button></div><p id="loginMsg" class="muted"></p></section>
 <div id="app" class="hide">
-<section class="card"><h2>➕ নতুন Voucher</h2>
+<section class="card" id="formCard"><h2 id="formTitle">➕ নতুন Voucher</h2>
 <div class="rc-grid">
 <div><label>খরচের ধরন *</label><select id="cat"><option>আম্পায়ার / স্কোরার সম্মানী</option><option>মাঠ / গ্রাউন্ড ভাড়া ও প্রস্তুতি</option><option>ট্রফি / পুরস্কার</option><option>খাবার / জলখাবার</option><option>সাউন্ড / লাইট / মাইক</option><option>বল / ক্রিকেট সরঞ্জাম</option><option>ব্যানার / প্রচার / প্রিন্টিং</option><option>যাতায়াত / পরিবহন</option><option>চিকিৎসা / প্রাথমিক চিকিৎসা</option><option>অন্যান্য</option></select></div>
 <div><label>প্রাপক (যাকে টাকা দেওয়া হলো) *</label><input id="payee" placeholder="নাম / দোকান / সংস্থা"></div>
@@ -28,7 +31,9 @@
 <h3 style="margin:14px 0 6px">বিবরণ (item)</h3>
 <div id="items"></div><button type="button" id="addItem">➕ আরেকটা item</button>
 <p style="margin-top:12px"><b>মোট: <span id="grand">₹0</span></b></p>
-<p><button id="saveBtn">💾 Voucher তৈরি করুন</button> <span id="saveMsg" class="muted"></span></p></section>
+<div class="rc-grid" style="margin-top:14px"><div><label>✍️ প্রাপকের স্বাক্ষর</label><canvas id="padPayee" class="pad"></canvas><div class="padbar"><small class="muted">আঙুল দিয়ে সই করুন</small><button type="button" data-clr="padPayee">🧹 মুছুন</button></div></div>
+<div><label>✍️ অনুমোদনকারী / কোষাধ্যক্ষের স্বাক্ষর</label><canvas id="padAppr" class="pad"></canvas><div class="padbar"><small class="muted">এই ফোনে মনে থাকবে</small><button type="button" data-clr="padAppr">🧹 মুছুন</button></div></div></div>
+<p style="margin-top:12px"><button id="saveBtn">💾 Voucher তৈরি করুন</button> <button id="cancelEdit" type="button" class="hide">✖️ সম্পাদনা বাতিল</button> <span id="saveMsg" class="muted"></span></p></section>
 
 <section class="card hide" id="vCard"><h2>📑 Voucher</h2><div id="voucher"></div>
 <div class="actions"><button id="printBtn">🖨️ Print / PDF</button><button class="wa" id="waBtn">📲 প্রাপককে WhatsApp</button><button id="copyBtn">📋 মেসেজ কপি</button></div>
