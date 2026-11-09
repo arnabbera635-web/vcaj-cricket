@@ -1,4 +1,5 @@
 import {db,collection,doc,getDoc,onSnapshot,getDocs} from './firebase.js';
+import {snapOnce} from './vcaj-cache.js';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),n=v=>Number(v)||0;
 let matches=[],players=[];
 function teamNames(){return [...new Set(matches.flatMap(m=>[m.team1Name,m.team2Name]).filter(Boolean))].sort()}
@@ -23,6 +24,6 @@ function cmp(){const A=players.find(p=>p.id===$('pa').value),B=players.find(p=>p
  const f=[['totalRuns','রান'],['totalWickets','উইকেট'],['fieldingDismissals','ফিল্ডিং আউট'],['totalFours','চার'],['totalSixes','ছক্কা']];
  $('cmp').innerHTML=f.map(([k,l])=>{const x=n(A[k]),y=n(B[k]);return `<div class="cmp row"><span class="${x>y?'w':''}">${x}</span><small>${l}</small><span class="${y>x?'w':''}">${y}</span></div>`}).join('')}
 $('ha').onchange=h2h;$('hb').onchange=h2h;$('pa').onchange=cmp;$('pb').onchange=cmp;
-onSnapshot(collection(db,'matches'),s=>{matches=s.docs.map(d=>({id:d.id,...d.data()}));render();fillH()},()=>{$('teams').textContent='ডেটা লোড হয়নি'});
-onSnapshot(collection(db,'players'),s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));render();fillCompare()},()=>{});
+snapOnce(db,getDocs,collection,'matches',s=>{matches=s.docs.map(d=>({id:d.id,...d.data()}));render();fillH()},()=>{$('teams').textContent='ডেটা লোড হয়নি'});
+snapOnce(db,getDocs,collection,'players',s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));render();fillCompare()},()=>{});
 getDoc(doc(db,'tournaments','2026')).then(s=>{const id=s.exists()&&s.data().championTeamId;if(!id)return;getDocs(collection(db,'teams')).then(t=>{const x=t.docs.find(d=>d.id===id);if(x)$('champ').innerHTML=`<div class="champ">🏆 চ্যাম্পিয়ন: ${esc(x.data().name)}</div>`})}).catch(()=>{});

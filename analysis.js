@@ -1,4 +1,5 @@
 import {db,collection,getDocs,onSnapshot} from "./firebase.js";
+import {snapOnce} from "./vcaj-cache.js";
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let M=[],ev=[],inn=1,cur="";
 function runsOf(e){const t=e.type;if(t==="wide"||t==="noBall")return 1+(Number(e.batterRuns)||0);if(t==="bye"||t==="legBye"){const m=String(e.text||"").match(/(\d+)\s*$/);return m?Number(m[1]):0}return Number(e.batterRuns)||0}
@@ -36,6 +37,6 @@ let unsub=null;
 function pick(id){cur=id;inn=1;ev=[];if(unsub){unsub();unsub=null}if(!id){draw();return}
  unsub=onSnapshot(collection(db,"matches",id,"events"),s=>{ev=s.docs.map(d=>d.data());draw()},()=>{$("out").textContent="ডেটা লোড হয়নি"})}
 $("ms").onchange=()=>pick($("ms").value);
-onSnapshot(collection(db,"matches"),s=>{M=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.updatedAt?.seconds||"").localeCompare(String(a.updatedAt?.seconds||"")));
+snapOnce(db,getDocs,collection,"matches",s=>{M=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.updatedAt?.seconds||"").localeCompare(String(a.updatedAt?.seconds||"")));
  const v=$("ms").value;$("ms").innerHTML='<option value="">— ম্যাচ বাছুন —</option>'+M.map(m=>`<option value="${esc(m.id)}">${esc((m.stageName||"Match")+": "+(m.team1Name||"")+" vs "+(m.team2Name||""))}${m.status==="LIVE"?" 🔴":""}</option>`).join("");$("ms").value=v;
  const q=new URLSearchParams(location.search).get("match");if(q&&!cur&&M.find(m=>m.id===q)){$("ms").value=q;pick(q)}},()=>{});

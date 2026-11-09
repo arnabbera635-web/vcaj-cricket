@@ -57,6 +57,10 @@ ready(function(){
  // optional Wagon Wheel add-on (does nothing if its files are not uploaded)
  if(page==="scorer.html"){var ws=d.createElement("script");ws.src="wagon-scorer.js";ws.defer=true;ws.onerror=function(){};d.body.appendChild(ws)}
  if(page==="analysis.html"||page==="stats.html"){fetch("wagon.html",{method:"HEAD"}).then(function(r){if(r.ok){var m=$("main")||d.body;var a=el("a",{href:"wagon.html"},"<button type=\"button\" style=\"margin:10px 0\">🎯 Wagon Wheel দেখুন</button>");m.insertBefore(a,m.children[1]||null)}}).catch(function(){})}
+ // optional pages: Notices / Gallery (links and home banner appear only if the files are uploaded)
+ var nv=bar&&$("nav",bar);
+ [["notices.html","📢 Notices"],["gallery.html","📸 Gallery"]].forEach(function(p){if(!nv||isAdminPage)return;fetch(p[0],{method:"HEAD"}).then(function(r){if(r.ok&&!nv.querySelector('a[href="'+p[0]+'"]'))nv.appendChild(el("a",{href:p[0]},p[1]))}).catch(function(){})});
+ if(page==="index.html"){fetch("notices.html",{method:"HEAD"}).then(function(r){if(!r.ok)return;return Promise.all([import("./firebase.js"),import("./vcaj-cache.js")]).then(function(m){var f=m[0];return m[1].getCached("vc_notices_top",function(){return f.getDocs(f.query(f.collection(f.db,"notices"),f.orderBy("createdAtMs","desc"),f.limit(3))).then(function(s){return s.docs.map(function(x){return x.data()})})},300000)}).then(function(list){if(!list||!list.length)return;list.sort(function(a,b){return(b.pinned?1:0)-(a.pinned?1:0)});var n=list[0],b=el("a",{href:"notices.html","class":"vc-notice"});b.textContent="📢 "+n.title+"  →";var mc=$("main")||$(".container");if(mc)mc.insertBefore(b,mc.firstChild)})}).catch(function(){})}
  // service worker
  if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
 });
