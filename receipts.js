@@ -1,6 +1,7 @@
 import {STAMP} from "./vcaj-stamp.js";
+import {resolveRole,loginAny,roleMsg,canWrite,newLogId,addLog,showRole} from "./vcaj-office.js";
 import {makePad,safeSig} from "./vcaj-sign.js";
-import {auth,db,isAdmin,updateDoc,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDoc,getDocs,setDoc,query,orderBy} from "./firebase.js";
+import {auth,db,isAdmin,updateDoc,writeBatch,signOut,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDoc,getDocs,setDoc,query,orderBy} from "./firebase.js";
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const money=v=>"₹"+Number(v||0).toLocaleString("en-IN");
 const T={member:{bn:"Member চাঁদা",c:"M",p:"মাসিক চাঁদা"},donation:{bn:"অতিথি অনুদান",c:"D",p:"অনুদান"},sponsor:{bn:"Sponsor Payment",c:"S",p:"Sponsorship"}};
@@ -9,6 +10,7 @@ const padP=makePad($("padPayer")),padR=makePad($("padRecv"));
 const sigImg=v=>safeSig(v)?`<img alt="signature" src="${safeSig(v)}">`:`<span class="sp"></span>`;
 document.querySelectorAll("[data-clr]").forEach(b=>b.onclick=()=>(b.dataset.clr==="padPayer"?padP:padR).clear());
 try{padR.load(localStorage.getItem("vcRecvSig")||"");$("recvBy").value=localStorage.getItem("vcRecvBy")||""}catch{}
+let role=null,user=null;const who=()=>`${role.name||""} (${role.label})`;
 const base=location.origin+location.pathname;
 const today=()=>new Date().toISOString().slice(0,10);
 const fmtDate=d=>{try{return new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}catch{return d}};
@@ -31,7 +33,7 @@ function render(){
  $("tiles").innerHTML=[["মোট",sum("member")+sum("donation")+sum("sponsor")],["Member চাঁদা",sum("member")],["অনুদান",sum("donation")],["Sponsor",sum("sponsor")]].map(x=>`<div class="tile"><b>${money(x[1])}</b><span>${x[0]}</span></div>`).join("");
  $("list").innerHTML=list.length?`<div class="table-wrap"><table><tr><th>Receipt</th><th>তারিখ</th><th>নাম</th><th>ধরন</th><th>টাকা</th><th></th></tr>${list.map(r=>`<tr><td>${esc(r.receiptNo)}</td><td>${esc(fmtDate(r.date))}</td><td>${esc(r.name)}</td><td>${esc(T[r.type]?.bn)}</td><td><b>${money(r.amount)}</b></td><td><button data-c="${esc(r.code)}">দেখুন / পাঠান</button> <button data-e="${esc(r.code)}">✏️ সম্পাদনা</button></td></tr>`).join("")}</table></div>`:"<p class='muted'>কোনো receipt নেই।</p>";
  $("list").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>showReceipt(rows.find(r=>r.code===b.dataset.c)));
- $("list").querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>startEdit(b.dataset.e))}
+ $("list").querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>startEdit(b.dataset.e));if(role&&!canWrite(role))$("list").querySelectorAll("[data-e]").forEach(b=>b.remove())}
 function setType(t){type=t;document.querySelectorAll("#types button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
  $("memberPick").classList.toggle("hide",t!=="member");$("nameLbl").textContent=t==="sponsor"?"Sponsor / সংস্থার নাম *":"নাম *";$("purpose").placeholder=T[t].p}
 document.querySelectorAll("#types button").forEach(b=>b.onclick=()=>setType(b.dataset.t));
@@ -54,34 +56,37 @@ $("saveBtn").onclick=async()=>{
  const b=$("saveBtn");b.disabled=true;$("saveMsg").textContent="সেভ হচ্ছে…";
  try{
   const f={name,phone:$("phone").value.trim(),amount,method:$("method").value,date:$("date").value||today(),purpose:$("purpose").value.trim(),ref:$("ref").value.trim(),receivedBy:$("recvBy").value.trim(),sigPayer:padP.data(),sigReceiver:padR.data()};
-  let r;const wasEdit=!!editing;
-  if(wasEdit){const old=rows.find(x=>x.code===editing);r={...old,...f,editedAtMs:Date.now(),editedBy:auth.currentUser?.email||"",editCount:(old.editCount||0)+1};
-   await setDoc(doc(db,"paymentReceipts",editing),r);
-   await setDoc(doc(db,"receiptChecks",editing),{receiptNo:r.receiptNo,type:r.type,name:r.name,amount:r.amount,date:r.date,method:r.method,purpose:r.purpose});
+  let r,before=null;const wasEdit=!!editing,lid=newLogId(),wb=writeBatch(db);
+  if(wasEdit){const old=rows.find(x=>x.code===editing);before={amount:old.amount,name:old.name,date:old.date,method:old.method,purpose:old.purpose,ref:old.ref};r={...old,...f,editedAtMs:Date.now(),editedBy:who(),editedByUid:user.uid,editCount:(old.editCount||0)+1,logId:lid};
+   wb.set(doc(db,"paymentReceipts",editing),r);
+   wb.set(doc(db,"receiptChecks",editing),{receiptNo:r.receiptNo,type:r.type,name:r.name,amount:r.amount,date:r.date,method:r.method,purpose:r.purpose});
    rows=rows.map(x=>x.code===editing?r:x)}
   else{const now=Date.now(),yy=String(new Date().getFullYear()).slice(2),n=rows.filter(x=>x.type===type).length+1;
    const code="RC"+[...crypto.getRandomValues(new Uint8Array(12))].map(x=>x.toString(16).padStart(2,"0")).join("").toUpperCase();
-   r={code,type,...f,receiptNo:`VCAJ/${T[type].c}/${yy}/${String(n).padStart(4,"0")}`,memberId:(type==="member"&&selMember&&selMember.name===name)?selMember.id:"",createdAtMs:now,createdBy:auth.currentUser?.email||""};
-   await setDoc(doc(db,"paymentReceipts",code),r);
-   await setDoc(doc(db,"receiptChecks",code),{receiptNo:r.receiptNo,type,name,amount,date:r.date,method:r.method,purpose:r.purpose});
+   r={code,type,...f,receiptNo:`VCAJ/${T[type].c}/${yy}/${String(n).padStart(4,"0")}`,memberId:(type==="member"&&selMember&&selMember.name===name)?selMember.id:"",createdAtMs:now,createdBy:who(),createdByUid:user.uid,logId:lid};
+   wb.set(doc(db,"paymentReceipts",code),r);
+   wb.set(doc(db,"receiptChecks",code),{receiptNo:r.receiptNo,type,name,amount,date:r.date,method:r.method,purpose:r.purpose});
    rows.unshift(r)}
+  addLog(wb,role,user,{id:lid,action:wasEdit?"receipt.edit":"receipt.create",col:"paymentReceipts",docId:r.code,summary:`${r.receiptNo} • ${T[r.type].bn} • ${r.name} • ${money(r.amount)}`,before:wasEdit?before:null});await wb.commit();
   await syncMemberFee(r);render();showReceipt(r);
   try{if(!padR.isEmpty()){localStorage.setItem("vcRecvSig",padR.data());localStorage.setItem("vcRecvBy",f.receivedBy)}}catch{}
   resetForm();$("saveMsg").textContent=wasEdit?"✅ পরিবর্তন সেভ হয়েছে":"✅ Receipt তৈরি হয়েছে";
- }catch(e){$("saveMsg").textContent="❌ সেভ হয়নি: "+(e.code==="permission-denied"?"firestore.rules-এ নতুন নিয়ম publish করুন":e.message)}
+ }catch(e){load().catch(()=>{});$("saveMsg").textContent="❌ সেভ হয়নি: "+(e.code==="permission-denied"?"firestore.rules-এ নতুন নিয়ম publish করুন":e.message)}
  b.disabled=false};
 $("waBtn").onclick=()=>{if(!cur)return;const p=phone91(cur.phone);window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg(cur))}`,"_blank")};
 $("smsBtn").onclick=()=>{if(!cur)return;const p=phone91(cur.phone);location.href=`sms:${p?"+"+p:""}?body=${encodeURIComponent(msg(cur))}`};
 $("printBtn").onclick=()=>print();
 $("copyBtn").onclick=()=>{if(cur)navigator.clipboard?.writeText(msg(cur)).then(()=>window.vcToast?.("📋 কপি হয়েছে"))};
 $("csvBtn").onclick=()=>{const h=["Receipt No","Date","Type","Name","Phone","Amount","Method","Purpose","Ref"],c=[h,...rows.map(r=>[r.receiptNo,r.date,T[r.type]?.bn,r.name,r.phone,r.amount,r.method,r.purpose,r.ref])].map(a=>a.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+c],{type:"text/csv"}));a.download="VCAJ-receipts.csv";a.click()};
-$("loginBtn").onclick=async()=>{try{await signInWithEmailAndPassword(auth,$("em").value,$("pw").value)}catch(e){$("loginMsg").textContent="Login হয়নি: "+e.message}};
+$("loginBtn").onclick=async()=>{try{await loginAny($("em").value,$("pw").value)}catch(e){$("loginMsg").textContent="Login হয়নি: "+e.message}};
 $("date").value=today();
 // public verification
 const v=new URLSearchParams(location.search).get("v");
 if(v){$("verifyBox").classList.remove("hide");$("loginBox").classList.add("hide");
  getDoc(doc(db,"receiptChecks",v.trim())).then(s=>{$("verifyOut").innerHTML=s.exists()?(x=>`<p style="color:#16a34a;font-weight:800">✓ এটি VCAJ-এর অফিসিয়াল Receipt</p><p><b>${esc(x.receiptNo)}</b><br>${esc(x.name)} — <b>${money(x.amount)}</b><br>${esc(T[x.type]?.bn)} • ${esc(fmtDate(x.date))} • ${esc(x.method)}</p>`)(s.data()):'<p style="color:#d64545;font-weight:800">✗ এই কোডের কোনো Receipt পাওয়া যায়নি।</p>'}).catch(()=>{$("verifyOut").textContent="যাচাই করা যায়নি, পরে চেষ্টা করুন।"})}
-else onAuthStateChanged(auth,async u=>{const ok=isAdmin(u);$("loginBox").classList.toggle("hide",ok);$("app").classList.toggle("hide",!ok);
+else onAuthStateChanged(auth,async u=>{user=u;role=u?await resolveRole(u):null;if(u&&role&&role.kind==="none"){$("loginMsg").textContent=roleMsg(role);await signOut(auth);return}
+ const ok=!!role;$("loginBox").classList.toggle("hide",ok);$("app").classList.toggle("hide",!ok);
+ if(ok){showRole(role,$("roleBar"));const w=canWrite(role);$("formCard").classList.toggle("hide",!w);const uc=$("upiId").closest(".card");if(uc)uc.classList.toggle("hide",!w)}
  if(ok){try{const s=await getDocs(collection(db,"members"));members=s.docs.map(d=>{const x=d.data();return{id:d.id,fee:x.fee||"",season:x.season||"",name:x.name||"",phone:x.phone||"",label:`${x.name||""}${x.phone?" • "+x.phone:""}`}}).filter(m=>m.name);$("memberList").innerHTML=members.map(m=>`<option value="${esc(m.label)}">`).join("");const mid=new URLSearchParams(location.search).get("member");if(mid)pick(members.find(m=>m.id===mid))}catch{}
   try{await load()}catch(e){$("list").innerHTML="<p class='muted'>Receipt লোড হয়নি — firestore.rules আপডেট করুন।</p>"}}});
 
