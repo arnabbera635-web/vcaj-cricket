@@ -60,3 +60,5 @@ html[data-theme=dark] .vc-footer button{background:#111d33;color:#e8eef9}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .vc-notice{display:block;margin:0 0 14px;padding:12px 16px;border-radius:14px;background:linear-gradient(135deg,#ff8a1f,#ffb347);color:#07152d;font-weight:800;text-decoration:none;box-shadow:0 8px 20px rgba(255,138,31,.25)}
+
+.vc-spons{display:flex;align-items:center;margin:0 0 14px;border-radius:14px;overflow:hidden;background:#0d2344;color:#fff;text-decoration:none;box-shadow:0 8px 20px rgba(7,21,45,.18)}.vc-spons-l{padding:10px 14px;background:#ff8a1f;color:#07152d;font-weight:800;white-space:nowrap}.vc-spons-w{overflow:hidden;flex:1}.vc-spons-t{display:inline-block;white-space:nowrap;padding:10px 0;animation:vc-mq 70s linear infinite}.vc-spons:hover .vc-spons-t{animation-play-state:paused}@keyframes vc-mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
