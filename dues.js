@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c
 const money=v=>"₹"+Number(v||0).toLocaleString("en-IN"),fee=m=>parseInt(String(m.fee||"").replace(/[^\d]/g,""),10)||0;
 let M=[];
 const p91=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d=d.slice(1);return d.length===10?"91"+d:(d.length>=11?d:"")};
-const msg=m=>`🏏 VCAJ — চাঁদা অনুস্মারক\n\nপ্রিয় ${m.name},\nআপনার ${m.season||2026} সালের সদস্য চাঁদা ${fee(m)?money(fee(m)):""} ${m.feeStatus==="আংশিক"?"আংশিক বাকি আছে":"বাকি আছে"}।\nঅনুগ্রহ করে সুবিধামতো পরিশোধ করে দিন।\n\nধন্যবাদ 🙏\nVivekananda Cricket Association of Jeliakhali`;
+const msg=m=>`🏏 মন্ডল এন্ড মন্ডল ক্রিকেট টুর্নামেন্ট — চাঁদা অনুস্মারক\n\nপ্রিয় ${m.name},\nআপনার ${m.season||2026} সালের সদস্য চাঁদা ${fee(m)?money(fee(m)):""} ${m.feeStatus==="আংশিক"?"আংশিক বাকি আছে":" ধার্য করা হয়েছে"}।\n\nধন্যবাদন্তে 🙏\nVivekananda Cricket Association of Jeliakhali`;
 function render(){const f=$("fs").value,q=$("q").value.trim().toLowerCase();
  const all=M,due=M.filter(m=>m.feeStatus!=="পরিশোধিত");
  const list=M.filter(m=>(f==="all"||(f==="due"?m.feeStatus!=="পরিশোধিত":m.feeStatus===f))&&(!q||(m.name||"").toLowerCase().includes(q)));
