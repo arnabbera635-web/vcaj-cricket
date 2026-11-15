@@ -9,7 +9,7 @@ try{favs=new Set(JSON.parse(localStorage.getItem("vcajFavSp")||"[]"))}catch(e){}
 const saveFavs=()=>{try{localStorage.setItem("vcajFavSp",JSON.stringify([...favs]))}catch(e){}};
 const cinfo=s=>CATS[s.cat]||CATS.other;
 const toast=m=>window.vcToast?window.vcToast(m):alert(m);
-const greet="নমস্কার, VCAJ ক্রিকেট টুর্নামেন্ট-এর Sponsor তালিকা থেকে আপনার নম্বর পেয়ে যোগাযোগ করছি।";
+const greet="নমস্কার, মন্ডল এন্ড মন্ডল ক্রিকেট টুর্নামেন্ট-এর Sponsor তালিকা থেকে আপনার নম্বর পেয়ে যোগাযোগ করছি।";
 const shareText=s=>`🤝 ${s.name}${s.owner?"\n👤 "+s.owner:""}${(s.phones||[]).length?"\n📞 "+s.phones.map(fmtPhone).join(" / "):""}${s.place?"\n📍 "+s.place:""}${s.desc?"\n"+s.desc:""}\n\n— VCAJ ক্রিকেট টুর্নামেন্টের Sponsor\n${location.origin}${location.pathname}`;
 function visible(){
  const k=q.trim().toLowerCase();
