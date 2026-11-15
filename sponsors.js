@@ -1,6 +1,6 @@
 import {auth,db,isAdmin,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDocs,setDoc,deleteDoc} from "./firebase.js";
 import {getCached,clearCached} from "./vcaj-cache.js";
-import {CATS,SPONSORS,PRIZES,tel10,fmtPhone,mergeSponsors,vcard} from "./sponsors-data.js";
+import {CATS,SPONSORS,tel10,fmtPhone,mergeSponsors,vcard} from "./sponsors-data.js";
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const safe=u=>/^https:\/\//i.test(u||"")?u:"";
 const STATIC=new Set(SPONSORS.map(s=>s.id));
@@ -26,7 +26,7 @@ function chips(){
  $("chips").innerHTML=[["all","সব","✨"],...Object.entries(CATS).filter(([k])=>counts[k]).map(([k,v])=>[k,v.n,v.e])].map(([k,n,e])=>`<button class="chip ${cat===k?"on":""}" data-c="${k}">${e} ${esc(n)} (${counts[k]||0})</button>`).join("")}
 function stats(){
  const phones=list.reduce((a,s)=>a+(s.phones||[]).filter(p=>tel10(p)).length,0),cats=new Set(list.map(s=>s.cat)).size;
- const items=[[list.length,"সহযোগী প্রতিষ্ঠান"],[PRIZES.length,"বিশেষ পুরস্কার"],[cats,"ক্ষেত্র"],[phones,"যোগাযোগ নম্বর"]];
+ const items=[[list.length,"সহযোগী প্রতিষ্ঠান"],[cats,"ক্ষেত্র"],[phones,"যোগাযোগ নম্বর"]];
  $("stats").innerHTML=items.map(([n,l],i)=>`<div class="stat"><b data-n="${n}">0</b><span>${l}</span></div>`).join("");
  const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
  $("stats").querySelectorAll("b").forEach(b=>{const n=+b.dataset.n;if(reduce||!n){b.textContent=n;return}let t0;const step=t=>{t0=t0||t;const p=Math.min(1,(t-t0)/900);b.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)})}
@@ -34,14 +34,10 @@ function spotlight(){
  if(!list.length){$("spot").innerHTML="";return}
  const day=Math.floor(Date.now()/864e5),s=list[day%list.length],c=cinfo(s);
  $("spot").innerHTML=`<div class="spot"><span class="lb">✨ আজকের Spotlight</span><div class="ic" style="background:linear-gradient(135deg,${c.c[0]},${c.c[1]})">${c.e}</div><div><h2>${esc(s.name)}</h2>${s.owner?`<div class="own">👤 ${esc(s.owner)}</div>`:""}<div class="ds">${esc(s.desc||s.note||"")}</div><div class="acts"><button class="b" data-goto="${esc(s.id)}">👇 বিস্তারিত দেখুন</button></div></div></div>`}
-function awards(){
- const k=q.trim().toLowerCase(),L=PRIZES.filter(p=>!k||[p.title,p.memorial,p.by,p.no].join(" ").toLowerCase().includes(k));
- $("aw").innerHTML=L.length?L.map(p=>{const sp=p.sponsorId&&list.find(s=>s.id===p.sponsorId);return`<div class="pz"><span class="no">পুরস্কার নং ${p.no}</span><div class="ic">${p.icon}</div><h4>${esc(p.title)}</h4>${p.memorial?`<div class="mm">🕯️ ${esc(p.memorial)}</div>`:""}<div class="by">সৌজন্যে: ${sp?`<a data-goto="${esc(sp.id)}">${esc(p.by)}</a>`:esc(p.by)}</div></div>`}).join(""):'<div class="empty">কোনো পুরস্কার মেলেনি</div>'}
 function render(){
  list=mergeSponsors(SPONSORS,docs);
  stats();spotlight();chips();
  const v=visible();$("grid").innerHTML=v.length?v.map(card).join(""):`<div class="empty" style="grid-column:1/-1">${favOnly?"কোনো পছন্দের Sponsor নেই — কার্ডের 🤍 চাপুন":"কিছু মেলেনি"}</div>`;
- awards();
  $("tickT").textContent=(list.map(s=>s.name).join("  •  ")+"  •  ").repeat(2);
  hidden()}
 function hidden(){
