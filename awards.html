@@ -3,10 +3,13 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VCAJ — Awards Management</title>
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="vcaj-theme.css">
+  <meta name="theme-color" content="#07152d"><link rel="stylesheet" href="admin.css">
 <style>
 .aw-wrap{max-width:1180px;margin:auto;padding:12px}.aw-hero{background:linear-gradient(135deg,#173b63,#0b294a);color:#fff;border-radius:18px;padding:18px;margin:12px 0}.aw-hero h1{margin:4px 0 5px;font-size:28px}.aw-hero p{margin:0;opacity:.9;font-size:13px}.aw-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.aw-pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);padding:7px 10px;border-radius:20px;font-size:12px}.aw-card{background:#fff;border:1px solid #dbe3ee;border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 5px 20px rgba(15,23,42,.04)}.aw-card h2{margin:0 0 5px;font-size:18px}.aw-sub{color:#64748b;font-size:12px;margin-bottom:12px}.aw-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.aw-grid label{font-size:12px;font-weight:700;color:#334155}.aw-grid input,.aw-grid select,.aw-grid textarea{width:100%;box-sizing:border-box;margin-top:5px;padding:10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}.aw-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}.aw-btn{border:0;border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer;background:#122d4c;color:#fff}.aw-btn.gold{background:#e9ad27;color:#172033}.aw-btn.gray{background:#64748b}.aw-btn:disabled{opacity:.55}.aw-status{font-size:12px;color:#64748b}.aw-error{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;padding:9px;border-radius:9px}.aw-ok{color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;padding:9px;border-radius:9px}.aw-table{overflow:auto}.aw-table table{width:100%;border-collapse:collapse;min-width:900px}.aw-table th,.aw-table td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:12px}.aw-table th{background:#f8fafc}.aw-rank{display:grid;gap:8px;margin-top:12px}.aw-candidate{border:1px solid #dbe3ee;border-radius:12px;padding:11px}.aw-candidate.top{border:2px solid #2563eb;background:#f8fbff}.aw-candidate b{font-size:15px}.aw-meta{color:#64748b;font-size:12px;margin:3px 0 8px}.aw-tag{display:inline-block;padding:3px 7px;border-radius:20px;background:#eff6ff;color:#1d4ed8;font-size:11px;margin-right:4px}.aw-record{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:9px}.aw-stat{background:#f8fafc;border-radius:8px;padding:7px}.aw-stat b{display:block;font-size:15px}.aw-stat small{color:#64748b}.aw-note{font-size:11px;color:#64748b;margin-top:8px}.hidden{display:none!important}@media(max-width:700px){.aw-grid{grid-template-columns:1fr}.aw-record{grid-template-columns:repeat(3,1fr)}.aw-hero h1{font-size:23px}}
 </style>
+  <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body class="auth-pending">
 <header class="topbar"><a class="brand" href="admin.html">← ADMIN PANEL</a></header>
@@ -61,5 +64,7 @@
 
 </div>
 </main>
-<script type="module" src="awards-smart-compatible.js?v=1"></script>
+<script type="module" src="awards-smart-compatible.js?v=prizes1"></script>
+<script type="module" src="awards-prizes.js?v=prizes1"></script>
+  <script src="vcaj-enhance.js" defer></script>
 </body></html>

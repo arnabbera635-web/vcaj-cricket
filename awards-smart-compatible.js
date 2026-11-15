@@ -121,10 +121,11 @@ async function scanMatch(m){
  return {match:m,events:evs,players:by};
 }
 
-async function verifySeason(){
+async function verifySeason(force){
  const season=String($("awardSeason").value||2026);
- verified={records:{},matches:{},scannedMatches:0,scannedEvents:0};
  const done=matches.filter(m=>completedMatch(m,season));
+ if(!force&&verified.season===season&&verified.n===done.length&&Date.now()-verified.at<300000){renderStats();return}
+ verified={records:{},matches:{},scannedMatches:0,scannedEvents:0,season,n:done.length,at:0};
  for(const m of done){
    const x=await scanMatch(m);
    verified.matches[m.id]=x;
@@ -136,6 +137,7 @@ async function verifySeason(){
      t.innings.push(...s.innings); t.spells.push(...s.spells);
    }
  }
+ verified.at=Date.now();
  $("calcMsg").textContent=`${verified.scannedMatches}টি completed match • ${verified.scannedEvents}টি scoring event verified`;
  renderStats();
 }
@@ -302,7 +304,7 @@ function editAward(id){
  const a=awards.find(x=>x.id===id);if(!a)return;
  editingId=id;$("saveType").value=a.awardType||"CUSTOM";$("recipient").value=a.playerName||a.recipientName||"";
  $("teamName").value=a.teamName||"";$("awardPrize").value=a.prize||"";$("awardCustomName").value=a.awardType==="CUSTOM"?a.awardName||"":"";
- $("awardNote").value=a.note||"";$("saveMatch").value=a.matchId||"";$("awardSeason").value=a.season||2026;
+ $("awardNote").value=a.note||"";$("saveMatch").value=a.matchId||"";if($("awardPrizeNo"))$("awardPrizeNo").value=a.prizeNo||"";$("awardSeason").value=a.season||2026;
  $("saveAward").textContent="✏️ Update Award";$("cancelEdit").classList.remove("hidden");
  $("awardMsg").textContent="Edit mode চালু হয়েছে। পরিবর্তন করে Update Award চাপুন।";
  window.scrollTo({top:0,behavior:"smooth"});
@@ -310,7 +312,7 @@ function editAward(id){
 
 function resetEdit(){
  editingId=null;$("saveAward").textContent="💾 Save Award";$("cancelEdit").classList.add("hidden");
- $("recipient").value="";$("teamName").value="";$("awardPrize").value="";$("awardCustomName").value="";$("awardNote").value="";$("awardMsg").textContent="";
+ $("recipient").value="";$("teamName").value="";$("awardPrize").value="";$("awardCustomName").value="";$("awardNote").value="";if($("awardPrizeNo"))$("awardPrizeNo").value="";$("awardMsg").textContent="";
 }
 
 async function saveAward(){
@@ -324,7 +326,7 @@ async function saveAward(){
  const payload={
   season,scope:(AWARDS.find(a=>a[0]===type)?.[2]|| (matchId?"MATCH":"TOURNAMENT")),awardType:type,awardName:name,playerId:player?.id||"",playerName:recipient,recipientName:recipient,
   teamId:player?.teamId||"",teamName:$("teamName").value.trim(),matchId,
-  prize:$("awardPrize").value.trim(),note:$("awardNote").value.trim(),public:true,
+  prize:$("awardPrize").value.trim(),note:$("awardNote").value.trim(),prizeNo:($("awardPrizeNo")?.value||""),public:true,
   calculatedBy:"VCAJ Free Smart Awards Engine",updatedAt:serverTimestamp()
  };
  if(editingId){
@@ -346,6 +348,7 @@ $("cancelEdit").onclick=resetEdit;
 $("awardScope").onchange=()=>{};
 $("logout").onclick=()=>signOut(auth);
 
+window.__vcajAwards={state:()=>({players,matches,awards,verified}),verify:verifySeason,matchCandidates,tournamentCandidates,pname,pteam,completedMatch,load};
 onAuthStateChanged(auth,async user=>{
  if(!user||!isAdmin(user)){
    $("authError").textContent="Admin access প্রয়োজন। Login করুন।";

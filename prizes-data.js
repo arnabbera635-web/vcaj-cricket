@@ -236,3 +236,14 @@ export const SPECIAL=[
   "sponsorId": ""
  }
 ];
+
+/* Apply Admin edits (collection prizeEdits) on top of the printed list. Keys: "main1","main2" or the prize number. */
+export function mergePrizes(edits){
+ const E=edits||{},strip=e=>{const o={...e};delete o.updatedAtMs;delete o.key;return o};
+ const main=MAIN.map(m=>({...m,key:"main"+m.rank,...strip(E["main"+m.rank]||{})}));
+ const sp=SPECIAL.map(p=>({...p,...strip(E[p.no]||{}),key:p.no,no:p.no}));
+ const have=new Set(SPECIAL.map(p=>p.no));
+ Object.entries(E).forEach(([k,e])=>{if(!k.startsWith("main")&&!have.has(k)&&e&&e.title)sp.push({icon:"🎁",cat:"honor",memorial:"",by:"",...strip(e),key:k,no:String(e.no||k)})});
+ sp.sort((a,b)=>Number(a.no)-Number(b.no));
+ return{main,special:sp};
+}
