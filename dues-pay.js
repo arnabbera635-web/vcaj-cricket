@@ -18,6 +18,6 @@ export function buildMsg(m,P,linkOn,base){
   a?`আপনার ${m.season||2026} সালের সদস্য চাঁদা ${money(a)} ${part?"আংশিক বাকি আছে":" ধার্য করা হয়েছে"}।`:`আপনার ${m.season||2026} সালের সদস্য চাঁদা ${part?"আংশিক বাকি আছে":" ধার্য করা হয়েছে"}।`];
  const link=linkOn?payLink(m,P,base):"";
  if(link){L.push(``,`💳 পেমেন্ট রিকোয়েস্ট: ${money(a)}`,`👉 এখানে চেপে UPI অ্যাপ দিয়ে পরিশোধ করুন:`,link,``,`অথবা সরাসরি UPI ID-তে পাঠান: ${P.upi.trim()}`,`পরিশোধের পর ক্লাব থেকে Receipt পাবেন।`)}
- else L.push(`অনুগ্রহ করে সুবিধামতো পরিশোধ করে দিন।`);
+ else L.push;
  L.push(``,`ধন্যবাদন্তে 🙏`,`Vivekananda Cricket Association of Jeliakhali`);
  return L.join("\n")}
