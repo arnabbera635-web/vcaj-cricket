@@ -15,7 +15,7 @@ export function payLink(m,P,base){
 export function buildMsg(m,P,linkOn,base){
  const a=fee(m),part=m.feeStatus==="আংশিক";
  const L=[`🏏 মন্ডল এন্ড মন্ডল ক্রিকেট টুর্নামেন্ট — চাঁদা অনুস্মারক`,``,`প্রিয় ${m.name},`,
-  a?`আপনার ${m.season||2026} সালের সদস্য চাঁদা ${money(a)} ${part?"আংশিক বাকি আছে":" ধার্য করা হয়েছে"}।`:`আপনার ${m.season||2026} সালের সদস্য চাঁদা ${part?"আংশিক বাকি আছে":" ধার্য করা হয়েছে"}।`];
+  a?`আপনার ${m.season||2026} সালের সদস্য চাঁদা ${money(a)} ${part?"আংশিক বাকি আছে":"ধার্য করা হয়েছে"}।`:`আপনার ${m.season||2026} সালের সদস্য চাঁদা ${part?"আংশিক বাকি আছে":" ধার্য করা হয়েছে"}।`];
  const link=linkOn?payLink(m,P,base):"";
  if(link){L.push(``,`💳 পেমেন্ট রিকোয়েস্ট: ${money(a)}`,`👉 এখানে চেপে UPI অ্যাপ দিয়ে পরিশোধ করুন:`,link,``,`অথবা সরাসরি UPI ID-তে পাঠান: ${P.upi.trim()}`,`পরিশোধের পর ক্লাব থেকে Receipt পাবেন।`)}
  else L.push;
