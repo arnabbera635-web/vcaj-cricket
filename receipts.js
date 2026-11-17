@@ -14,7 +14,7 @@ let role=null,user=null;const who=()=>`${role.name||""} (${role.label})`;
 const base=location.origin+location.pathname;
 const today=()=>new Date().toISOString().slice(0,10);
 const fmtDate=d=>{try{return new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}catch{return d}};
-function msg(r){return `🏏 VCAJ — Payment Received ✅\n\nপ্রিয় ${r.name},\nআপনার ${money(r.amount)} (${T[r.type].bn}${r.purpose?" — "+r.purpose:""}) সফলভাবে গ্রহণ করা হয়েছে।\nRecept No: ${r.receiptNo}\nতারিখ: ${fmtDate(r.date)}\nমাধ্যম: ${r.method}\n\nযাচাই করুন: ${base}?v=${r.code}\n\nধন্যবাদ 🙏\nVivekananda Cricket Association of Jeliakhali`.replace("Recept","Receipt")}
+function msg(r){return `🏏 Jeliakhali Mondal and Mondal Cricket tournament— Payment Received ✅\n\nপ্রিয় ${r.name},\nআপনার ${money(r.amount)} (${T[r.type].bn}${r.purpose?" — "+r.purpose:""}) সফলভাবে গ্রহণ করা হয়েছে।\nRecept No: ${r.receiptNo}\nতারিখ: ${fmtDate(r.date)}\nমাধ্যম: ${r.method}\n\nযাচাই করুন: ${base}?v=${r.code}\n\nধন্যবাদ 🙏\nVivekananda Cricket Association of Jeliakhali`.replace("Recept","Receipt")}
 function phone91(p){let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d=d.slice(1);if(d.length===10)d="91"+d;return d.length>=11?d:""}
 function showReceipt(r){cur=r;$("rcCard").classList.remove("hide");
  $("receipt").innerHTML=`<h2>VIVEKANANDA CRICKET ASSOCIATION OF JELIAKHALI</h2><div class="sub">PAYMENT RECEIPT — ${esc(T[r.type].bn)}</div>
