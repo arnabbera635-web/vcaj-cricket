@@ -1,0 +1,41 @@
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07152d"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="vcaj-theme.css"><link rel="stylesheet" href="admin.css"><link rel="manifest" href="manifest.webmanifest"><title>কমিটির প্যাড — VCAJ Admin</title>
+<style>
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.g label{display:block;font-weight:700;font-size:13px}.g input,.g select,.g textarea{width:100%;font:inherit}.g .w2{grid-column:1/-1}
+.hide{display:none!important}.sec{margin-bottom:14px}.sec h2{margin:0 0 6px;font-size:17px}.hint{font-size:13px;color:var(--muted);margin:2px 0 10px}
+.ck{display:flex;gap:8px;align-items:center;font-weight:600;font-size:14px}.ck input{width:auto}
+.cv{width:100%;max-width:400px;height:auto;aspect-ratio:400/140;border:2px dashed var(--line);border-radius:12px;background:#fff;touch-action:none}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}.row small{color:var(--muted)}
+#pw{overflow:auto;background:#cbd5e1;border-radius:14px;padding:10px}#paper{width:210mm;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,.25);transform-origin:top center}
+@page{size:A4;margin:0}
+@media print{body *{visibility:hidden}#paper,#paper *{visibility:visible}#paper{position:absolute;left:0;top:0;zoom:1!important;margin:0;box-shadow:none}html,body{background:#fff!important}}
+</style><style id="pcss"></style></head>
+<body><header class="topbar"><a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav><a href="admin.html">Admin</a><a href="letters.html">কমিটির প্যাড</a></nav></header>
+<main class="container"><section class="hero small"><div><p class="eyebrow">ADMIN</p><h1>✉️ কমিটির প্যাড</h1><p>কমিটির লেটারহেডে যে কাউকে চিঠি লিখুন — নিচে স্ট্যাম্প ও সভাপতি/সম্পাদকের স্বাক্ষরের জায়গাসহ A4-এ Print বা PDF</p></div></section>
+<section class="card" id="lg"><h2>🔐 Admin Login</h2><div class="g"><input id="em" type="email" placeholder="Admin email" autocomplete="username"><input id="pw2" type="password" placeholder="Password" autocomplete="current-password"><button id="lb">Login</button></div><p id="lm" class="muted"></p></section>
+<div id="app" class="hide">
+<section class="card sec"><details><summary style="cursor:pointer;font-weight:800;font-size:16px">⚙️ প্যাডের সেটিং (নাম, ঠিকানা, সভাপতি ও সম্পাদকের নাম)</summary>
+<p class="hint">এখানে যা লিখবেন তা প্যাডের মাথায় ও স্বাক্ষরের নিচে বসবে। ফাঁকা রাখলে সেই লাইনটা ছাপা হবে না।</p>
+<div class="g"><label>সংগঠনের নাম (বাংলা)<input id="s_orgBn"></label><label>সংগঠনের নাম (ইংরেজি)<input id="s_orgEn"></label><label>স্থাপিত / ট্যাগলাইন<input id="s_tagline"></label><label>স্বাক্ষরের নিচে কমিটির নাম<input id="s_shortName"></label>
+<label class="w2">ঠিকানা<input id="s_address" placeholder="যেমন: জেলিয়াখালী, উঃ ২৪ পরগণা"></label><label>ফোন<input id="s_phone"></label><label>ইমেইল<input id="s_email"></label><label>রেজিস্ট্রেশন নং (থাকলে)<input id="s_regNo"></label><label>সভাপতির নাম<input id="s_presidentName"></label><label>সম্পাদকের নাম<input id="s_secretaryName"></label></div>
+<p><button id="saveS">💾 সেটিং সেভ</button> <span id="sMsg" class="muted"></span></p></details></section>
+
+<section class="card sec"><h2 id="ft">📝 নতুন চিঠি</h2>
+<div class="g"><label>স্মারক নং<input id="refNo"></label><label>তারিখ<input id="ldate" type="date"></label>
+<label class="w2">প্রাপক (প্রতি) — প্রতি লাইনে একটা<textarea id="lto" rows="3" placeholder="যেমন:&#10;সভাপতি&#10;জেলিয়াখালী গ্রাম পঞ্চায়েত"></textarea></label>
+<label class="w2">বিষয়<input id="lsubject" placeholder="যেমন: মাঠ ব্যবহারের অনুমতি প্রসঙ্গে"></label>
+<label>সম্বোধন<input id="lsal" value="মহাশয়/মহাশয়া,"></label><label>সমাপ্তি<input id="lclose" value="ধন্যবাদান্তে,"></label>
+<label class="w2">চিঠির বিষয়বস্তু<textarea id="lbody" rows="9" placeholder="এখানে চিঠি লিখুন…"></textarea></label>
+<label class="w2">অনুলিপি (ঐচ্ছিক)<textarea id="lcc" rows="2"></textarea></label></div>
+<h3 style="margin:16px 0 6px">✍️ স্বাক্ষর, স্ট্যাম্প ও প্যাড</h3>
+<div class="g"><label class="ck"><input type="checkbox" id="signSec" checked> সম্পাদকের স্বাক্ষরের জায়গা</label><label class="ck"><input type="checkbox" id="signPre" checked> সভাপতির স্বাক্ষরের জায়গা</label>
+<label>স্ট্যাম্প<select id="stampMode"><option value="blank">খালি জায়গা — হাতে ছাপ দেবেন</option><option value="digital">ডিজিটাল স্ট্যাম্প বসান</option></select></label>
+<label class="ck"><input type="checkbox" id="wmark"> পেছনে হালকা লোগো (ওয়াটারমার্ক)</label>
+<label class="ck w2"><input type="checkbox" id="digSign"> ✍️ আঙুল দিয়ে ডিজিটাল স্বাক্ষর দিন (না দিলে স্বাক্ষরের জায়গা খালি থাকবে)</label></div>
+<div id="padBox" class="g hide" style="margin-top:10px"><div class="sec"><label>সম্পাদকের নাম<input id="secName"></label><canvas id="cvSec" class="cv"></canvas><button id="clrSec" type="button">মুছুন</button></div><div class="sec"><label>সভাপতির নাম<input id="preName"></label><canvas id="cvPre" class="cv"></canvas><button id="clrPre" type="button">মুছুন</button></div></div>
+<div class="acts" style="margin-top:12px"><button id="saveL">💾 সেভ</button><button id="printL" class="wa">🖨️ সেভ করে Print / PDF</button><button id="newL" type="button">🆕 নতুন চিঠি</button><span id="lMsg" class="muted"></span></div></section>
+
+<section class="card sec"><h2>👁️ প্রিভিউ (A4)</h2><div id="pw"><div id="paper"></div></div></section>
+
+<section class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h2 style="margin:0">📚 আগের চিঠি</h2><input id="lq" placeholder="🔍 বিষয়, প্রাপক বা নম্বর" style="max-width:260px"></div><div id="list">লোড হচ্ছে…</div></section>
+</div></main>
+<script type="module" src="letters.js"></script><script src="vcaj-enhance.js" defer></script></body></html>
