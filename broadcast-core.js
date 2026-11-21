@@ -30,3 +30,24 @@ export const TEMPLATES={
  reporting:"আপনার দলের ম্যাচ আগামী ____ তারিখ, ____ টায়। অনুগ্রহ করে ম্যাচ শুরুর ____ মিনিট আগে মাঠে উপস্থিত থাকবেন। (নিয়ম অনুযায়ী দলের ১১ জনের মধ্যে কমপক্ষে ১ জন অনূর্ধ্ব ১৯ বছরের খেলোয়াড় থাকতে হবে।)",
  result:"আমাদের টুর্নামেন্টের ম্যাচের ফলাফল ও পরবর্তী ম্যাচের খবর ওয়েবসাইটে দেওয়া হয়েছে। দেখে নিন।",
  weather:"আবহাওয়া খারাপ থাকায় আজকের ম্যাচ স্থগিত করা হয়েছে। নতুন সময় শীঘ্রই জানানো হবে।"};
+
+/* ---- who to message: registered teams + teams that only have a Receipt-Desk receipt + this phone's unsynced receipts + hand-added ---- */
+export const normName=s=>String(s??"").toLowerCase().replace(/\s+/g," ").trim();
+/* Receipt Desk (team) receipts carry `payer` and no `type`; member/donation/sponsor receipts carry `type` */
+export const isTeamReceipt=r=>!!(r&&r.payer&&!r.type);
+export function mergeTeams({regs=[],receipts=[],locals=[],extras=[]}={}){
+ const M=new Map();
+ const add=(src,name,numbers,x={})=>{
+  const k=normName(name);if(!k)return;
+  const wa=numbers.map(p91).find(Boolean)||"";
+  let t=M.get(k);
+  if(!t){t={id:"t:"+k,name:String(name).trim(),wa:"",loc:"",status:"",src:[]};M.set(k,t)}
+  if(!t.wa&&wa)t.wa=wa;
+  if(!t.loc&&x.loc)t.loc=String(x.loc);
+  if(x.status&&!t.status)t.status=x.status;
+  if(!t.src.includes(src))t.src.push(src)};
+ regs.forEach(r=>add("reg",r.teamName,[r.whatsapp,r.contact],{loc:r.location,status:r.status||"pending"}));
+ receipts.filter(isTeamReceipt).forEach(r=>add("receipt",r.payer,[r.phone],{loc:r.location}));
+ locals.filter(isTeamReceipt).forEach(r=>add("device",r.payer,[r.phone],{loc:r.location}));
+ extras.forEach(x=>add("manual",x.name,[x.phone],{}));
+ return[...M.values()].sort((a,b)=>a.name.localeCompare(b.name))}

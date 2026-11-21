@@ -7,7 +7,7 @@
 .sr{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center}.sr input,.sr select{width:100%;min-width:0}
 .pv{white-space:pre-wrap;word-break:break-word;background:#e7fbe9;color:#111;border-radius:14px;padding:14px;font-size:14px;line-height:1.6;border:1px solid #bbf7d0}
 .tr{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.tr small{color:var(--muted)}.tr input{width:auto}
-.b{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:800;margin-left:4px}.b.v{background:#dcfce7;color:#166534}.b.p{background:#fef3c7;color:#92400e}.b.s{background:#dbeafe;color:#1e40af}
+.b{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:800;margin-left:4px}.b.v{background:#dcfce7;color:#166534}.b.p{background:#fef3c7;color:#92400e}.b.s{background:#dbeafe;color:#1e40af}.b.r{background:#ede9fe;color:#5b21b6}
 .pgbar{height:8px;border-radius:8px;background:var(--line);overflow:hidden;margin:8px 0}.pgbar i{display:block;height:100%;background:linear-gradient(90deg,#16a34a,#4ade80)}
 @media(max-width:760px){.sr{grid-template-columns:1fr 1fr}.sr .del{grid-column:1/-1}}
 </style></head>
@@ -27,8 +27,8 @@
 <p><button id="addRow" type="button" class="sm">➕ আরেকটা ম্যাচ</button> <button id="insSch" type="button" class="sm wa">⬇️ বার্তায় বসান</button></p></details>
 <h3 style="margin:14px 0 6px">👁️ প্রিভিউ <small class="muted" id="pvWho"></small></h3><div class="pv" id="pv"></div></section>
 
-<section class="card sec"><h2>👥 কাদের পাঠাবেন</h2><div class="acts" style="margin-bottom:8px"><button id="selAll" class="sm">সব বাছুন</button><button id="selVer" class="sm">শুধু verified</button><button id="selNone" class="sm">কাউকে না</button><span id="selCnt" class="muted"></span></div>
-<div id="teams">লোড হচ্ছে…</div></section>
+<section class="card sec"><h2>👥 কাদের পাঠাবেন</h2><p class="hint" id="tsum"></p><div class="acts" style="margin-bottom:8px"><button id="selAll" class="sm">সব বাছুন</button><button id="selVer" class="sm">শুধু verified</button><button id="selNone" class="sm">কাউকে না</button><span id="selCnt" class="muted"></span></div>
+<div id="teams">লোড হচ্ছে…</div><details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">➕ তালিকায় নেই এমন দল হাতে যোগ করুন</summary><div class="g" style="margin-top:8px"><label>দলের নাম<input id="xName"></label><label>WhatsApp নম্বর<input id="xPhone" inputmode="tel" placeholder="10 অঙ্কের নম্বর"></label></div><p><button id="xAdd" class="sm">➕ যোগ করুন</button> <button id="reload" class="sm">🔄 তালিকা নতুন করে পড়ুন</button></p></details></section>
 
 <section class="card sec"><h2>📨 পাঠান</h2><p class="hint">WhatsApp নিজে থেকে বার্তা পাঠাতে দেয় না, তাই বাটন চাপলে বার্তাসহ চ্যাট খুলবে, আপনি Send চাপবেন। কাকে পাঠানো হয়েছে মনে থাকবে।</p>
 <div id="prog"></div><div class="pgbar"><i id="bar" style="width:0%"></i></div>

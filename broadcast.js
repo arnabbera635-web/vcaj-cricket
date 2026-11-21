@@ -1,5 +1,5 @@
 import {auth,db,isAdmin,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDocs,setDoc,query,orderBy,limit} from "./firebase.js";
-import {esc,p91,scheduleText,buildMessage,hashMsg,DEFAULTS,STAGES,TEMPLATES} from "./broadcast-core.js";
+import {esc,p91,scheduleText,buildMessage,hashMsg,mergeTeams,DEFAULTS,STAGES,TEMPLATES} from "./broadcast-core.js";
 import {siteRoot,liveLinks} from "./site-link.js";
 const $=id=>document.getElementById(id);
 const LS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
@@ -17,8 +17,10 @@ function preview(){
  $("pv").textContent=msgFor(first);$("pvWho").textContent=first?`(যেমন: ${first.name}-এর জন্য)`:"";
  const n=eligible().length;$("selCnt").textContent=`${n} দল বাছা হয়েছে`;
  const d=doneN();$("prog").innerHTML=`<b>${d} / ${n}</b> দলকে পাঠানো হয়েছে`;$("bar").style.width=(n?d*100/n:0)+"%"}
+const SRC={reg:"",receipt:'<span class="b r">🧾 রসিদ</span>',device:'<span class="b r">💾 এই ফোনের রসিদ</span>',manual:'<span class="b r">✍️ হাতে যোগ</span>'};
+const badges=t=>(t.src.includes("reg")?`<span class="b ${t.status==="verified"?"v":"p"}">${esc(t.status||"pending")}</span>`:'<span class="b p">নিবন্ধন নেই</span>')+t.src.filter(s=>s!=="reg").map(s=>SRC[s]).join("");
 function drawTeams(){
- $("teams").innerHTML=T.length?T.map(t=>`<div class="tr"><input type="checkbox" data-s="${esc(t.id)}" ${sel.has(t.id)?"checked":""} ${t.wa?"":"disabled"}><div><b>${esc(t.name)}</b><span class="b ${t.status==="verified"?"v":"p"}">${esc(t.status||"pending")}</span>${(sent[key()]||{})[t.id]?'<span class="b s">✓ পাঠানো</span>':""}<br><small>${t.wa?"+"+esc(t.wa):"WhatsApp নম্বর নেই বা ঠিক নয়"}${t.loc?" • "+esc(t.loc):""}</small></div><div>${t.wa?`<button class="sm wa" data-w="${esc(t.id)}">📲 পাঠান</button>`:""}</div></div>`).join(""):"<p class='muted'>এখনও কোনো দল নিবন্ধন করেনি।</p>";
+ $("teams").innerHTML=T.length?T.map(t=>`<div class="tr"><input type="checkbox" data-s="${esc(t.id)}" ${sel.has(t.id)?"checked":""} ${t.wa?"":"disabled"}><div><b>${esc(t.name)}</b>${badges(t)}${(sent[key()]||{})[t.id]?'<span class="b s">✓ পাঠানো</span>':""}<br><small>${t.wa?"+"+esc(t.wa):"WhatsApp নম্বর নেই বা ঠিক নয়"}${t.loc?" • "+esc(t.loc):""}</small></div><div>${t.wa?`<button class="sm wa" data-w="${esc(t.id)}">📲 পাঠান</button>`:""}</div></div>`).join(""):"<p class='muted'>এখনও কোনো দল নিবন্ধন করেনি।</p>";
  $("teams").querySelectorAll("[data-s]").forEach(c=>c.onchange=()=>{c.checked?sel.add(c.dataset.s):sel.delete(c.dataset.s);preview()});
  $("teams").querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>send(b.dataset.w));preview()}
 function schRows(){
@@ -43,8 +45,13 @@ function histDraw(){
  $("hist").querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>{const h=hist.find(x=>x.id===b.dataset.u);const L=(h.msg||"").split("\n");const i=L.findIndex(l=>/^(প্রিয় .* দল,|সকল দলের প্রতি,)$/.test(l));const j=L.lastIndexOf("ধন্যবাদ 🙏");const body=L.slice(i>=0?i+1:3,j>0?j:undefined).join("\n").replace(/\n+🔴[\s\S]*$/,"").trim();$("body").value=body;preview();window.scrollTo({top:0,behavior:"smooth"})})}
 async function load(){
  const c=LS("vcajBcCfg",{});$("c_title").value=c.title||DEFAULTS.title;$("c_organizer").value=c.organizer||DEFAULTS.organizer;$("c_sign").value=c.sign||DEFAULTS.sign;$("c_venue").value=c.venue||"";
- try{const s=await getDocs(collection(db,"teamRegistrations"));T=s.docs.map(d=>{const x=d.data();return{id:d.id,name:x.teamName||"(নাম নেই)",wa:p91(x.whatsapp)||p91(x.contact),loc:x.location||"",status:x.status||"pending"}}).sort((a,b)=>a.name.localeCompare(b.name));sel=new Set(T.filter(t=>t.wa).map(t=>t.id))}
- catch(e){$("teams").innerHTML="<p class='muted'>দলের তালিকা লোড হয়নি।</p>"}
+ let regs=[],receipts=[],note="";
+ try{regs=(await getDocs(collection(db,"teamRegistrations"))).docs.map(d=>({...d.data(),id:d.id}))}catch(e){note+="নিবন্ধনের তালিকা লোড হয়নি। "}
+ try{receipts=(await getDocs(collection(db,"paymentReceipts"))).docs.map(d=>({...d.data(),code:d.id}))}catch(e){note+="রসিদের তালিকা লোড হয়নি। "}
+ T=mergeTeams({regs,receipts,locals:LS("vcajIssuedReceipts",[]),extras:LS("vcajBcExtra",[])});
+ sel=new Set(T.filter(t=>t.wa).map(t=>t.id));
+ const n=k=>T.filter(t=>t.src.includes(k)).length;
+ $("tsum").textContent=`মোট ${T.length} দল • নিবন্ধিত ${n("reg")} • রসিদ থেকে ${n("receipt")+n("device")} • হাতে যোগ ${n("manual")} • WhatsApp নম্বর আছে ${T.filter(t=>t.wa).length}${note?" • ⚠️ "+note:""}`
  try{const h=await getDocs(query(collection(db,"broadcasts"),orderBy("createdAtMs","desc"),limit(30)));hist=h.docs.map(d=>({...d.data(),id:d.id}))}catch(e){$("hist").innerHTML="<p class='muted'>ইতিহাস লোড হয়নি — firestore.rules-এ broadcasts-এর নিয়ম publish করুন।</p>"}
  if(hist.length||!$("hist").textContent.includes("লোড হয়নি"))histDraw();schRows();drawTeams()}
 $("tpl").onchange=()=>{const v=$("tpl").value;if(!v)return;if($("body").value.trim()&&!confirm("এখনকার লেখা বদলে নমুনা বসবে। ঠিক আছে?")){$("tpl").value="";return}$("body").value=TEMPLATES[v];preview()};
@@ -52,6 +59,8 @@ $("addRow").onclick=()=>{rows.push({stage:STAGES[0],a:"",b:"",date:"",time:"",ve
 $("insSch").onclick=()=>{const t=scheduleText(rows,cfg().venue);if(!t){alert("কমপক্ষে একটা ম্যাচের দুই দলের নাম দিন");return}const b=$("body");b.value=(b.value.replace(/\n*\(নিচের "সময়সূচি বানান"[^)]*\)\s*$/,"").trimEnd()+"\n\n"+t).trim();preview()};
 $("body").oninput=()=>{preview();drawTeams()};["addrTeam","addLive"].forEach(i=>$(i).onchange=()=>{preview();drawTeams()});
 ["c_title","c_organizer","c_sign","c_venue"].forEach(i=>$(i).oninput=saveCfg);
+$("xAdd").onclick=()=>{const name=$("xName").value.trim(),ph=$("xPhone").value.trim();if(!name){alert("দলের নাম দিন");return}if(ph&&!p91(ph)){alert("নম্বর ঠিক নেই — ১০ অঙ্কের মোবাইল নম্বর দিন");return}const x=LS("vcajBcExtra",[]);x.push({name,phone:ph});SV("vcajBcExtra",x);$("xName").value="";$("xPhone").value="";return load()};
+$("reload").onclick=()=>load();
 $("selAll").onclick=()=>{sel=new Set(T.filter(t=>t.wa).map(t=>t.id));drawTeams()};
 $("selVer").onclick=()=>{sel=new Set(T.filter(t=>t.wa&&t.status==="verified").map(t=>t.id));drawTeams()};
 $("selNone").onclick=()=>{sel=new Set();drawTeams()};
