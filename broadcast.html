@@ -1,0 +1,39 @@
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07152d"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="vcaj-theme.css"><link rel="stylesheet" href="admin.css"><link rel="manifest" href="manifest.webmanifest"><title>দলগুলোকে বার্তা — VCAJ Admin</title>
+<style>
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.g label{display:block;font-weight:700;font-size:13px}.g input,.g select,.g textarea{width:100%;font:inherit}.w2{grid-column:1/-1}
+.hide{display:none!important}.sec{margin-bottom:14px}.sec h2{margin:0 0 6px;font-size:17px}.hint{font-size:13px;color:var(--muted);margin:2px 0 10px}
+.ck{display:flex;gap:8px;align-items:center;font-weight:600;font-size:14px}.ck input{width:auto}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sm{padding:7px 10px;font-size:13px}.wa{background:#16a34a!important;color:#fff!important}
+.sr{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center}.sr input,.sr select{width:100%;min-width:0}
+.pv{white-space:pre-wrap;word-break:break-word;background:#e7fbe9;color:#111;border-radius:14px;padding:14px;font-size:14px;line-height:1.6;border:1px solid #bbf7d0}
+.tr{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.tr small{color:var(--muted)}.tr input{width:auto}
+.b{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:800;margin-left:4px}.b.v{background:#dcfce7;color:#166534}.b.p{background:#fef3c7;color:#92400e}.b.s{background:#dbeafe;color:#1e40af}
+.pgbar{height:8px;border-radius:8px;background:var(--line);overflow:hidden;margin:8px 0}.pgbar i{display:block;height:100%;background:linear-gradient(90deg,#16a34a,#4ade80)}
+@media(max-width:760px){.sr{grid-template-columns:1fr 1fr}.sr .del{grid-column:1/-1}}
+</style></head>
+<body><header class="topbar"><a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav><a href="admin.html">Admin</a><a href="team-registrations.html">Teams</a><a href="broadcast.html">দলকে বার্তা</a></nav></header>
+<main class="container"><section class="hero small"><div><p class="eyebrow">ADMIN</p><h1>📣 সব দলকে বার্তা</h1><p>সময়সূচি বা যেকোনো খবর এক জায়গা থেকে সব দলকে — প্রতিটা বার্তায় টুর্নামেন্টের নাম ও পরিচালকের নাম থাকবে</p></div></section>
+<section class="card" id="lg"><h2>🔐 Admin Login</h2><div class="g"><input id="em" type="email" placeholder="Admin email" autocomplete="username"><input id="pw2" type="password" placeholder="Password" autocomplete="current-password"><button id="lb">Login</button></div><p id="lm" class="muted"></p></section>
+<div id="app" class="hide">
+<section class="card sec"><details><summary style="cursor:pointer;font-weight:800;font-size:16px">⚙️ বার্তার মাথা ও নিচের নাম (বদলাতে চাইলে)</summary>
+<div class="g" style="margin-top:10px"><label class="w2">টুর্নামেন্টের নাম<input id="c_title"></label><label class="w2">পরিচালনায়<input id="c_organizer"></label><label>নিচের সই<input id="c_sign"></label><label>ম্যাচের স্থান (সময়সূচিতে ডিফল্ট, ঐচ্ছিক)<input id="c_venue" placeholder="যেমন: জেলিয়াখালী মাঠ"></label></div></details></section>
+
+<section class="card sec"><h2>✍️ বার্তা লিখুন</h2>
+<div class="g"><label>তৈরি নমুনা<select id="tpl"><option value="">— নমুনা বাছুন —</option><option value="schedule">📅 ম্যাচের সময়সূচি</option><option value="reporting">⏰ মাঠে উপস্থিতির নির্দেশ</option><option value="weather">🌧️ ম্যাচ স্থগিত</option><option value="result">🏆 ফলাফল জানানো</option><option value="notice">📢 সাধারণ বিজ্ঞপ্তি (খালি)</option></select></label>
+<label class="ck" style="align-self:end"><input type="checkbox" id="addrTeam" checked> প্রতিটা দলের নাম বসান (প্রিয় ○○ দল,)</label><label class="ck" style="align-self:end"><input type="checkbox" id="addLive" checked> ওয়েবসাইট ও লাইভ স্কোরের লিংক যোগ করুন</label>
+<label class="w2">বার্তা<textarea id="body" rows="7" placeholder="এখানে লিখুন…"></textarea></label></div>
+<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">📅 সময়সূচি বানান (ম্যাচের তালিকা থেকে বার্তায় বসবে)</summary>
+<p class="hint">প্রতিটা ম্যাচের দুই দল, তারিখ ও সময় দিন। দল তালিকা থেকে বাছতে পারেন বা নিজে লিখতে পারেন।</p><div id="sch"></div>
+<p><button id="addRow" type="button" class="sm">➕ আরেকটা ম্যাচ</button> <button id="insSch" type="button" class="sm wa">⬇️ বার্তায় বসান</button></p></details>
+<h3 style="margin:14px 0 6px">👁️ প্রিভিউ <small class="muted" id="pvWho"></small></h3><div class="pv" id="pv"></div></section>
+
+<section class="card sec"><h2>👥 কাদের পাঠাবেন</h2><div class="acts" style="margin-bottom:8px"><button id="selAll" class="sm">সব বাছুন</button><button id="selVer" class="sm">শুধু verified</button><button id="selNone" class="sm">কাউকে না</button><span id="selCnt" class="muted"></span></div>
+<div id="teams">লোড হচ্ছে…</div></section>
+
+<section class="card sec"><h2>📨 পাঠান</h2><p class="hint">WhatsApp নিজে থেকে বার্তা পাঠাতে দেয় না, তাই বাটন চাপলে বার্তাসহ চ্যাট খুলবে, আপনি Send চাপবেন। কাকে পাঠানো হয়েছে মনে থাকবে।</p>
+<div id="prog"></div><div class="pgbar"><i id="bar" style="width:0%"></i></div>
+<div class="acts"><button id="next" class="wa">▶ পরের দলকে পাঠান</button><button id="grp" class="sm">👥 WhatsApp গ্রুপে / অন্য কাউকে পাঠান</button><button id="copy" class="sm">📋 বার্তা কপি</button><button id="sms" class="sm">💬 SMS (সবাইকে একসঙ্গে)</button><button id="reset" class="sm">↺ নতুন করে শুরু</button></div><p id="sMsg" class="muted"></p></section>
+
+<section class="card"><h2>📚 আগে পাঠানো বার্তা</h2><div id="hist">লোড হচ্ছে…</div></section>
+</div></main>
+<script type="module" src="broadcast.js"></script><script src="vcaj-enhance.js" defer></script></body></html>
