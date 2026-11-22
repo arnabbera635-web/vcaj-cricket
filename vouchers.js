@@ -1,5 +1,7 @@
+import {teamReceiptIncome,isDeskReceipt} from "./team-income.js";
+import {siteRoot,liveBlock} from "./site-link.js";
 import {STAMP} from "./vcaj-stamp.js";
-import {resolveRole,loginAny,roleMsg,canWrite,canReview,newLogId,addLog,showRole} from "./vcaj-office.js";
+import {resolveRole,loginAny,roleMsg,can,newLogId,addLog,showRole,logLogin,logEvent} from "./vcaj-office.js";
 import {makePad,safeSig} from "./vcaj-sign.js";
 import {auth,db,isAdmin,writeBatch,signOut,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDocs,setDoc,query,orderBy} from "./firebase.js";
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -11,13 +13,13 @@ const sigImg=v=>safeSig(v)?`<img alt="signature" src="${safeSig(v)}">`:`<span cl
 document.querySelectorAll("[data-clr]").forEach(b=>b.onclick=()=>(b.dataset.clr==="padPayee"?padE:padA).clear());
 try{padA.load(localStorage.getItem("vcApprSig")||"");if(localStorage.getItem("vcApprBy"))$("approver").value=localStorage.getItem("vcApprBy")}catch{}
 let role=null,user=null;const who=()=>`${role.name||""} (${role.label})`;
-let rows=[],inc={reg:0,member:0,donation:0,sponsor:0},cur=null;
+let rows=[],inc={reg:0,member:0,donation:0,sponsor:0,desk:0},cur=null,deskInfo={total:0,counted:[],skipped:[]};
 function words(n){n=Math.round(n);if(!n)return"Zero";const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"],b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
  const two=x=>x<20?a[x]:b[Math.floor(x/10)]+(x%10?" "+a[x%10]:"");const three=x=>(x>=100?a[Math.floor(x/100)]+" Hundred"+(x%100?" ":""):"")+(x%100?two(x%100):"");
  const p=[];const cr=Math.floor(n/1e7);n%=1e7;const lk=Math.floor(n/1e5);n%=1e5;const th=Math.floor(n/1e3);n%=1e3;
  if(cr)p.push(two(cr)+" Crore");if(lk)p.push(two(lk)+" Lakh");if(th)p.push(two(th)+" Thousand");if(n)p.push(three(n));return p.join(" ")}
 function phone91(p){let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d=d.slice(1);if(d.length===10)d="91"+d;return d.length>=11?d:""}
-function msg(v){return `🏏 VCAJ — Payment Voucher\n\nপ্রিয় ${v.payee},\nVCAJ থেকে আপনাকে ${money(v.total)} (${v.cat}) প্রদান করা হয়েছে।\nVoucher No: ${v.voucherNo}\nতারিখ: ${fmtDate(v.date)}\nমাধ্যম: ${v.method}\n\nধন্যবাদ 🙏\nVivekananda Cricket Association of Jeliakhali`}
+function msg(v){return `🏏 VCAJ — Payment Voucher\n\nপ্রিয় ${v.payee},\nVCAJ থেকে আপনাকে ${money(v.total)} (${v.cat}) প্রদান করা হয়েছে।\nVoucher No: ${v.voucherNo}\nতারিখ: ${fmtDate(v.date)}\nমাধ্যম: ${v.method}\n\n${liveBlock(siteRoot())}\n\nধন্যবাদ 🙏\nVivekananda Cricket Association of Jeliakhali`}
 function addItem(d="",q=1,r=""){const w=document.createElement("div");w.className="item";w.innerHTML=`<input class="d" placeholder="বিবরণ" value="${esc(d)}"><input class="q" type="number" min="1" value="${q}" inputmode="numeric"><input class="r" type="number" min="0" placeholder="দর ₹" value="${r}" inputmode="numeric"><span class="t">₹0</span><button type="button" title="বাদ দিন">✕</button>`;
  w.querySelectorAll("input").forEach(i=>i.oninput=calc);w.querySelector("button").onclick=()=>{if(document.querySelectorAll(".item").length>1){w.remove();calc()}};$("items").appendChild(w);calc()}
 function items(){return[...document.querySelectorAll(".item")].map(w=>{const q=Number(w.querySelector(".q").value)||0,r=Number(w.querySelector(".r").value)||0;return{desc:w.querySelector(".d").value.trim(),qty:q,rate:r,amount:q*r}}).filter(x=>x.desc||x.amount)}
@@ -36,17 +38,17 @@ function render(){
  const f=$("fCat").value,q=$("fSearch").value.trim().toLowerCase();
  const list=rows.filter(v=>(!f||v.cat===f)&&(!q||[v.payee,v.voucherNo,v.phone].join(" ").toLowerCase().includes(q)));
  const live=rows.filter(v=>v.status!=="rejected"),exp=live.reduce((a,v)=>a+Number(v.total||0),0),pend=rows.filter(v=>v.status==="pending").reduce((a,v)=>a+Number(v.total||0),0);
- const income=inc.reg+inc.member+inc.donation+inc.sponsor,by={};live.forEach(v=>by[v.cat]=(by[v.cat]||0)+Number(v.total||0));
+ const income=inc.reg+inc.desk+inc.member+inc.donation+inc.sponsor,by={};live.forEach(v=>by[v.cat]=(by[v.cat]||0)+Number(v.total||0));
  $("tiles").innerHTML=`<div class="tile g"><b>${money(income)}</b><span>মোট আয়</span></div><div class="tile r"><b>${money(exp)}</b><span>মোট খরচ</span></div>${pend>0?`<div class="tile"><b>${money(pend)}</b><span>⏳ অনুমোদন বাকি</span></div>`:""}<div class="tile"><b>${money(income-exp)}</b><span>বর্তমান জমা</span></div>`;
- $("summary").innerHTML=`<div class="rc-grid"><div><h3>📥 আয়ের হিসাব</h3>${[["Team Registration",inc.reg],["Member চাঁদা",inc.member],["অতিথি অনুদান",inc.donation],["Sponsor",inc.sponsor]].map(x=>`<div class="sr"><span>${x[0]}</span><b>${money(x[1])}</b></div>`).join("")}<div class="sr tt"><span>মোট আয়</span><b>${money(income)}</b></div></div><div><h3>📤 খরচের হিসাব</h3>${Object.entries(by).sort((a,b)=>b[1]-a[1]).map(x=>`<div class="sr"><span>${esc(x[0])}</span><b>${money(x[1])}</b></div>`).join("")||"<p class='muted'>কোনো খরচ নেই</p>"}<div class="sr tt"><span>মোট খরচ</span><b>${money(exp)}</b></div></div></div><button id="printSum" style="margin-top:12px">🖨️ হিসাব Print / PDF</button>`;
+ $("summary").innerHTML=`<div class="rc-grid"><div><h3>📥 আয়ের হিসাব</h3>${[["Team Registration",inc.reg],["Team Receipt Desk (নিবন্ধন ছাড়া দল)",inc.desk],["Member চাঁদা",inc.member],["অতিথি অনুদান",inc.donation],["Sponsor",inc.sponsor]].map(x=>`<div class="sr"><span>${x[0]}</span><b>${money(x[1])}</b></div>`).join("")}<div class="sr tt"><span>মোট আয়</span><b>${money(income)}</b></div>${deskNote()}</div><div><h3>📤 খরচের হিসাব</h3>${Object.entries(by).sort((a,b)=>b[1]-a[1]).map(x=>`<div class="sr"><span>${esc(x[0])}</span><b>${money(x[1])}</b></div>`).join("")||"<p class='muted'>কোনো খরচ নেই</p>"}<div class="sr tt"><span>মোট খরচ</span><b>${money(exp)}</b></div></div></div><button id="printSum" style="margin-top:12px">🖨️ হিসাব Print / PDF</button>`;
  $("printSum").onclick=()=>{document.body.classList.add("pr-sum");print();setTimeout(()=>document.body.classList.remove("pr-sum"),500)};
  $("list").innerHTML=list.length?`<div class="table-wrap"><table><tr><th>Voucher</th><th>তারিখ</th><th>প্রাপক</th><th>ধরন</th><th>টাকা</th><th></th></tr>${list.map(v=>`<tr><td>${esc(v.voucherNo)}</td><td>${esc(fmtDate(v.date))}</td><td>${esc(v.payee)} ${badge(v)}</td><td>${esc(v.cat)}</td><td><b>${money(v.total)}</b></td><td><button data-c="${esc(v.id)}">দেখুন</button> ${canEditV(v)?`<button data-e="${esc(v.id)}">✏️ Edit</button>`:""} ${actBtns(v)}</td></tr>`).join("")}</table></div>`:"<p class='muted'>কোনো voucher নেই।</p>";
  $("list").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>show(rows.find(v=>v.id===b.dataset.c)));
  $("list").querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>startEdit(b.dataset.e));
  $("list").querySelectorAll("[data-a],[data-r]").forEach(b=>b.onclick=()=>review(b.dataset.a||b.dataset.r,!!b.dataset.a))}
 const badge=v=>v.status==="pending"?'<span class="st pn">⏳ অপেক্ষমাণ</span>':v.status==="rejected"?'<span class="st rj">↩️ ফেরত</span>':'<span class="st ok">✅</span>';
-const canEditV=v=>role&&(role.kind==="admin"||(role.kind==="treasury"&&["pending","rejected"].includes(v.status)));
-const actBtns=v=>canReview(role)&&v.status==="pending"?`<button data-a="${esc(v.id)}">✅ অনুমোদন</button> <button data-r="${esc(v.id)}">↩️ ফেরত</button>`:"";
+const canEditV=v=>role&&(role.kind==="admin"||(can(role,"voucherEdit")&&["pending","rejected"].includes(v.status)));
+const actBtns=v=>can(role,"voucherApprove")&&v.status==="pending"?`<button data-a="${esc(v.id)}">✅ অনুমোদন</button> <button data-r="${esc(v.id)}">↩️ ফেরত</button>`:"";
 function statusLine(v){const s=v.status||"approved";if(s==="approved")return v.reviewedByName?`<div style="text-align:center;font-size:12px;color:#166534;margin-top:8px">✅ অনুমোদিত: ${esc(v.reviewedByName)}${v.reviewedAtMs?" • "+esc(new Date(v.reviewedAtMs).toLocaleDateString("en-IN")):""}</div>`:"";return s==="pending"?'<div style="text-align:center;font-size:12px;color:#b45309;margin-top:8px">⏳ অনুমোদনের অপেক্ষায়</div>':`<div style="text-align:center;font-size:12px;color:#b91c1c;margin-top:8px">↩️ ফেরত${v.reviewNote?": "+esc(v.reviewNote):""}</div>`}
 async function review(id,ok){const v=rows.find(x=>x.id===id);if(!v)return;let note="";
  if(ok){if(!confirm(`${v.voucherNo} (${money(v.total)}) অনুমোদন করবেন?`))return}else{const n=prompt("ফেরত দেওয়ার কারণ লিখুন (ঐচ্ছিক)");if(n===null)return;note=n}
@@ -54,11 +56,19 @@ async function review(id,ok){const v=rows.find(x=>x.id===id);if(!v)return;let no
  wb.update(doc(db,"paymentVouchers",id),upd);
  addLog(wb,role,user,{id:lid,action:ok?"voucher.approve":"voucher.reject",col:"paymentVouchers",docId:id,summary:`${v.voucherNo} • ${v.payee} • ${money(v.total)}${note?" • "+note:""}`,before:{status:v.status||"approved"}});
  try{await wb.commit();rows=rows.map(x=>x.id===id?{...x,...upd}:x);render();if(cur&&cur.id===id)show(rows.find(x=>x.id===id))}catch(e){alert("সম্ভব হয়নি: "+(e.code==="permission-denied"?"আপনার এই কাজের অনুমতি নেই।":e.message))}}
+function deskNote(){
+ const sk=deskInfo.skipped;if(!sk.length)return"";
+ const by=k=>sk.filter(x=>x.reason===k),sum=a=>a.reduce((t,x)=>t+x.amt,0);
+ const reg=by("registered"),tr=by("trial"),ex=by("excluded");
+ const parts=[reg.length&&`নিবন্ধিত দলের ${reg.length}টি রসিদ (${money(sum(reg))}) — নিবন্ধনের টাকায় আগেই ধরা, তাই দুবার গোনা হয়নি`,tr.length&&`${tr.length}টি trial রসিদ বাদ`,ex.length&&`${ex.length}টি হাতে বাদ দেওয়া`].filter(Boolean);
+ return`<p class="muted" style="font-size:12px;margin:8px 0 0">ℹ️ ${parts.join(" • ")}.${role&&role.kind==="admin"?' <a href="team-receipts.html" style="text-decoration:underline">ঠিক করুন →</a>':""}</p>`}
 async function load(){
  const s=await getDocs(query(collection(db,"paymentVouchers"),orderBy("createdAtMs","desc")));rows=s.docs.map(d=>d.data());
- inc={reg:0,member:0,donation:0,sponsor:0};
- try{const r=await getDocs(collection(db,"paymentReceipts"));r.docs.forEach(d=>{const x=d.data();if(inc[x.type]!==undefined)inc[x.type]+=Number(x.amount||0)})}catch{}
- try{const t=await getDocs(collection(db,"teamRegistrations"));inc.reg=t.docs.reduce((a,d)=>a+Number(d.data().totalPaid||0),0)}catch{}
+ inc={reg:0,member:0,donation:0,sponsor:0,desk:0};
+ let deskRecs=[],regDocs=[];
+ try{const r=await getDocs(collection(db,"paymentReceipts"));r.docs.forEach(d=>{const x=d.data();if(inc[x.type]!==undefined)inc[x.type]+=Number(x.amount||0);else if(isDeskReceipt(x))deskRecs.push({...x,code:d.id})})}catch{}
+ try{const t=await getDocs(collection(db,"teamRegistrations"));regDocs=t.docs.map(d=>d.data());inc.reg=regDocs.reduce((a,x)=>a+Number(x.totalPaid||0),0)}catch{}
+ deskInfo=teamReceiptIncome(deskRecs,regDocs);inc.desk=deskInfo.total;
  render()}
 $("addItem").onclick=()=>addItem();
 $("fCat").innerHTML+=[...$("cat").options].map(o=>`<option>${esc(o.text)}</option>`).join("");
@@ -75,6 +85,7 @@ $("cancelEdit").onclick=()=>{resetForm();$("saveMsg").textContent=""};
 $("saveBtn").onclick=async()=>{
  const payee=$("payee").value.trim(),it=items(),total=it.reduce((a,x)=>a+x.amount,0);
  if(!payee||!(total>0)){$("saveMsg").textContent="⚠️ প্রাপকের নাম ও কমপক্ষে একটা item-এর দর দিন";return}
+ if(!can(role,editing?"voucherEdit":"voucherNew")){$("saveMsg").textContent="⛔ এই কাজের অনুমতি Admin আপনাকে দেননি";return}
  const b=$("saveBtn");b.disabled=true;$("saveMsg").textContent="সেভ হচ্ছে…";
  try{
   const f={cat:$("cat").value,payee,phone:$("phone").value.trim(),method:$("method").value,date:$("date").value||today(),ref:$("ref").value.trim(),approver:$("approver").value.trim(),items:it,total,sigPayee:padE.data(),sigApprover:padA.data()};
@@ -88,11 +99,11 @@ $("saveBtn").onclick=async()=>{
   resetForm();$("approver").value=f.approver;$("saveMsg").textContent=wasEdit?"✅ পরিবর্তন সেভ হয়েছে":"✅ Voucher তৈরি হয়েছে";
  }catch(e){load().catch(()=>{});$("saveMsg").textContent="❌ সেভ হয়নি: "+(e.code==="permission-denied"?"firestore.rules-এ paymentVouchers-এর নিয়ম publish করুন":e.message)}
  b.disabled=false};
-$("printBtn").onclick=()=>print();
-$("waBtn").onclick=()=>{if(cur)window.open(`https://wa.me/${phone91(cur.phone)}?text=${encodeURIComponent(msg(cur))}`,"_blank")};
+$("printBtn").onclick=()=>{if(cur)logEvent(role,user,"voucher.print","paymentVouchers",cur.voucherNo);print()};
+$("waBtn").onclick=()=>{if(cur)logEvent(role,user,"voucher.share","paymentVouchers","WhatsApp • "+cur.voucherNo);if(cur)window.open(`https://wa.me/${phone91(cur.phone)}?text=${encodeURIComponent(msg(cur))}`,"_blank")};
 $("copyBtn").onclick=()=>{if(cur)navigator.clipboard?.writeText(msg(cur)).then(()=>window.vcToast?.("📋 কপি হয়েছে"))};
-$("csvBtn").onclick=()=>{const c=[["Voucher No","Date","Payee","Phone","Category","Items","Total","Method","Ref"],...rows.map(v=>[v.voucherNo,v.date,v.payee,v.phone,v.cat,v.items.map(x=>`${x.desc} x${x.qty}`).join("; "),v.total,v.method,v.ref])].map(a=>a.map(x=>`"${String(x??"").replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+c],{type:"text/csv"}));a.download="VCAJ-vouchers.csv";a.click()};
+$("csvBtn").onclick=()=>{logEvent(role,user,"csv.export","paymentVouchers","ভাউচার CSV — "+rows.length+"টি");const c=[["Voucher No","Date","Payee","Phone","Category","Items","Total","Method","Ref"],...rows.map(v=>[v.voucherNo,v.date,v.payee,v.phone,v.cat,v.items.map(x=>`${x.desc} x${x.qty}`).join("; "),v.total,v.method,v.ref])].map(a=>a.map(x=>`"${String(x??"").replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+c],{type:"text/csv"}));a.download="VCAJ-vouchers.csv";a.click()};
 $("loginBtn").onclick=async()=>{try{await loginAny($("em").value,$("pw").value)}catch(e){$("loginMsg").textContent="Login হয়নি: "+e.message}};
 $("date").value=today();addItem();
 onAuthStateChanged(auth,async u=>{user=u;role=u?await resolveRole(u):null;if(u&&role&&role.kind==="none"){$("loginMsg").textContent=roleMsg(role);await signOut(auth);return}
-const ok=!!role;$("loginBox").classList.toggle("hide",ok);$("app").classList.toggle("hide",!ok);if(ok){showRole(role,$("roleBar"));$("formCard").classList.toggle("hide",!canWrite(role))}if(ok){try{await load()}catch(e){$("list").innerHTML="<p class='muted'>Voucher লোড হয়নি — firestore.rules-এ নতুন নিয়ম যোগ করুন।</p>"}}});
+const ok=!!role;$("loginBox").classList.toggle("hide",ok);$("app").classList.toggle("hide",!ok);if(ok){showRole(role,$("roleBar"));logLogin(role,u);$("formCard").classList.toggle("hide",!(can(role,"voucherNew")||can(role,"voucherEdit")))}if(ok){try{await load()}catch(e){$("list").innerHTML="<p class='muted'>Voucher লোড হয়নি — firestore.rules-এ নতুন নিয়ম যোগ করুন।</p>"}}});

@@ -34,7 +34,7 @@ export const TEMPLATES={
 /* ---- who to message: registered teams + teams that only have a Receipt-Desk receipt + this phone's unsynced receipts + hand-added ---- */
 export const normName=s=>String(s??"").toLowerCase().replace(/\s+/g," ").trim();
 /* Receipt Desk (team) receipts carry `payer` and no `type`; member/donation/sponsor receipts carry `type` */
-export const isTeamReceipt=r=>!!(r&&r.payer&&!r.type);
+export const isTeamReceipt=r=>!!(r&&r.payer&&!r.type&&!r.trial);
 export function mergeTeams({regs=[],receipts=[],locals=[],extras=[]}={}){
  const M=new Map();
  const add=(src,name,numbers,x={})=>{

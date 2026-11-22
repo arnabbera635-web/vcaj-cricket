@@ -1,0 +1,24 @@
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07152d"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="vcaj-theme.css"><link rel="stylesheet" href="admin.css"><link rel="manifest" href="manifest.webmanifest"><title>টিম রসিদ ব্যবস্থাপনা — VCAJ Admin</title>
+<style>
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.g label{display:block;font-weight:700;font-size:13px}.g input,.g select{width:100%;font:inherit}
+.hide{display:none!important}.sec{margin-bottom:14px}.hint{font-size:13px;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}.tile{padding:14px;border-radius:14px;background:linear-gradient(135deg,#0d2344,#17365f);color:#fff;text-align:center}.tile b{display:block;font-size:22px;color:#fbbf24}.tile span{font-size:12px;color:#cbd5e1}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sm{padding:7px 10px;font-size:13px}.warn{background:#fee2e2;color:#b91c1c}
+.rw{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.rw small{color:var(--muted)}.rw input[type=checkbox]{width:auto}
+.b{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:800;margin:2px 4px 0 0}.b.t{background:#fee2e2;color:#b91c1c}.b.c{background:#dcfce7;color:#166534}.b.r{background:#fef3c7;color:#92400e}.b.x{background:#e2e8f0;color:#334155}
+.rw select{font-size:12px;max-width:150px}
+@media(max-width:700px){.rw{grid-template-columns:auto 1fr}.rw .rr{grid-column:1/-1}}
+</style></head>
+<body><header class="topbar"><a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav><a href="admin.html">Admin</a><a href="team-registrations-admin.html">Team Registration</a><a href="team-receipts.html">টিম রসিদ</a></nav></header>
+<main class="container"><section class="hero small"><div><p class="eyebrow">ADMIN</p><h1>🧾 টিম রসিদ ব্যবস্থাপনা</h1><p>Receipt Desk-এর দলের রসিদ — ট্রায়ালগুলো বাদ দিন বা মুছুন, আর কোনটা আয়ে ধরা হবে ঠিক করুন</p></div></section>
+<section class="card" id="lg"><h2>🔐 Admin Login</h2><div class="g"><input id="em" type="email" placeholder="Admin email" autocomplete="username"><input id="pw2" type="password" placeholder="Password" autocomplete="current-password"><button id="lb">Login</button></div><p id="lm" class="muted"></p></section>
+<div id="app" class="hide">
+<section class="card sec"><h2>📊 এই রসিদগুলো আয়ের হিসাবে কীভাবে ধরা হয়</h2>
+<p class="hint">• <b>Trial</b> চিহ্নিত রসিদ কোথাও গোনা হয় না (আয়, বার্তার তালিকা, Receipt Desk-এর তালিকা সব জায়গা থেকে সরে যায়)।<br>• যে দল <b>নিবন্ধন</b> করেছে, তার টাকা নিবন্ধনের "মোট পরিশোধিত"-এ আগেই ধরা, তাই সেই দলের Receipt Desk-রসিদ <b>আবার গোনা হয় না</b>।<br>• নিবন্ধন ছাড়া দলের রসিদ আয়ে ধরা হয়। কোনোটা আলাদা করতে চাইলে নিচে "আয়ে ধরুন / ধরবেন না" বেছে নিন।</p>
+<div class="tiles" id="tiles"></div></section>
+<section class="card sec"><div class="g"><label>দেখান<select id="flt"><option value="all">সব রসিদ</option><option value="trial">শুধু Trial</option><option value="counted">শুধু আয়ে ধরা</option><option value="skipped">আয়ে ধরা হয়নি (trial ছাড়া)</option></select></label><label>খুঁজুন<input id="q" placeholder="দলের নাম বা নম্বর"></label></div>
+<div class="acts" style="margin-top:10px"><button id="selAll" class="sm">দেখা সবগুলো বাছুন</button><button id="selNone" class="sm">বাছা বাতিল</button><button id="mkTrial" class="sm">🧪 বাছাইগুলো Trial করুন</button><button id="unTrial" class="sm">↩️ Trial ফেরান</button><button id="delTrial" class="sm warn">🗑️ বাছা Trial রসিদ মুছুন (স্থায়ী)</button><span id="msg" class="muted"></span></div></section>
+<section class="card sec"><div id="list">লোড হচ্ছে…</div></section>
+<section class="card hide" id="localBox"><h2>💾 শুধু এই ফোনে থাকা রসিদ</h2><p class="hint">এগুলো ক্লাউডে সেভ হয়নি (নেট না থাকার সময় বানানো), তাই শুধু এই ফোনের ব্রাউজারে আছে। ট্রায়ালের হলে এখান থেকে মুছে ফেলুন।</p><div id="localList"></div><p><button id="delLocalAll" class="sm warn">🗑️ এই ফোনের সবগুলো মুছুন</button></p></section>
+</div></main>
+<script type="module" src="team-receipts.js"></script><script src="vcaj-enhance.js" defer></script></body></html>

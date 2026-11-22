@@ -1,3 +1,4 @@
+import {siteRoot,liveBlock} from "./site-link.js";
 import {db,auth,collection,doc,getDocs,writeBatch,serverTimestamp} from "./firebase.js";
 import {STAMP} from "./vcaj-stamp.js";
 
@@ -676,7 +677,7 @@ function whatsappLink(r) {
   if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
   if (digits.length === 10) digits = "91" + digits;
   if (digits.length < 11) return "";
-  const text = `✅ Payment Receipt — VCAJ\nTeam: ${r.payer}\nFor: ${r.category}\nAmount received: ${money(r.amount)}\nReceipt code: ${r.code}\nধন্যবাদ!`;
+  const text = `✅ Payment Receipt — VCAJ\nTeam: ${r.payer}\nFor: ${r.category}\nAmount received: ${money(r.amount)}\nReceipt code: ${r.code}\n\n${liveBlock(siteRoot())}\n\nধন্যবাদ!`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
@@ -891,7 +892,7 @@ async function loadIssued() {
   let cloud = [], error = "";
   try {
     const snap = await getDocs(collection(db, RECEIPT_COLLECTION));
-    cloud = snap.docs.map(d => ({...d.data(), code: d.id}));
+    cloud = snap.docs.map(d => ({...d.data(), code: d.id})).filter(x => !x.type && !x.trial);
   } catch (e) { error = e.message; }
   const local = readJson(LOCAL_KEY, []).filter(l => !cloud.some(c => c.code === l.code)).map(l => ({...l, _local: true}));
   issuedCache = [...cloud, ...local].sort((a, b) => (b.issuedAtMs || 0) - (a.issuedAtMs || 0));
