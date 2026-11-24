@@ -1,5 +1,5 @@
 import {auth,db,isAdmin,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDocs,setDoc,query,orderBy,limit} from "./firebase.js";
-import {esc,p91,scheduleText,buildMessage,hashMsg,mergeTeams,DEFAULTS,STAGES,TEMPLATES} from "./broadcast-core.js";
+import {esc,p91,scheduleText,buildMessage,hashMsg,mergeTeams,normName,DEFAULTS,STAGES,TEMPLATES} from "./broadcast-core.js";
 import {siteRoot,liveLinks} from "./site-link.js";
 const $=id=>document.getElementById(id);
 const LS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
@@ -43,6 +43,17 @@ function send(id){
 function histDraw(){
  $("hist").innerHTML=hist.length?hist.map(h=>`<div class="tr" style="grid-template-columns:1fr auto"><div><b>${esc((h.msg||"").split("\n").find((l,i)=>i>=4&&l.trim())||"বার্তা")}</b><br><small>${esc(new Date(h.createdAtMs).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}))} • ${(h.recipients||[]).length} দল • ${(h.opened||[]).length} জনকে খোলা হয়েছে</small></div><div><button class="sm" data-u="${esc(h.id)}">📄 আবার ব্যবহার</button></div></div>`).join(""):"<p class='muted'>এখনও কোনো বার্তা পাঠানো হয়নি।</p>";
  $("hist").querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>{const h=hist.find(x=>x.id===b.dataset.u);const L=(h.msg||"").split("\n");const i=L.findIndex(l=>/^(প্রিয় .* দল,|সকল দলের প্রতি,)$/.test(l));const j=L.lastIndexOf("ধন্যবাদ 🙏");const body=L.slice(i>=0?i+1:3,j>0?j:undefined).join("\n").replace(/\n+🔴[\s\S]*$/,"").trim();$("body").value=body;preview();window.scrollTo({top:0,behavior:"smooth"})})}
+function applyDraft(){
+ const d=LS("vcajBcDraft",null);if(!d)return;
+ try{localStorage.removeItem("vcajBcDraft")}catch{}
+ $("body").value=d.body||"";
+ let note="✅ ফিকশ্চার থেকে বার্তা বসানো হয়েছে — দেখে নিয়ে পাঠান।";
+ if(Array.isArray(d.teams)&&d.teams.length){
+  const want=new Set(d.teams.map(normName));
+  sel=new Set(T.filter(t=>want.has(normName(t.name))&&t.wa).map(t=>t.id));
+  const miss=d.teams.filter(n=>!T.some(t=>normName(t.name)===normName(n)&&t.wa));
+  note+=` ${sel.size}টি দল বাছা হয়েছে।`+(miss.length?` ⚠️ এই দলগুলোর WhatsApp নম্বর নেই বা তালিকায় নেই (নিজে খুঁজে টিক দিন): ${miss.join(", ")}`:"")}
+ $("sMsg").textContent=note;preview();drawTeams();window.scrollTo({top:0,behavior:"smooth"})}
 async function load(){
  const c=LS("vcajBcCfg",{});$("c_title").value=c.title||DEFAULTS.title;$("c_organizer").value=c.organizer||DEFAULTS.organizer;$("c_sign").value=c.sign||DEFAULTS.sign;$("c_venue").value=c.venue||"";
  let regs=[],receipts=[],note="";
@@ -53,7 +64,7 @@ async function load(){
  const n=k=>T.filter(t=>t.src.includes(k)).length;
  $("tsum").textContent=`মোট ${T.length} দল • নিবন্ধিত ${n("reg")} • রসিদ থেকে ${n("receipt")+n("device")} • হাতে যোগ ${n("manual")} • WhatsApp নম্বর আছে ${T.filter(t=>t.wa).length}${note?" • ⚠️ "+note:""}`
  try{const h=await getDocs(query(collection(db,"broadcasts"),orderBy("createdAtMs","desc"),limit(30)));hist=h.docs.map(d=>({...d.data(),id:d.id}))}catch(e){$("hist").innerHTML="<p class='muted'>ইতিহাস লোড হয়নি — firestore.rules-এ broadcasts-এর নিয়ম publish করুন।</p>"}
- if(hist.length||!$("hist").textContent.includes("লোড হয়নি"))histDraw();schRows();drawTeams()}
+ if(hist.length||!$("hist").textContent.includes("লোড হয়নি"))histDraw();schRows();drawTeams();applyDraft()}
 $("tpl").onchange=()=>{const v=$("tpl").value;if(!v)return;if($("body").value.trim()&&!confirm("এখনকার লেখা বদলে নমুনা বসবে। ঠিক আছে?")){$("tpl").value="";return}$("body").value=TEMPLATES[v];preview()};
 $("addRow").onclick=()=>{rows.push({stage:STAGES[0],a:"",b:"",date:"",time:"",venue:""});schRows()};
 $("insSch").onclick=()=>{const t=scheduleText(rows,cfg().venue);if(!t){alert("কমপক্ষে একটা ম্যাচের দুই দলের নাম দিন");return}const b=$("body");b.value=(b.value.replace(/\n*\(নিচের "সময়সূচি বানান"[^)]*\)\s*$/,"").trimEnd()+"\n\n"+t).trim();preview()};
