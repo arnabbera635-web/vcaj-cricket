@@ -1,0 +1,24 @@
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07152d"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="vcaj-theme.css"><link rel="stylesheet" href="admin.css"><link rel="manifest" href="manifest.webmanifest"><title>হিসাব অডিট — VCAJ Admin</title>
+<style>
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.g label{display:block;font-weight:700;font-size:13px}.g input,.g select{width:100%;font:inherit}.hide{display:none!important}.sec{margin-bottom:14px}.hint{font-size:13px;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}.tile{padding:14px;border-radius:14px;background:linear-gradient(135deg,#0d2344,#17365f);color:#fff;text-align:center}.tile b{display:block;font-size:22px;color:#fbbf24}.tile span{font-size:12px;color:#cbd5e1}.tile.e b{color:#fca5a5}.tile.w b{color:#fde68a}.tile.o b{color:#86efac}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.tabs button{background:transparent;color:inherit;border:2px solid var(--line);padding:9px 14px;border-radius:12px;font-weight:700}.tabs button.on{border-color:var(--orange);background:rgba(255,138,31,.14)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sm{padding:7px 10px;font-size:13px}
+.is{border:1px solid var(--line);border-left:6px solid #94a3b8;border-radius:14px;padding:12px 14px;margin:10px 0}.is.error{border-left-color:#dc2626;background:rgba(220,38,38,.07)}.is.warn{border-left-color:#f59e0b;background:rgba(245,158,11,.08)}.is.info{border-left-color:#3b82f6;background:rgba(59,130,246,.07)}
+.is h4{margin:0 0 4px}.is ul{margin:6px 0 0;padding-left:20px;font-size:14px}.is .nt{font-size:12.5px;color:var(--muted);margin-top:6px}.b{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:800;margin-right:6px;background:#e2e8f0;color:#334155}
+.cb{width:100%;border-collapse:collapse;font-size:14px}.cb th,.cb td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top}.cb td.n{text-align:right;white-space:nowrap}.cb tr.tot td{font-weight:800;border-top:2px solid var(--ink,#000)}.cb .neg{color:#dc2626}.tw{overflow-x:auto}
+.sg{display:none;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:60px;text-align:center;font-size:13px}.sg div{border-top:1.5px solid #111;padding-top:4px}.ph{display:none;text-align:center;margin-bottom:10px}
+@media print{body *{visibility:hidden}#rep,#rep *{visibility:visible}#rep{position:absolute;left:0;top:0;width:100%}.sg{display:grid}.ph{display:block}.noprint{display:none!important}}
+</style></head>
+<body><header class="topbar"><a class="brand" href="index.html">VCAJ <span>Cricket</span></a><nav><a href="admin.html">Admin</a><a href="accounts.html">Accounts</a><a href="audit.html">হিসাব অডিট</a></nav></header>
+<main class="container"><section class="hero small"><div><p class="eyebrow">ADMIN</p><h1>🔍 হিসাব অডিট</h1><p>রসিদ, ভাউচার, দল ও সদস্যের হিসাব নিজেদের মধ্যে মেলে কি না — ভুল ও সন্দেহজনক জিনিস এক জায়গায়</p></div></section>
+<section class="card" id="lg"><h2>🔐 Admin Login</h2><div class="g"><input id="em" type="email" placeholder="Admin email" autocomplete="username"><input id="pw2" type="password" placeholder="Password" autocomplete="current-password"><button id="lb">Login</button></div><p id="lm" class="muted"></p></section>
+<div id="app" class="hide">
+<section class="card sec noprint"><div class="g"><label>অনুমোদনের অপেক্ষা সীমা (দিন)<input id="o_days" type="number" min="1" value="3"></label><label>বড় খরচের সীমা (₹)<input id="o_big" type="number" min="1" value="5000"></label><label>শুরুর জমা (₹) — ক্যাশ বুকের জন্য<input id="o_open" type="number" value="0"></label></div>
+<div class="acts" style="margin-top:10px"><button id="run">🔄 অডিট চালান</button><span id="st" class="muted"></span></div><p class="hint">এই পেজ রসিদ, ভাউচার, দলের নিবন্ধন, সদস্য আর Activity Log একবার পড়ে মেলায়, তারপর কিছু বদলায় না। হাতে আসলে কত টাকা আছে, সেটা সিস্টেম জানে না — "মাধ্যম মিলান" ট্যাবে নিজে গুনে বসাবেন।</p></section>
+<div class="tabs noprint" id="tabs"><button data-t="sum" class="on">⚠️ সমস্যা ও সারাংশ</button><button data-t="cb">📒 ক্যাশ বুক</button><button data-t="rec">⚖️ মাধ্যম মিলান</button><button data-t="chk">🧾 যাচাইয়ের নথি</button></div>
+<section class="card" id="rep"><div class="ph"><b id="phT"></b><br><span id="phS"></span></div>
+<div id="p_sum"></div><div id="p_cb" class="hide"></div><div id="p_rec" class="hide"></div><div id="p_chk" class="hide"></div>
+<div class="sg"><div>অডিটর</div><div>কোষাধ্যক্ষ</div><div>সম্পাদক</div><div>সভাপতি</div></div></section>
+<p class="noprint"><button id="prt">🖨️ এই ট্যাব Print / PDF</button></p></div></main>
+<script type="module" src="audit.js"></script><script src="vcaj-enhance.js" defer></script></body></html>
