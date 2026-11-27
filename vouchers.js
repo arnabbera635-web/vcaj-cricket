@@ -1,9 +1,14 @@
 import {STAMP} from "./vcaj-stamp.js";
+import {makePad,safeSig} from "./vcaj-sign.js";
 import {auth,db,isAdmin,onAuthStateChanged,signInWithEmailAndPassword,collection,doc,getDocs,setDoc,query,orderBy} from "./firebase.js";
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const money=v=>"₹"+Number(v||0).toLocaleString("en-IN");
 const today=()=>new Date().toISOString().slice(0,10);
 const fmtDate=d=>{try{return new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}catch{return d}};
+const padE=makePad($("padPayee")),padA=makePad($("padAppr"));let editing=null;
+const sigImg=v=>safeSig(v)?`<img alt="signature" src="${safeSig(v)}">`:`<span class="sp"></span>`;
+document.querySelectorAll("[data-clr]").forEach(b=>b.onclick=()=>(b.dataset.clr==="padPayee"?padE:padA).clear());
+try{padA.load(localStorage.getItem("vcApprSig")||"");if(localStorage.getItem("vcApprBy"))$("approver").value=localStorage.getItem("vcApprBy")}catch{}
 let rows=[],inc={reg:0,member:0,donation:0,sponsor:0},cur=null;
 function words(n){n=Math.round(n);if(!n)return"Zero";const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"],b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
  const two=x=>x<20?a[x]:b[Math.floor(x/10)]+(x%10?" "+a[x%10]:"");const three=x=>(x>=100?a[Math.floor(x/100)]+" Hundred"+(x%100?" ":""):"")+(x%100?two(x%100):"");
@@ -23,7 +28,7 @@ function show(v){cur=v;$("vCard").classList.remove("hide");
  <div class="tot">মোট: ${money(v.total)}</div><div class="words">In words: Rupees ${words(v.total)} Only</div>
  <div class="r" style="margin-top:8px"><span>মাধ্যম</span><b>${esc(v.method)}${v.ref?" • Ref: "+esc(v.ref):""}</b></div>
  <p style="font-size:12px;color:#444;margin:10px 0 0">আমি উপরোক্ত টাকা ${esc(v.payee)} হিসেবে বুঝিয়া পাইলাম।</p>
- <div class="sig"><span>প্রাপকের স্বাক্ষর</span><span>${esc(v.approver||"অনুমোদনকারী")}</span><span>কোষাধ্যক্ষ</span></div><img class="stamp" src="${STAMP}" alt="VCAJ Stamp">`;
+ <div class="sigs"><div class="sg">${sigImg(v.sigPayee)}<div class="ln">প্রাপকের স্বাক্ষর</div></div><div class="sg">${sigImg(v.sigApprover)}<div class="ln">${esc(v.approver||"অনুমোদনকারী")} — কোষাধ্যক্ষ / VCAJ</div></div></div>${v.editedAtMs?`<div style="text-align:center;font-size:10px;color:#888;margin-top:6px">সংশোধিত: ${esc(new Date(v.editedAtMs).toLocaleString("en-IN"))}</div>`:""}<img class="stamp" src="${STAMP}" alt="VCAJ Stamp">`;
  $("vCard").scrollIntoView({behavior:"smooth"})}
 function render(){
  const f=$("fCat").value,q=$("fSearch").value.trim().toLowerCase();
@@ -33,8 +38,9 @@ function render(){
  $("tiles").innerHTML=`<div class="tile g"><b>${money(income)}</b><span>মোট আয়</span></div><div class="tile r"><b>${money(exp)}</b><span>মোট খরচ</span></div><div class="tile"><b>${money(income-exp)}</b><span>বর্তমান জমা</span></div>`;
  $("summary").innerHTML=`<div class="rc-grid"><div><h3>📥 আয়ের হিসাব</h3>${[["Team Registration",inc.reg],["Member চাঁদা",inc.member],["অতিথি অনুদান",inc.donation],["Sponsor",inc.sponsor]].map(x=>`<div class="sr"><span>${x[0]}</span><b>${money(x[1])}</b></div>`).join("")}<div class="sr tt"><span>মোট আয়</span><b>${money(income)}</b></div></div><div><h3>📤 খরচের হিসাব</h3>${Object.entries(by).sort((a,b)=>b[1]-a[1]).map(x=>`<div class="sr"><span>${esc(x[0])}</span><b>${money(x[1])}</b></div>`).join("")||"<p class='muted'>কোনো খরচ নেই</p>"}<div class="sr tt"><span>মোট খরচ</span><b>${money(exp)}</b></div></div></div><button id="printSum" style="margin-top:12px">🖨️ হিসাব Print / PDF</button>`;
  $("printSum").onclick=()=>{document.body.classList.add("pr-sum");print();setTimeout(()=>document.body.classList.remove("pr-sum"),500)};
- $("list").innerHTML=list.length?`<div class="table-wrap"><table><tr><th>Voucher</th><th>তারিখ</th><th>প্রাপক</th><th>ধরন</th><th>টাকা</th><th></th></tr>${list.map(v=>`<tr><td>${esc(v.voucherNo)}</td><td>${esc(fmtDate(v.date))}</td><td>${esc(v.payee)}</td><td>${esc(v.cat)}</td><td><b>${money(v.total)}</b></td><td><button data-c="${esc(v.id)}">দেখুন</button></td></tr>`).join("")}</table></div>`:"<p class='muted'>কোনো voucher নেই।</p>";
- $("list").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>show(rows.find(v=>v.id===b.dataset.c)))}
+ $("list").innerHTML=list.length?`<div class="table-wrap"><table><tr><th>Voucher</th><th>তারিখ</th><th>প্রাপক</th><th>ধরন</th><th>টাকা</th><th></th></tr>${list.map(v=>`<tr><td>${esc(v.voucherNo)}</td><td>${esc(fmtDate(v.date))}</td><td>${esc(v.payee)}</td><td>${esc(v.cat)}</td><td><b>${money(v.total)}</b></td><td><button data-c="${esc(v.id)}">দেখুন</button> <button data-e="${esc(v.id)}">✏️ সম্পাদনা</button></td></tr>`).join("")}</table></div>`:"<p class='muted'>কোনো voucher নেই।</p>";
+ $("list").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>show(rows.find(v=>v.id===b.dataset.c)));
+ $("list").querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>startEdit(b.dataset.e))}
 async function load(){
  const s=await getDocs(query(collection(db,"paymentVouchers"),orderBy("createdAtMs","desc")));rows=s.docs.map(d=>d.data());
  inc={reg:0,member:0,donation:0,sponsor:0};
@@ -44,15 +50,28 @@ async function load(){
 $("addItem").onclick=()=>addItem();
 $("fCat").innerHTML+=[...$("cat").options].map(o=>`<option>${esc(o.text)}</option>`).join("");
 $("fCat").onchange=render;$("fSearch").oninput=render;
+function resetForm(){editing=null;["payee","phone","ref"].forEach(i=>$(i).value="");$("cat").selectedIndex=0;$("method").selectedIndex=0;$("date").value=today();$("items").innerHTML="";addItem();padE.clear();$("formTitle").textContent="➕ নতুন Voucher";$("saveBtn").textContent="💾 Voucher তৈরি করুন";$("cancelEdit").classList.add("hide")}
+function startEdit(id){const v=rows.find(x=>x.id===id);if(!v)return;editing=id;
+ const c=$("cat");if(![...c.options].some(o=>o.text===v.cat))c.add(new Option(v.cat,v.cat));c.value=v.cat;
+ const m=$("method");if(![...m.options].some(o=>o.text===v.method))m.add(new Option(v.method,v.method));m.value=v.method;
+ $("payee").value=v.payee||"";$("phone").value=v.phone||"";$("date").value=v.date||today();$("ref").value=v.ref||"";$("approver").value=v.approver||$("approver").value;
+ $("items").innerHTML="";(v.items&&v.items.length?v.items:[{desc:"",qty:1,rate:""}]).forEach(x=>addItem(x.desc,x.qty,x.rate));
+ padE.load(v.sigPayee||"");if(v.sigApprover)padA.load(v.sigApprover);
+ $("formTitle").textContent="✏️ Voucher সম্পাদনা — "+v.voucherNo;$("saveBtn").textContent="💾 পরিবর্তন সেভ করুন";$("cancelEdit").classList.remove("hide");$("formCard").scrollIntoView({behavior:"smooth"})}
+$("cancelEdit").onclick=()=>{resetForm();$("saveMsg").textContent=""};
 $("saveBtn").onclick=async()=>{
  const payee=$("payee").value.trim(),it=items(),total=it.reduce((a,x)=>a+x.amount,0);
  if(!payee||!(total>0)){$("saveMsg").textContent="⚠️ প্রাপকের নাম ও কমপক্ষে একটা item-এর দর দিন";return}
  const b=$("saveBtn");b.disabled=true;$("saveMsg").textContent="সেভ হচ্ছে…";
  try{
-  const now=Date.now(),yy=String(new Date().getFullYear()).slice(2),id="PV"+now.toString(36).toUpperCase()+Math.floor(Math.random()*1e3);
-  const v={id,voucherNo:`VCAJ/PV/${yy}/${String(rows.length+1).padStart(4,"0")}`,cat:$("cat").value,payee,phone:$("phone").value.trim(),method:$("method").value,date:$("date").value||today(),ref:$("ref").value.trim(),approver:$("approver").value.trim(),items:it,total,createdAtMs:now,createdBy:auth.currentUser?.email||""};
-  await setDoc(doc(db,"paymentVouchers",id),v);rows.unshift(v);render();show(v);
-  ["payee","phone","ref"].forEach(i=>$(i).value="");$("items").innerHTML="";addItem();$("saveMsg").textContent="✅ Voucher তৈরি হয়েছে";
+  const f={cat:$("cat").value,payee,phone:$("phone").value.trim(),method:$("method").value,date:$("date").value||today(),ref:$("ref").value.trim(),approver:$("approver").value.trim(),items:it,total,sigPayee:padE.data(),sigApprover:padA.data()};
+  let v;const wasEdit=!!editing;
+  if(wasEdit){const old=rows.find(x=>x.id===editing);v={...old,...f,editedAtMs:Date.now(),editedBy:auth.currentUser?.email||"",editCount:(old.editCount||0)+1};await setDoc(doc(db,"paymentVouchers",editing),v);rows=rows.map(x=>x.id===editing?v:x)}
+  else{const now=Date.now(),yy=String(new Date().getFullYear()).slice(2),id="PV"+now.toString(36).toUpperCase()+Math.floor(Math.random()*1e3);
+   v={id,voucherNo:`VCAJ/PV/${yy}/${String(rows.length+1).padStart(4,"0")}`,...f,createdAtMs:now,createdBy:auth.currentUser?.email||""};await setDoc(doc(db,"paymentVouchers",id),v);rows.unshift(v)}
+  render();show(v);
+  try{if(!padA.isEmpty()){localStorage.setItem("vcApprSig",padA.data());localStorage.setItem("vcApprBy",f.approver)}}catch{}
+  resetForm();$("approver").value=f.approver;$("saveMsg").textContent=wasEdit?"✅ পরিবর্তন সেভ হয়েছে":"✅ Voucher তৈরি হয়েছে";
  }catch(e){$("saveMsg").textContent="❌ সেভ হয়নি: "+(e.code==="permission-denied"?"firestore.rules-এ paymentVouchers-এর নিয়ম publish করুন":e.message)}
  b.disabled=false};
 $("printBtn").onclick=()=>print();
